@@ -8,9 +8,7 @@ namespace
 
 Fiber::Fiber() : 
 	points_{}, 
-	ebo_{}, 
-	coreShader_{ Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl") },
-	fiberShader_{ Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl") }
+	ebo_{}
 {
 	glGenVertexArrays(1, &vao_id_);
 	glGenBuffers(1, &vbo_id_);
@@ -32,7 +30,8 @@ Fiber::Fiber() :
 void Fiber::initShaders()
 {
 	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
-	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", nullptr, "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
 	setFiberParameters(CORE);
 	setFiberParameters(FIBER);
 }
@@ -46,16 +45,21 @@ Fiber::~Fiber() {
 void Fiber::render()
 {
 	glBindVertexArray(vao_id_);
+	pointsShader_.use();
+	glPointSize(7);
+	glDrawArrays(GL_POINTS, 0, points_.size() / STRIDE);
+
 	fiberShader_.use();
 	setFiberParameters(FIBER);
-	glPatchParameteri(GL_PATCH_VERTICES, 4); // TODO: check what this does
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
 }
 
-void Fiber::addPoint(float x, float y) {
+// Passes to vertex shader in the form of [a, b, c, d], [b, c, d, e], [c, d, e, f] ...
+void Fiber::addPoint(float x, float y, float z) {
 	points_.push_back(x);
 	points_.push_back(y);
-	points_.push_back(0.f); // z
+	points_.push_back(z);
 
 	if (points_.size() <= 4 * 3) {
 		// first patch
@@ -113,7 +117,7 @@ void Fiber::setFiberParameters(render_type type)
 	shader.setFloat("u_r_max", 1.f);
 
 	shader.setInt("u_use_migration", 1);
-	shader.setInt("u_s_i", 1);
+	shader.setFloat("u_s_i", 1.1f);
 	shader.setFloat("u_rho_min", 0.85);
 	shader.setFloat("u_rho_max", 1.f);
 

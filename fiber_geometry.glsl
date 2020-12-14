@@ -46,7 +46,7 @@ vec3 lerp(vec3 a, vec3 b, float i)
 
 void main()
 {
-    float zoomFactor = 0.25;
+    float zoomFactor = 1;
     float yarn_radius = u_yarn_radius / 2.f;
 
     vec3 start = gl_in[0].gl_Position.xyz;

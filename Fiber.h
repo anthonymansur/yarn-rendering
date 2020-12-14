@@ -15,10 +15,11 @@ class Fiber {
 public:
     Shader coreShader_;
     Shader fiberShader_;
+    Shader pointsShader_;
 
     Fiber();
     ~Fiber();
-    void addPoint(float x, float y);
+    void addPoint(float x, float y, float z);
     void render();
     void setFiberParameters(render_type);
     void initShaders();

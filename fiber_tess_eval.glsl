@@ -2,17 +2,29 @@
 #define pi 3.14159265358979323846f
 #define e 2.718281746F
 
-layout (isolines) in;
+layout (isolines) in; // patch type: isolines
 
-patch in vec4 p_1;
-patch in vec4 p2;
-
+// input to and output of shader
+// ----------------------
+patch in vec4 p_1; // left endpoint
+patch in vec4 p2; // right endpoint
 patch in int num_of_isolines;
+
+out float isCore;
+out vec3 prevPosition;
+out vec3 nextPosition;
+out vec2 textureParams;
+
+// Fiber pre-defined parameters
+// ----------------------------
 uniform int u_ply_num;
 uniform int u_fiber_num;
 
 uniform float u_yarn_radius;
 uniform float u_yarn_alpha;
+
+uniform float u_ellipse_long;
+uniform float u_ellipse_short;
 
 // cross-sectional fiber distribution
 uniform float u_beta;
@@ -23,7 +35,7 @@ uniform float u_alpha; // fiber (pitch) displacement
 
 // migration fiber params
 uniform int u_use_migration;
-uniform int u_s_i;
+uniform float u_s_i;
 uniform float u_rho_min;
 uniform float u_rho_max;
 
@@ -38,13 +50,186 @@ uniform float u_flyaway_hair_r0;
 uniform float u_flyaway_hair_re;
 uniform float u_flyaway_hair_pe;
 
-out float isCore;
-out vec3 prevPosition;
-out vec3 nextPosition;
+// helper functions (see below for definitions)
+// ----------------
+vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
+vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
+vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 
-out vec2 textureParams;
+float rand(vec2 co); // pseudo-random number gen given two floats 
+float fiberDistribution(float R); // rejection sampling
+float sampleR(float v); // get the radius of fiber (<= r_max) given the ply center
+float normalDistribution(float x, float mu, float sigma);
+float sampleLoop(float v, float mu, float sigma);
 
-// random number gen
+// TODO: may need to refactor the way fibers are generated as there is a possibility you are
+// messing up moving between yarn, ply, and fiber space.
+void main()
+{
+	
+	vec4 p0 = gl_in[0].gl_Position; // left endpoint of yarn
+	vec4 p1 = gl_in[1].gl_Position; // right endpoint of yarn
+	float u = gl_TessCoord.x; // location at the curve; from 0 to 1
+	float v = round(num_of_isolines * gl_TessCoord.y); // the i-th fiber we are working with
+
+	/* NOTE: v represents the i-th fiber are are working with. In general, we will have 3 plies, and 
+	   each ply will have v / 3 fibers. Thus, the i-th fiber corresponds to the mod(v/3)-th ply. 
+	*/
+
+	// needed for adjacency information
+	float prev = u - 1/64.f;
+	float curr = u;
+	float next = u + 1/64.f;
+	if (u < 1/64.f)
+	{
+		prev = u;
+	}
+	if (u > 62.5 / 64.f)
+	{
+		next = u;
+	}
+
+	// run algorithm 3 times to get adjacency information for geometry shader
+	for (int i = 1; i < 3; i++)
+	{
+		i = 1;
+		if (i == 0)
+			u = prev;
+		if (i == 1)
+			u = curr;
+		if (i == 2)
+			u = next;
+
+		// Calculate yarn center and its orientation
+		// -----------------------------------------
+		vec4 yarn_center = computeBezierCurve(u, p_1, p0, p1, p2);
+
+		vec4 tangent = vec4(normalize(computeBezierDerivative(u, p_1, p0, p1, p2).xyz), 0);
+		vec4 normal = vec4(normalize(computeBezierSecondDerivative(u, p_1, p0, p1, p2).xyz), 0);
+		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
+
+		// TODO: convert parametrization to cubic
+		float position = p0[0] + u * p1[0];
+		float theta = (mod(position, u_alpha) / u_alpha) * 2 * pi; // WARNING: currently linear
+
+		// Calculate the fiber center given the yarn center
+		// ------------------------------------------
+		// calculate ply displacement
+		float ply_radius = u_yarn_radius / 2.f; 
+		float ply_alpha = 2 * u_yarn_alpha; // modified // TODO: not being used 
+		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0); // initial polar angle of i-th ply
+
+		vec4 ply_displacement = 
+			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent);
+
+		// calculate fiber displacement
+		vec4 ply_tangent = 
+			ply_radius * (-sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent);
+		vec4 ply_normal = normalize(ply_displacement);
+		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
+
+		// TODO: compute in cpu 
+		float z_i = sampleR(v); // distance between fiber curve and the ply center;
+		float y_i = sampleR(2 * v);
+		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f)); // TODO: add fiber migration
+		float fiber_theta = atan(y_i, z_i);  // theta_i
+		float en = u_ellipse_long;
+		float eb = u_ellipse_short;
+
+		float fiber_r_min = u_rho_min;
+		float fiber_r_max = u_rho_max;
+		float fiber_s = u_s_i;
+
+		fiber_radius *= 0.5f * (fiber_r_max + fiber_r_min + 
+						(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
+
+		if (v < 3)
+			fiber_radius = 0; // i believe we are trying to keep the core fiber constant?
+		isCore = v < 3 ? 1.f : 0.f;
+
+		vec4 fiber_displacement = fiber_radius * (cos(fiber_theta + theta) * ply_normal * en + 
+												  sin(fiber_theta + theta) * ply_bitangent * eb);
+
+		// fiber center
+		vec4 fiber_center = yarn_center + ply_displacement + fiber_displacement;
+
+		// TODO: move upwards and fix logic/implementation
+		bool isHair = false;
+		isCore = v < 3 ? 1.f : 0.f;
+
+		if (u_use_flyaways == 1 && false)
+		{
+			// TODO: change to probability
+
+			/* Loop fibers */
+			int numOfLoopsPerPly = int(round(u_flyaway_loop_density * ply_radius * 2.f));
+			int numOfLoops = u_ply_num * numOfLoopsPerPly;
+			float loopMultiplier = pow(numOfLoops, 2) / (u_fiber_num * 1.f); // guarantee numOfLoops will be received
+
+			/* Hair fibers */
+			int numOfHairsPerPly = int(round(u_flyaway_hair_density * ply_radius * 2.f));
+			int numOfHairs = u_ply_num * numOfHairsPerPly;
+			float hairMultiplier = pow(numOfHairs, 2) / (u_fiber_num * 1.f);
+
+			if (mod(ceil(v * loopMultiplier), numOfLoops) == 1)
+			{
+				// this is a loop fiber
+				// TODO: make sure this is the correct implementation. You are setting a loop fiber to have the
+				// *potential* to be a loop fiber, but not necessarily making it a loop.
+
+			} else if (mod(ceil(v * hairMultiplier), numOfHairs) == 2)
+			{
+				// this is a hair fiber
+				// TODO: implement
+			} 
+		}
+
+		if (u_use_migration == 1)
+		{
+			// TODO: this isn't implemented. We are currently always assuming migration will be used.
+		}
+
+		fiber_center = yarn_center;
+
+		if (i == 0)
+			prevPosition = fiber_center.xyz;
+		if (i == 1)
+			gl_Position = fiber_center;
+			//textureParams = vec2(2 * pi * u, ply_alpha); // TODO: figure out why the thetas are different.
+		if (i == 2)
+			nextPosition = fiber_center.xyz;
+		break;
+	}
+}
+
+// Defintion of helper functions
+// -----------------------------
+vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
+{
+		vec4 b0 = pow(1 - t, 3.f) * p_1;
+		vec4 b1 = 3 * pow(1 - t, 2.f) * t * p0;
+		vec4 b2 = 3 * (1 - t) * pow(t, 2.f) * p1;
+		vec4 b3 = pow(t, 3.f) * p2;
+
+		return b0 + b1 + b2 + b3;
+}
+
+vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
+{
+	vec4 b0 = 3 * pow(1 - t, 2.f) * (p0 - p_1);
+	vec4 b1 = 6 * (1 - t) * t * (p1 - p0);
+	vec4 b2 = 3 * pow(t, 2.f) * (p2 - p1);
+
+	return b0 + b1 + b2;
+}
+vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
+{
+	vec4 b0 = 6 * (1 - t) * (p1 - 2 * p0 + p_1);
+	vec4 b1 = 6 * t * (p2 - 2 * p1 + p0);
+
+	return b0 + b1;
+}
+
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
@@ -52,12 +237,14 @@ float rand(vec2 co){
 // TODO: see if it's possible to only run this once at the start when u = 0;
 // TODO: make sure random functions are random per yarn, not per fiber in yarn. i.e., function of its position
 
-// rejection sampling
+// rejection sampling 
 float fiberDistribution(float R) {
 	float eTerm = (e - pow(e, R / u_rho_max)) / (e - 1);
 	float pR = (1 - 2 * u_epsilon) * pow(eTerm, u_beta) + u_epsilon;
 	return pR;
 }
+
+// Used to get the radius of each fiber w.r.t. its ply center
 float sampleR(float v) {
 	int i = 0;
 	while (true) {
@@ -83,126 +270,5 @@ float sampleLoop(float v, float mu, float sigma) {
 		if (pdf < distribution)
 			return pdf;
 		i++;
-	}
-}
-
-// TODO: may need to refactor the way fibers are generated as there is a possibility you are
-// messing up moving between yarn, ply, and fiber space.
-void main()
-{
-	
-	vec4 p0 = gl_in[0].gl_Position;
-	vec4 p1 = gl_in[1].gl_Position;
-	float u = gl_TessCoord.x; 
-	float v = round(num_of_isolines * gl_TessCoord.y); // the i-th ply we are working with
-
-	vec4 yarn_center;
-
-	// needed for adjacency information
-	float prev = u - 1/64.f;
-	float curr = u;
-	float next = u + 1/64.f;
-
-	if (u < 1/64.f)
-	{
-		prev = u;
-	}
-	if (u > 62.5 / 64.f)
-	{
-		next = u;
-	}
-
-	for (int i = 0; i < 3; i++)
-	{
-		if (i == 0)
-			u = prev;
-		if (i == 1)
-			u = curr;
-		if (i == 2)
-			u = next;
-		// yarn center
-		float b0 = (-1.f * u) + (2.f * u * u) + (-1.f * u * u * u);
-		float b1 = (2.f) + (-5.f * u * u) + (3.f * u * u * u);
-		float b2 = (u) + (4.f * u * u) + (-3.f * u * u * u);
-		float b3 = (-1.f * u * u) + (u * u * u);
-
-		yarn_center = 0.5f * (b0*p_1 + b1*p0 + b2*p1 + b3*p2);
-
-		// ply center
-		float ply_radius = u_yarn_radius / 2.f; 
-		float ply_alpha = 2 * u_yarn_alpha; // modified
-		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0);
-
-		float ply_x = yarn_center[0];
-		float ply_y = yarn_center[1] + ply_radius * sin(2 * pi * ply_x / ply_alpha + ply_theta);
-		float ply_z = yarn_center[2] + ply_radius * cos(2 * pi * ply_x / ply_alpha + ply_theta);
-		float ply_w = yarn_center[3]; // zoom factor - removed due to geometry shader
-
-		vec4 ply_center = vec4(ply_x, ply_y, ply_z, ply_w);
-
-		// fiber cross-sectional location
-		float fiber_radius = sampleR(v); // temp 
-		float fiber_theta = 2 * pi * rand(vec2(1, v));
-		float z_i = fiber_radius;
-		float y_i = fiber_radius;
-
-		// fiber curve
-		float theta = pi * ply_center[0]; // may need to be dependant on u, not the ply_center.
-		float theta_i = atan(y_i, z_i) + fiber_theta;
-		float r_i = length(vec2(y_i, z_i)); 
-		float rho_max = u_rho_max;
-		bool isHair = false;
-
-		if (u_use_flyaways == 1 && false)
-		{
-			// TODO: change to probability
-
-			/* Loop fibers */
-			int numOfLoopsPerPly = int(round(u_flyaway_loop_density * ply_radius * 2.f));
-			int numOfLoops = u_ply_num * numOfLoopsPerPly;
-			float loopMultiplier = pow(numOfLoops, 2) / (u_fiber_num * 1.f); // guarantee numOfLoops will be received
-
-			/* Hair fibers */
-			int numOfHairsPerPly = int(round(u_flyaway_hair_density * ply_radius * 2.f));
-			int numOfHairs = u_ply_num * numOfHairsPerPly;
-			float hairMultiplier = pow(numOfHairs, 2) / (u_fiber_num * 1.f);
-
-			if (mod(ceil(v * loopMultiplier), numOfLoops) == 1)
-			{
-				// this is a loop fiber
-				// TODO: make sure this is the correct implementation. You are setting a loop fiber to have the
-				// *potential* to be a loop fiber, but not necessarily making it a loop.
-				rho_max += sampleLoop(v, u_flyaway_loop_r1[0], u_flyaway_loop_r1[1]);
-				r_i = u_rho_min * r_i + ((rho_max - u_rho_min) * r_i / 2.f) * (cos(u_s_i * fiber_theta + theta_i) + 1);
-			} else if (mod(ceil(v * hairMultiplier), numOfHairs) == 2)
-			{
-				// this is a hair fiber
-				// TODO: implement
-			} 
-		}
-
-		if (u_use_migration == 1)
-		{
-			// TODO: this isn't implemented. We are currently always assuming migration will be used.
-		}
-
-		if (v < 3)
-			r_i = 0;
-		isCore = v < 3 ? 1.f : 0.f;
-
-		float fiber_x = (u_alpha * theta) / (2 * pi);
-		float fiber_y = ply_center[1] + r_i * sin(theta + theta_i) * ply_radius;
-		float fiber_z = ply_center[2] + r_i * cos(theta + theta_i) * ply_radius;
-		float fiber_w = ply_center[3];
-
-		vec4 fiber_curve = vec4(fiber_x, fiber_y, fiber_z, fiber_w);
-
-		if (i == 0)
-			prevPosition = fiber_curve.xyz;
-		if (i == 1)
-			gl_Position = fiber_curve;
-			textureParams = vec2(2 * pi * u, ply_alpha); // TODO: figure out why the thetas are different.
-		if (i == 2)
-			nextPosition = fiber_curve.xyz;
 	}
 }

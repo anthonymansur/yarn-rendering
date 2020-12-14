@@ -16,8 +16,6 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-void addPoints(double x, double y, int screenWidth, int screenHeight);
-
 // settings
 const unsigned int SCR_WIDTH = 2400;
 const unsigned int SCR_HEIGHT = 1200;
@@ -30,7 +28,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-std::vector<std::pair<float, float>> pointsToAdd;
+std::vector<glm::vec3> pointsToAdd;
 
 int main()
 {
@@ -79,10 +77,11 @@ int main()
     // -----
     Fiber fiber = Fiber();
     fiber.initShaders();
-    addPoints(0, SCR_HEIGHT / 2.0, SCR_WIDTH, SCR_HEIGHT);
-    addPoints(1, SCR_HEIGHT / 2.0, SCR_WIDTH, SCR_HEIGHT);
-    addPoints(SCR_WIDTH - 2, SCR_HEIGHT / 2.0, SCR_WIDTH, SCR_HEIGHT);
-    addPoints(SCR_WIDTH - 1, SCR_HEIGHT / 2.0, SCR_WIDTH, SCR_HEIGHT);
+    // add yarn control points
+    pointsToAdd.push_back(glm::vec3(-1.f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(-0.99f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
 
     // render loop
     // -----------
@@ -98,8 +97,8 @@ int main()
         // -----
         processInput(window);
 
-        for (auto point : pointsToAdd) {
-            fiber.addPoint(point.first, point.second);
+        for (glm::vec3 point : pointsToAdd) {
+            fiber.addPoint(point[0], point[1], point[2]);
         }
 
         // render
@@ -180,12 +179,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
-}
-
-void addPoints(double x, double y, int screenWidth, int screenHeight)
-{
-    x = (x / (screenWidth / 2)) - 1;
-    y = -((y / (screenHeight / 2)) - 1);
-
-    pointsToAdd.push_back(std::make_pair(x, y));
 }
