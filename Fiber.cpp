@@ -30,7 +30,7 @@ Fiber::Fiber() :
 void Fiber::initShaders()
 {
 	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
-	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", nullptr, "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
 	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
 	setFiberParameters(CORE);
 	setFiberParameters(FIBER);

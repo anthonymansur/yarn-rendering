@@ -11,9 +11,9 @@ patch in vec4 p2; // right endpoint
 patch in int num_of_isolines;
 
 out float isCore;
-out vec4 pos;
-out vec3 prevPosition;
-out vec3 nextPosition;
+out vec4 _pos;
+out vec4 prevPosition;
+out vec4 nextPosition;
 out vec2 textureParams;
 
 uniform mat4 projection;
@@ -132,7 +132,7 @@ void main()
 		vec4 ply_normal = normalize(ply_displacement);
 		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
 
-		// TODO: compute in cpu 
+		// TODO: compute in cpu and pass as texture
 		float z_i = sampleR(v); // distance between fiber curve and the ply center;
 		float y_i = sampleR(2 * v);
 		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f)); // TODO: add fiber migration
@@ -140,18 +140,20 @@ void main()
 		float en = u_ellipse_long;
 		float eb = u_ellipse_short;
 
-		float fiber_r_min = u_rho_min;
-		float fiber_r_max = u_rho_max;
-		float fiber_s = u_s_i;
+		theta = (position / u_alpha) * 2.f * pi; // update theta with ply pitch
 
-		theta = (position / u_alpha) * 2.f * pi; 
+		if (u_use_migration == 1)
+		{
+			float fiber_r_min = u_rho_min;
+			float fiber_r_max = u_rho_max;
+			float fiber_s = u_s_i;
+			fiber_radius *= 0.5f * (fiber_r_max + fiber_r_min + 
+							(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
+		}
 
-		fiber_radius *= 0.5f * (fiber_r_max + fiber_r_min + 
-						(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
-
-		if (v < 3)
+		if (v < u_ply_num)
 			fiber_radius = 0; // i believe we are trying to keep the core fiber constant?
-		isCore = v < 3 ? 1.f : 0.f;
+		isCore = v < u_ply_num ? 1.f : 0.f;
 
 		vec4 fiber_displacement = fiber_radius * (cos(fiber_theta + theta) * ply_normal * en + 
 												  sin(fiber_theta + theta) * ply_bitangent * eb);
@@ -159,49 +161,15 @@ void main()
 		// fiber center
 		vec4 fiber_center = yarn_center + ply_displacement + fiber_displacement;
 
-		// TODO: move upwards and fix logic/implementation
-		bool isHair = false;
-		isCore = v < 3 ? 1.f : 0.f;
-
-		if (u_use_flyaways == 1 && false)
-		{
-			// TODO: change to probability
-
-			/* Loop fibers */
-			int numOfLoopsPerPly = int(round(u_flyaway_loop_density * ply_radius * 2.f));
-			int numOfLoops = u_ply_num * numOfLoopsPerPly;
-			float loopMultiplier = pow(numOfLoops, 2) / (u_fiber_num * 1.f); // guarantee numOfLoops will be received
-
-			/* Hair fibers */
-			int numOfHairsPerPly = int(round(u_flyaway_hair_density * ply_radius * 2.f));
-			int numOfHairs = u_ply_num * numOfHairsPerPly;
-			float hairMultiplier = pow(numOfHairs, 2) / (u_fiber_num * 1.f);
-
-			if (mod(ceil(v * loopMultiplier), numOfLoops) == 1)
-			{
-				// this is a loop fiber
-				// TODO: make sure this is the correct implementation. You are setting a loop fiber to have the
-				// *potential* to be a loop fiber, but not necessarily making it a loop.
-
-			} else if (mod(ceil(v * hairMultiplier), numOfHairs) == 2)
-			{
-				// this is a hair fiber
-				// TODO: implement
-			} 
-		}
-
-		if (u_use_migration == 1)
-		{
-			// TODO: this isn't implemented. We are currently always assuming migration will be used.
-		}
+		MVP = mat4(1.0);
 
 		if (i == 0)
-			prevPosition = vec3(MVP * fiber_center);
+			prevPosition = MVP * fiber_center;
 		if (i == 1)
 			gl_Position = MVP * fiber_center;
 		if (i == 2)
-			nextPosition = vec3(MVP * fiber_center);
-		pos = MVP * fiber_center;
+			nextPosition = MVP * fiber_center;
+		_pos = fiber_center;
 	}
 }
 
