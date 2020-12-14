@@ -7,6 +7,10 @@ layout (triangle_strip, max_vertices = 4) out;
 uniform float u_yarn_radius; 
 uniform float u_alpha;
 
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
+
 in float[] isCore;
 in vec3[] prevPosition;
 in vec3[] nextPosition;

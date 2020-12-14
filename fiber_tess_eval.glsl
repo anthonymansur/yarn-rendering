@@ -16,9 +16,9 @@ out vec3 prevPosition;
 out vec3 nextPosition;
 out vec2 textureParams;
 
-uniform mat4 model;
-uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
 
 // Fiber pre-defined parameters
 // ----------------------------
@@ -67,6 +67,8 @@ float sampleR(float v); // get the radius of fiber (<= r_max) given the ply cent
 float normalDistribution(float x, float mu, float sigma);
 float sampleLoop(float v, float mu, float sigma);
 
+mat4 MVP = projection * view * model;
+
 // TODO: may need to refactor the way fibers are generated as there is a possibility you are
 // messing up moving between yarn, ply, and fiber space.
 void main()
@@ -81,7 +83,27 @@ void main()
 	   each ply will have v / 3 fibers. Thus, the i-th fiber corresponds to the mod(v/3)-th ply. 
 	*/
 	// needed for adjacency information
+		float prev = u - 1/64.f;
+	float curr = u;
+	float next = u + 1/64.f;
 
+	if (u < 1/64.f)
+	{
+		prev = u;
+	}
+	if (u > 62.5 / 64.f)
+	{
+		next = u;
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (i == 0)
+			u = prev;
+		if (i == 1)
+			u = curr;
+		if (i == 2)
+			u = next;
 
 		// Calculate yarn center and its orientation
 		// -----------------------------------------
@@ -114,7 +136,7 @@ void main()
 		float z_i = sampleR(v); // distance between fiber curve and the ply center;
 		float y_i = sampleR(2 * v);
 		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f)); // TODO: add fiber migration
-		float fiber_theta = atan(y_i, z_i);  // theta_i
+		float fiber_theta = atan(y_i, z_i) + 2 * pi * rand(vec2(v * 2.f, v * 3.f));  // theta_i
 		float en = u_ellipse_long;
 		float eb = u_ellipse_short;
 
@@ -173,9 +195,14 @@ void main()
 			// TODO: this isn't implemented. We are currently always assuming migration will be used.
 		}
 
-		gl_Position = projection * view * model * fiber_center;
-		pos = (fiber_center);
-		//gl_Position = fiber_center;
+		if (i == 0)
+			prevPosition = vec3(MVP * fiber_center);
+		if (i == 1)
+			gl_Position = MVP * fiber_center;
+		if (i == 2)
+			nextPosition = vec3(MVP * fiber_center);
+		pos = MVP * fiber_center;
+	}
 }
 
 // Defintion of helper functions
