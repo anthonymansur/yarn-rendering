@@ -83,6 +83,10 @@ int main()
     pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
     pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
 
+    for (glm::vec3 point : pointsToAdd) {
+        fiber.addPoint(point[0], point[1], point[2]);
+    }
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -96,10 +100,6 @@ int main()
         // input
         // -----
         processInput(window);
-
-        for (glm::vec3 point : pointsToAdd) {
-            fiber.addPoint(point[0], point[1], point[2]);
-        }
 
         // render
         // ------

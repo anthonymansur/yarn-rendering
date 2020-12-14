@@ -76,30 +76,6 @@ void main()
 	   each ply will have v / 3 fibers. Thus, the i-th fiber corresponds to the mod(v/3)-th ply. 
 	*/
 
-	// needed for adjacency information
-	float prev = u - 1/64.f;
-	float curr = u;
-	float next = u + 1/64.f;
-	if (u < 1/64.f)
-	{
-		prev = u;
-	}
-	if (u > 62.5 / 64.f)
-	{
-		next = u;
-	}
-
-	// run algorithm 3 times to get adjacency information for geometry shader
-	for (int i = 1; i < 3; i++)
-	{
-		i = 1;
-		if (i == 0)
-			u = prev;
-		if (i == 1)
-			u = curr;
-		if (i == 2)
-			u = next;
-
 		// Calculate yarn center and its orientation
 		// -----------------------------------------
 		vec4 yarn_center = computeBezierCurve(u, p_1, p0, p1, p2);
@@ -109,18 +85,17 @@ void main()
 		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
 
 		// TODO: convert parametrization to cubic
-		float position = p0[0] + u * p1[0];
-		float theta = (mod(position, u_alpha) / u_alpha) * 2 * pi; // WARNING: currently linear
+		float position = (1.f - u) * p0[0] + u * p1[0];
+		float theta = (position / u_yarn_alpha) * 2.f * pi; // WARNING: currently linear
 
 		// Calculate the fiber center given the yarn center
 		// ------------------------------------------
 		// calculate ply displacement
 		float ply_radius = u_yarn_radius / 2.f; 
-		float ply_alpha = 2 * u_yarn_alpha; // modified // TODO: not being used 
 		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0); // initial polar angle of i-th ply
 
 		vec4 ply_displacement = 
-			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent);
+			ply_radius * (cos(ply_theta + theta) * vec4(0, 1, 0, 0) + sin(ply_theta + theta) * vec4(0, 0, 1, 0));
 
 		// calculate fiber displacement
 		vec4 ply_tangent = 
@@ -139,6 +114,8 @@ void main()
 		float fiber_r_min = u_rho_min;
 		float fiber_r_max = u_rho_max;
 		float fiber_s = u_s_i;
+
+		theta = (position / u_alpha) * 2.f * pi; 
 
 		fiber_radius *= 0.5f * (fiber_r_max + fiber_r_min + 
 						(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
@@ -188,18 +165,7 @@ void main()
 		{
 			// TODO: this isn't implemented. We are currently always assuming migration will be used.
 		}
-
-		fiber_center = yarn_center;
-
-		if (i == 0)
-			prevPosition = fiber_center.xyz;
-		if (i == 1)
-			gl_Position = fiber_center;
-			//textureParams = vec2(2 * pi * u, ply_alpha); // TODO: figure out why the thetas are different.
-		if (i == 2)
-			nextPosition = fiber_center.xyz;
-		break;
-	}
+		gl_Position = fiber_center;
 }
 
 // Defintion of helper functions
@@ -212,6 +178,12 @@ vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 		vec4 b3 = pow(t, 3.f) * p2;
 
 		return b0 + b1 + b2 + b3;
+//		float b0 = (-1.f * u) + (2.f * u * u) + (-1.f * u * u * u);
+//		float b1 = (2.f) + (-5.f * u * u) + (3.f * u * u * u);
+//		float b2 = (u) + (4.f * u * u) + (-3.f * u * u * u);
+//		float b3 = (-1.f * u * u) + (u * u * u);
+//
+//		return 0.5f * (b0*p_1 + b1*p0 + b2*p1 + b3*p2);
 }
 
 vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)

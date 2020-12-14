@@ -166,6 +166,9 @@
     <None Include="fiber_tess_eval.glsl" />
     <None Include="fiber_vertex.glsl" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="debug_checklist.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

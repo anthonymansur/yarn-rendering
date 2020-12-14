@@ -1,0 +1,5 @@
+Make sure the following items have been validated if things aren't working
+[] Does my points shader work? I.e., do I see the four control points being rendered?
+[] Does the yarn_center line get rendered when I hardcode it?
+[] check if u is working: Does vec4(yarn_center[0], u, 0, 1) render properly?
+[] Is my theta working properly? I.e., if I render vec4(yarn_center[0], sin(theta) / 10.f, 0, 1) do I see a nice sinusoidal curve centered at the x axis with 5.5 periods?

@@ -74,4 +74,9 @@
       <Filter>Resource Files\glsl</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="debug_checklist.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>
