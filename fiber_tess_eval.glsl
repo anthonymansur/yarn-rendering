@@ -11,9 +11,14 @@ patch in vec4 p2; // right endpoint
 patch in int num_of_isolines;
 
 out float isCore;
+out vec4 pos;
 out vec3 prevPosition;
 out vec3 nextPosition;
 out vec2 textureParams;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 // Fiber pre-defined parameters
 // ----------------------------
@@ -75,6 +80,8 @@ void main()
 	/* NOTE: v represents the i-th fiber are are working with. In general, we will have 3 plies, and 
 	   each ply will have v / 3 fibers. Thus, the i-th fiber corresponds to the mod(v/3)-th ply. 
 	*/
+	// needed for adjacency information
+
 
 		// Calculate yarn center and its orientation
 		// -----------------------------------------
@@ -95,11 +102,11 @@ void main()
 		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0); // initial polar angle of i-th ply
 
 		vec4 ply_displacement = 
-			ply_radius * (cos(ply_theta + theta) * vec4(0, 1, 0, 0) + sin(ply_theta + theta) * vec4(0, 0, 1, 0));
+			ply_radius * (cos(ply_theta + theta) * vec4(0, 1, 0, 0) + sin(ply_theta + theta) * vec4(0, 0, 1, 0)); // TODO: see why normal and bitangent don't work
 
 		// calculate fiber displacement
 		vec4 ply_tangent = 
-			ply_radius * (-sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent);
+			ply_radius * (-sin(ply_theta + theta) * vec4(0, 1, 0, 0) + cos(ply_theta + theta) * vec4(0, 0, 1, 0));
 		vec4 ply_normal = normalize(ply_displacement);
 		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
 
@@ -165,7 +172,10 @@ void main()
 		{
 			// TODO: this isn't implemented. We are currently always assuming migration will be used.
 		}
-		gl_Position = fiber_center;
+
+		gl_Position = projection * view * model * fiber_center;
+		pos = (fiber_center);
+		//gl_Position = fiber_center;
 }
 
 // Defintion of helper functions

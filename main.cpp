@@ -17,10 +17,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
-const unsigned int SCR_WIDTH = 2400;
-const unsigned int SCR_HEIGHT = 1200;
+const unsigned int SCR_WIDTH = 3000;
+const unsigned int SCR_HEIGHT = 600;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -78,10 +78,10 @@ int main()
     Fiber fiber = Fiber();
     fiber.initShaders();
     // add yarn control points
-    pointsToAdd.push_back(glm::vec3(-1.f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(-0.99f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(-0.5f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(-0.49f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(0.49f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(0.5f, 0.f, 0.f));
 
     for (glm::vec3 point : pointsToAdd) {
         fiber.addPoint(point[0], point[1], point[2]);
@@ -110,7 +110,7 @@ int main()
         // update the mvp matrices
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10.0f);
 
         fiber.fiberShader_.use();
 
