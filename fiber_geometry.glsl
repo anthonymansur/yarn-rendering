@@ -7,6 +7,7 @@ uniform float u_yarn_radius;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec3 camera_dir;
 
 in float[] isCore;
 in vec3[] prevPosition;
@@ -52,16 +53,16 @@ void main()
     vec3 start = gl_in[0].gl_Position.xyz;
     vec3 end = gl_in[1].gl_Position.xyz;
 
-    vec3 avg1 = vec3((end - start).x, abs((end - start).y) + abs((end - start).z), 0.f);
+    vec3 avg1 = end - start;
 
-    float width = isCore[0] > 0.5 ? 0.002 : 0.002;
-    vec3 lhs = cross(normalize(avg1), vec3(0.0, 0.0, -1.0)); // second argument is plane normal, in this case lines are on XY plane
+    float width = isCore[0] > 0.5 ? 0.02 : 0.002;
+    vec3 lhs = cross(normalize(avg1), camera_dir); // second argument is plane normal, in this case lines are on XY plane
     vec3 prev = prevPosition[0];
     vec3 next = nextPosition[1];
 
-    vec3 avg2 = vec3((start-prev).x, abs((start-prev).y) + abs((start-prev).z), 0.f);
-    vec3 avg3 = vec3((start-end).x, abs((start-end).y) + abs((start-end).z), 0.f);
-    vec3 avg4 = vec3((end-next).x, abs((end-next).y) + abs((end-next).z), 0.f);
+    vec3 avg2 = start - prev;
+    vec3 avg3 = start - end;
+    vec3 avg4 = end - next;
 
     bool colStart = length(avg2) < EPSILON;
     bool colEnd = length(avg4) < EPSILON;
