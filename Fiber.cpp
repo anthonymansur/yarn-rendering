@@ -1,5 +1,7 @@
 #include "Fiber.h"
 
+#define CORE_RENDER
+
 namespace
 {
 	const GLuint POS_VAO_ID = 0;
@@ -32,8 +34,6 @@ void Fiber::initShaders()
 	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
 	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
 	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
-	setFiberParameters(CORE);
-	setFiberParameters(FIBER);
 }
 
 Fiber::~Fiber() {
@@ -48,11 +48,28 @@ void Fiber::render()
 	pointsShader_.use();
 	glPointSize(7);
 	glDrawArrays(GL_POINTS, 0, points_.size() / STRIDE);
-
+#ifdef FIBER_RENDER
 	fiberShader_.use();
 	setFiberParameters(FIBER);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+#endif
+#ifdef CORE_RENDER
+	coreShader_.use();
+	setFiberParameters(CORE);
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+#endif
+}
+
+const Shader& Fiber::getActiveShader()
+{
+#ifdef FIBER_RENDER
+	return fiberShader_;
+#endif
+#ifdef CORE_RENDER
+	return coreShader_;
+#endif
 }
 
 // Passes to vertex shader in the form of [a, b, c, d], [b, c, d, e], [c, d, e, f] ...
@@ -88,7 +105,7 @@ void Fiber::loadPoints() {
 		ebo_.size() > 0 ? &ebo_.front() : nullptr, GL_STATIC_DRAW);
 }
 
-void Fiber::setFiberParameters(render_type type)
+void Fiber::setFiberParameters(RENDER_TYPE type)
 {
 	Shader& shader = type == CORE ? coreShader_ : fiberShader_;
 

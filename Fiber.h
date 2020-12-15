@@ -6,23 +6,20 @@
 
 #include "Shader.h"
 
-enum render_type {
+enum RENDER_TYPE {
     CORE,
     FIBER
 };
 
 class Fiber {
 public:
-    Shader coreShader_;
-    Shader fiberShader_;
-    Shader pointsShader_;
-
     Fiber();
     ~Fiber();
     void addPoint(float x, float y, float z);
     void render();
-    void setFiberParameters(render_type);
+    void setFiberParameters(RENDER_TYPE);
     void initShaders();
+    const Shader& getActiveShader();
 
 private:
     void loadPoints();
@@ -40,4 +37,8 @@ private:
     GLuint normalFrameBuffer;
     GLuint heightFrameBuffer;
     GLuint alphaFrameBuffer;
+
+    Shader coreShader_;
+    Shader fiberShader_;
+    Shader pointsShader_;
 };

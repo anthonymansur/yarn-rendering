@@ -112,12 +112,13 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10.0f);
 
-        fiber.fiberShader_.use();
+        const Shader& shader = fiber.getActiveShader();
+        shader.use();
 
-        fiber.fiberShader_.setMat4("model", model);
-        fiber.fiberShader_.setMat4("view", view);
-        fiber.fiberShader_.setMat4("projection", projection);
-        fiber.fiberShader_.setVec3("camera_dir", camera.Front);
+        shader.setMat4("model", model);
+        shader.setMat4("view", view);
+        shader.setMat4("projection", projection);
+        shader.setVec3("camera_dir", camera.Front);
 
         fiber.render();
 

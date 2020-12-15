@@ -16,9 +16,6 @@ out vec3 prevPosition;
 out vec3 nextPosition;
 out vec2 textureParams;
 
-uniform mat4 projection;
-uniform mat4 view;
-uniform mat4 model;
 
 // Fiber pre-defined parameters
 // ----------------------------
@@ -67,10 +64,6 @@ float sampleR(float v); // get the radius of fiber (<= r_max) given the ply cent
 float normalDistribution(float x, float mu, float sigma);
 float sampleLoop(float v, float mu, float sigma);
 
-mat4 MVP = projection * view * model;
-
-// TODO: may need to refactor the way fibers are generated as there is a possibility you are
-// messing up moving between yarn, ply, and fiber space.
 void main()
 {
 	
@@ -181,12 +174,6 @@ vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 		vec4 b3 = pow(t, 3.f) * p2;
 
 		return b0 + b1 + b2 + b3;
-//		float b0 = (-1.f * u) + (2.f * u * u) + (-1.f * u * u * u);
-//		float b1 = (2.f) + (-5.f * u * u) + (3.f * u * u * u);
-//		float b2 = (u) + (4.f * u * u) + (-3.f * u * u * u);
-//		float b3 = (-1.f * u * u) + (u * u * u);
-//
-//		return 0.5f * (b0*p_1 + b1*p0 + b2*p1 + b3*p2);
 }
 
 vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
