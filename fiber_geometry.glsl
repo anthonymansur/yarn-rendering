@@ -4,10 +4,13 @@ layout (lines) in;
 layout (triangle_strip, max_vertices = 4) out;
 
 uniform float u_yarn_radius; 
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 in float[] isCore;
-in vec4[] prevPosition;
-in vec4[] nextPosition;
+in vec3[] prevPosition;
+in vec3[] nextPosition;
 
 out float height;
 
@@ -41,7 +44,9 @@ vec3 lerp(vec3 a, vec3 b, float i)
 
 void main()
 {
-    float zoomFactor =  1;//0.25f * (gl_in[0].gl_Position.w + gl_in[0].gl_Position.w + prevPosition[0].w + nextPosition[1].w);
+    mat4 MVP = projection * view * model;
+
+    float zoomFactor = 1;
     float yarn_radius = u_yarn_radius / 2.f;
 
     vec3 start = gl_in[0].gl_Position.xyz;
@@ -49,10 +54,10 @@ void main()
 
     vec3 avg1 = vec3((end - start).x, abs((end - start).y) + abs((end - start).z), 0.f);
 
-    float width = isCore[0] > 0.5 ? 0.03 : 0.002;
+    float width = isCore[0] > 0.5 ? 0.002 : 0.002;
     vec3 lhs = cross(normalize(avg1), vec3(0.0, 0.0, -1.0)); // second argument is plane normal, in this case lines are on XY plane
-    vec3 prev = prevPosition[0].xyz;
-    vec3 next = nextPosition[1].xyz;
+    vec3 prev = prevPosition[0];
+    vec3 next = nextPosition[1];
 
     vec3 avg2 = vec3((start-prev).x, abs((start-prev).y) + abs((start-prev).z), 0.f);
     vec3 avg3 = vec3((start-end).x, abs((start-end).y) + abs((start-end).z), 0.f);
@@ -80,19 +85,19 @@ void main()
 
 
     // determine position, height, normal for each vertex
-    gl_Position = vec4(start+startLhs, zoomFactor);
+    gl_Position = MVP * vec4(start+startLhs, zoomFactor);
     height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); // 0=(yarn_radius/2.f), 1=(yarn_radius/2.f);
     EmitVertex();
 
-    gl_Position = vec4(start-startLhs, zoomFactor);
+    gl_Position = MVP * vec4(start-startLhs, zoomFactor);
     height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
     EmitVertex();
 
-    gl_Position = vec4(end+endLhs, zoomFactor);
+    gl_Position = MVP * vec4(end+endLhs, zoomFactor);
     height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
     EmitVertex();
 
-    gl_Position = vec4(end-endLhs, zoomFactor);
+    gl_Position = MVP * vec4(end-endLhs, zoomFactor);
     height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
     EmitVertex();
 

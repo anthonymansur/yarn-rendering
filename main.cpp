@@ -117,6 +117,7 @@ int main()
         fiber.fiberShader_.setMat4("model", model);
         fiber.fiberShader_.setMat4("view", view);
         fiber.fiberShader_.setMat4("projection", projection);
+        fiber.fiberShader_.setVec3("camera_dir", camera.Front);
 
         fiber.render();
 
@@ -147,6 +148,10 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        camera.ProcessKeyboard(DOWN, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        camera.ProcessKeyboard(UP, deltaTime);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

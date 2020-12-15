@@ -12,8 +12,8 @@ patch in int num_of_isolines;
 
 out float isCore;
 out vec4 _pos;
-out vec4 prevPosition;
-out vec4 nextPosition;
+out vec3 prevPosition;
+out vec3 nextPosition;
 out vec2 textureParams;
 
 uniform mat4 projection;
@@ -161,14 +161,12 @@ void main()
 		// fiber center
 		vec4 fiber_center = yarn_center + ply_displacement + fiber_displacement;
 
-		MVP = mat4(1.0);
-
 		if (i == 0)
-			prevPosition = MVP * fiber_center;
+			prevPosition = fiber_center.xyz;
 		if (i == 1)
-			gl_Position = MVP * fiber_center;
+			gl_Position = fiber_center;
 		if (i == 2)
-			nextPosition = MVP * fiber_center;
+			nextPosition = fiber_center.xyz;
 		_pos = fiber_center;
 	}
 }
