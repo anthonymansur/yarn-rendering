@@ -83,6 +83,7 @@ void main()
 		// -----------------------------------------
 		vec4 yarn_center = computeBezierCurve(u, p_1, p0, p1, p2);
 
+		// TODO: these values are incorrect for some reason; not working properly
 		vec4 tangent = vec4(normalize(computeBezierDerivative(u, p_1, p0, p1, p2).xyz), 0);
 		vec4 normal = vec4(normalize(computeBezierSecondDerivative(u, p_1, p0, p1, p2).xyz), 0);
 		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
@@ -93,18 +94,7 @@ void main()
 
 		// Calculate the fiber center given the yarn center
 		// ------------------------------------------
-		// calculate ply displacement
-		float ply_radius = u_yarn_radius / 2.f; 
-		float ply_theta = 0; // initial polar angle of i-th ply
-
-		vec4 ply_displacement = 
-			ply_radius * (cos(ply_theta + theta) * vec4(0, 1, 0, 0) + sin(ply_theta + theta) * vec4(0, 0, 1, 0)); // TODO: see why normal and bitangent don't work
-
 		// calculate fiber displacement
-		vec4 ply_tangent = 
-			ply_radius * (-sin(ply_theta + theta) * vec4(0, 1, 0, 0) + cos(ply_theta + theta) * vec4(0, 0, 1, 0));
-		vec4 ply_normal = normalize(ply_displacement);
-		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
 
 		// TODO: compute in cpu and pass as texture
 		float z_i = sampleR(v); // distance between fiber curve and the ply center;
@@ -125,8 +115,8 @@ void main()
 							(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
 		}
 
-		vec4 fiber_displacement = fiber_radius * (cos(fiber_theta + theta) * ply_normal * en + 
-												  sin(fiber_theta + theta) * ply_bitangent * eb);
+		vec4 fiber_displacement = fiber_radius * (cos(fiber_theta + theta) * vec4(0, 1.f, 0, 0) * en + 
+												  sin(fiber_theta + theta) * vec4(0, 0, 1.f, 0) * eb);
 
 		// fiber center
 		vec4 fiber_center = yarn_center + fiber_displacement;
