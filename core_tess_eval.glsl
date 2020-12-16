@@ -84,6 +84,9 @@ void main()
 		vec4 yarn_center = computeBezierCurve(u, p_1, p0, p1, p2);
 
 		// TODO: these values are incorrect for some reason; not working properly
+		// NOTE: the reason why these values don't work is because the derivative and second derivative
+		//		 equal zero. https://tutorial.math.lamar.edu/classes/calciii/TangentNormalVectors.aspx
+		//       When given the control points, you may want to calculate the normals in CPU first.
 		vec4 tangent = vec4(normalize(computeBezierDerivative(u, p_1, p0, p1, p2).xyz), 0);
 		vec4 normal = vec4(normalize(computeBezierSecondDerivative(u, p_1, p0, p1, p2).xyz), 0);
 		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
@@ -99,7 +102,7 @@ void main()
 		// TODO: compute in cpu and pass as texture
 		float z_i = sampleR(v); // distance between fiber curve and the ply center;
 		float y_i = sampleR(2 * v);
-		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f)); // TODO: add fiber migration
+		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f));
 		float fiber_theta = atan(y_i, z_i) + 2 * pi * rand(vec2(v * 2.f, v * 3.f));  // theta_i
 		float en = u_ellipse_long;
 		float eb = u_ellipse_short;

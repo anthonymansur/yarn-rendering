@@ -17,5 +17,5 @@ void main()
 //    float z = _pos.z;
 //    float height = clamp(z / (u_yarn_radius * 2.f) + 0.5f); 
 //    frag_colour = vec4(height, height, height, 1);
-    frag_colour = vec4(0.5 + (1 - height) / 2.f, 0.5 + (1 - height) / 2.f, 0.5 + (1 - height) / 2.f, 1f); // height map
+    frag_colour = vec4(0.5 + (height) / 2.f, 0.5 + (height) / 2.f, 0.5 + (height) / 2.f, 1f); // height map
 }

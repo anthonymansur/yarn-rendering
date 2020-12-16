@@ -7,7 +7,7 @@ uniform float u_yarn_radius;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform vec3 camera_dir;
+uniform vec3 camera_pos;
 
 in float[] isCore;
 in vec3[] prevPosition;
@@ -46,23 +46,32 @@ vec3 lerp(vec3 a, vec3 b, float i)
 void main()
 {
     mat4 MVP = projection * view * model;
-
     float zoomFactor = 1;
     float yarn_radius = u_yarn_radius / 2.f;
 
     vec3 start = gl_in[0].gl_Position.xyz;
     vec3 end = gl_in[1].gl_Position.xyz;
 
-    vec3 avg1 = end - start;
+    vec3 dir = normalize(0.5f * (vec4(start, 1) + vec4(end, 1)) - vec4(camera_pos, 1)).xyz;
 
-    float width = isCore[0] > 0.5 ? 0.02 : 0.002;
-    vec3 lhs = cross(normalize(avg1), camera_dir); // second argument is plane normal, in this case lines are on XY plane
+    // you have the right idea but it's not working properly. think harder
+    float u = abs(dot(normalize(dir), vec3(0, 0, 1)));
+
+    vec3 _avg1 = end - start;
+    vec3 avg1 = vec3(_avg1.x, u * (abs(_avg1.y) + abs(_avg1.z)), (1 - u) * (abs(_avg1.y) + abs(_avg1.z)));
+
+    float width = isCore[0] > 0.5 ? 0.03 : 0.002;
+    vec3 lhs = cross(normalize(avg1), dir); // second argument is plane normal, in this case lines are on XY plane
     vec3 prev = prevPosition[0];
     vec3 next = nextPosition[1];
 
-    vec3 avg2 = start - prev;
-    vec3 avg3 = start - end;
-    vec3 avg4 = end - next;
+    vec3 _avg2 = start - prev;
+    vec3 _avg3 = start - end;
+    vec3 _avg4 = end - next;
+
+    vec3 avg2 = vec3(_avg2.x, u * (abs(_avg2.y) + abs(_avg2.z)), (1 - u) * (abs(_avg2.y) + abs(_avg2.z)));
+    vec3 avg3 = vec3(_avg3.x, u * (abs(_avg3.y) + abs(_avg3.z)), (1 - u) * (abs(_avg3.y) + abs(_avg3.z)));
+    vec3 avg4 = vec3(_avg4.x, u * (abs(_avg4.y) + abs(_avg4.z)), (1 - u) * (abs(_avg4.y) + abs(_avg4.z)));
 
     bool colStart = length(avg2) < EPSILON;
     bool colEnd = length(avg4) < EPSILON;

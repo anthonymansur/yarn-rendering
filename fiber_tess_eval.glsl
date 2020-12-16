@@ -1,6 +1,7 @@
 #version 410 core
 #define pi 3.14159265358979323846f
 #define e 2.718281746F
+#define EPSILON 0.0001F
 
 layout (isolines) in; // patch type: isolines
 
@@ -66,7 +67,6 @@ float sampleLoop(float v, float mu, float sigma);
 
 void main()
 {
-	
 	vec4 p0 = gl_in[0].gl_Position; // left endpoint of yarn
 	vec4 p1 = gl_in[1].gl_Position; // right endpoint of yarn
 	float u = gl_TessCoord.x; // location at the curve; from 0 to 1
@@ -102,8 +102,17 @@ void main()
 		// -----------------------------------------
 		vec4 yarn_center = computeBezierCurve(u, p_1, p0, p1, p2);
 
-		vec4 tangent = vec4(normalize(computeBezierDerivative(u, p_1, p0, p1, p2).xyz), 0);
-		vec4 normal = vec4(normalize(computeBezierSecondDerivative(u, p_1, p0, p1, p2).xyz), 0);
+		// TODO: these values are incorrect for some reason; not working properly
+		// NOTE: the reason why these values don't work is because the derivative and second derivative
+		//		 equal zero. https://tutorial.math.lamar.edu/classes/calciii/TangentNormalVectors.aspx
+		//       When given the control points, you may want to calculate the normals in CPU first.
+		vec4 tangent = computeBezierDerivative(u, p_1, p0, p1, p2);
+		vec4 normal = computeBezierSecondDerivative(u, p_1, p0, p1, p2);
+
+		// short-term solution
+		normal = vec4(0, 1, 0, 0);
+		tangent = vec4(1, 0, 0, 0);
+
 		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
 
 		// TODO: convert parametrization to cubic
@@ -117,11 +126,10 @@ void main()
 		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0); // initial polar angle of i-th ply
 
 		vec4 ply_displacement = 
-			ply_radius * (cos(ply_theta + theta) * vec4(0, 1, 0, 0) + sin(ply_theta + theta) * vec4(0, 0, 1, 0)); // TODO: see why normal and bitangent don't work
+			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); // TODO: see why normal and bitangent don't work
 
 		// calculate fiber displacement
-		vec4 ply_tangent = 
-			ply_radius * (-sin(ply_theta + theta) * vec4(0, 1, 0, 0) + cos(ply_theta + theta) * vec4(0, 0, 1, 0));
+		vec4 ply_tangent = -sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent;
 		vec4 ply_normal = normalize(ply_displacement);
 		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
 
@@ -145,7 +153,7 @@ void main()
 		}
 
 		if (v < u_ply_num)
-			fiber_radius = 0; // i believe we are trying to keep the core fiber constant?
+			fiber_radius = 0;
 		isCore = v < u_ply_num ? 1.f : 0.f;
 
 		vec4 fiber_displacement = fiber_radius * (cos(fiber_theta + theta) * ply_normal * en + 

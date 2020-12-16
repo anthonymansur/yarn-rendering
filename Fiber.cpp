@@ -1,6 +1,6 @@
 #include "Fiber.h"
 
-#define CORE_RENDER
+#define FIBER_RENDER
 
 namespace
 {

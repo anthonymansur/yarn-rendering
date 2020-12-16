@@ -78,15 +78,14 @@ int main()
     Fiber fiber = Fiber();
     fiber.initShaders();
     // add yarn control points
-    pointsToAdd.push_back(glm::vec3(-0.5f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(-0.49f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(0.49f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(0.5f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
+    pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
 
     for (glm::vec3 point : pointsToAdd) {
         fiber.addPoint(point[0], point[1], point[2]);
     }
-
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -108,7 +107,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // update the mvp matrices
-        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10.0f);
 
@@ -118,7 +117,7 @@ int main()
         shader.setMat4("model", model);
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
-        shader.setVec3("camera_dir", camera.Front);
+        shader.setVec3("camera_pos", camera.Position);
 
         fiber.render();
 
