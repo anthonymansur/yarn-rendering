@@ -35,81 +35,77 @@ out vec2 normal; // 2D surface normal
     DEPRECATED: http://www.songho.ca/opengl/gl_cylinder.html 
     DEPRECATED: http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-10-transparency/
 */
+vec3 lerp(vec3 p0, vec3 p1, float t);
+vec3 slerp(vec3 p0, vec3 p1, float t); // DISABLED DUE TO FADING BUG
 
-vec3 lerp(vec3 a, vec3 b, float i)
-{
-    if (i > 1.f || i < 0.f)
-        return vec3(0,0,0);
-    return vec3(a.x * (1-i) + b.x * i, a.y * (1-i) + b.y * i, a.z * (1-i) + b.z * i);
-}
-
+// thickens the isolines
 void main()
 {
     mat4 MVP = projection * view * model;
     float zoomFactor = 1;
     float yarn_radius = u_yarn_radius / 2.f;
+    float lineHeight = isCore[0] > 0.5f ? 0.03 : 0.002;
 
+    // four control points
+    vec3 prev = prevPosition[0];
     vec3 start = gl_in[0].gl_Position.xyz;
     vec3 end = gl_in[1].gl_Position.xyz;
-
-    vec3 dir = normalize(0.5f * (vec4(start, 1) + vec4(end, 1)) - vec4(camera_pos, 1)).xyz;
-
-    // you have the right idea but it's not working properly. think harder
-    float u = abs(dot(normalize(dir), vec3(0, 0, 1)));
-
-    vec3 _avg1 = end - start;
-    vec3 avg1 = vec3(_avg1.x, u * (abs(_avg1.y) + abs(_avg1.z)), (1 - u) * (abs(_avg1.y) + abs(_avg1.z)));
-
-    float width = isCore[0] > 0.5 ? 0.03 : 0.002;
-    vec3 lhs = cross(normalize(avg1), dir); // second argument is plane normal, in this case lines are on XY plane
-    vec3 prev = prevPosition[0];
     vec3 next = nextPosition[1];
 
-    vec3 _avg2 = start - prev;
-    vec3 _avg3 = start - end;
-    vec3 _avg4 = end - next;
+    // have strips face the camera
+   vec3 direction = camera_pos - 0.5f * (end - start);
+   direction = normalize(vec3(0, direction.y, direction.z));
 
-    vec3 avg2 = vec3(_avg2.x, u * (abs(_avg2.y) + abs(_avg2.z)), (1 - u) * (abs(_avg2.y) + abs(_avg2.z)));
-    vec3 avg3 = vec3(_avg3.x, u * (abs(_avg3.y) + abs(_avg3.z)), (1 - u) * (abs(_avg3.y) + abs(_avg3.z)));
-    vec3 avg4 = vec3(_avg4.x, u * (abs(_avg4.y) + abs(_avg4.z)), (1 - u) * (abs(_avg4.y) + abs(_avg4.z)));
+    // the three different height vectors that can be generated given the four control points
+    vec3 leftHeightDir = cross(normalize(start - prev), direction);
+    vec3 heightDir = cross(normalize(end - start), direction);
+    vec3 rightHeightDir = cross(normalize(next - end), direction);
 
-    bool colStart = length(avg2) < EPSILON;
-    bool colEnd = length(avg4) < EPSILON;
+    // average the height vectors
+    vec3 startHeightDir = lerp(leftHeightDir, heightDir, 0.5f);
+    vec3 endHeightDir = lerp(heightDir, rightHeightDir, 0.5f);
 
-    vec3 a = normalize(avg2);
-    vec3 b = normalize(avg3);
-    vec3 c = (a+b)*0.5f;
-    vec3 startLhs = normalize(c) * sign(dot(c, lhs));
-    a = normalize(avg1);
-    b = normalize(avg4);
-    c = (a+b)*0.5f;
-    vec3 endLhs = normalize(c) * sign(dot(c, lhs));
+    // check if at endpoints
+    if (length(start - prev) < EPSILON)
+    {
+        startHeightDir = heightDir;
+    }
+    if (length(end - next) < EPSILON)
+    {
+        endHeightDir = heightDir;
+    }
 
-    if(colStart)
-        startLhs = lhs;
-    if(colEnd)
-        endLhs = lhs;
-
-    startLhs *= width / 2.f;
-    endLhs *= width / 2.f;
-
+    // keep height direction on the same side of the line segment and add line height 
+    startHeightDir = 0.5f * lineHeight * normalize(startHeightDir) * sign(dot(startHeightDir, heightDir));
+    endHeightDir = 0.5f * lineHeight * normalize(endHeightDir) * sign(dot(endHeightDir, heightDir));
 
     // determine position, height, normal for each vertex
-    gl_Position = MVP * vec4(start+startLhs, zoomFactor);
+    gl_Position = MVP * vec4(start+startHeightDir, zoomFactor);
     height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); // 0=(yarn_radius/2.f), 1=(yarn_radius/2.f);
     EmitVertex();
 
-    gl_Position = MVP * vec4(start-startLhs, zoomFactor);
+    gl_Position = MVP * vec4(start-startHeightDir, zoomFactor);
     height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
     EmitVertex();
 
-    gl_Position = MVP * vec4(end+endLhs, zoomFactor);
+    gl_Position = MVP * vec4(end+endHeightDir, zoomFactor);
     height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
     EmitVertex();
 
-    gl_Position = MVP * vec4(end-endLhs, zoomFactor);
+    gl_Position = MVP * vec4(end-endHeightDir, zoomFactor);
     height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
     EmitVertex();
 
     EndPrimitive();
+}
+
+vec3 lerp(vec3 p0, vec3 p1, float t)
+{
+    return (1 - t) * p0 + t * p1;
+}
+
+vec3 slerp(vec3 p0, vec3 p1, float t)
+{
+    float theta = acos(dot(normalize(p0), normalize(p1)));
+    return (sin((1 - t)* theta) / sin(theta)) * p0 + (sin(t* theta) / sin(theta)) * p1;
 }
