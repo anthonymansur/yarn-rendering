@@ -20,6 +20,7 @@ public:
     void setFiberParameters(RENDER_TYPE);
     void initShaders();
     const Shader& getActiveShader();
+    RENDER_TYPE getRenderType();
 
 private:
     void loadPoints();

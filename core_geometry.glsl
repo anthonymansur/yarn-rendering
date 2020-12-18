@@ -3,17 +3,22 @@
 layout (lines) in;
 layout (triangle_strip, max_vertices = 4) out;
 
+// fiber parameters
 uniform float u_yarn_radius; 
+uniform float u_ellipse_short;
+uniform float u_r_max;
+
+// other uniforms
+uniform vec3 camera_pos;
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-uniform vec3 camera_dir;
 
 in vec3[] prevPosition;
 in vec3[] nextPosition;
+in vec3[] geo_normal;
 
-out float height;
-out vec2 normal; // 2D surface normal
+out float fs_height; // height map
+out vec3 fs_normal; // 2D surface normal
+out float fs_alpha; // alpha channel 
 
 #define EPSILON 0.0001f
 
@@ -33,72 +38,87 @@ out vec2 normal; // 2D surface normal
     DEPRECATED: http://www.songho.ca/opengl/gl_cylinder.html 
     DEPRECATED: http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-10-transparency/
 */
+vec3 lerp(vec3 p0, vec3 p1, float t);
+vec3 slerp(vec3 p0, vec3 p1, float t); // DISABLED DUE TO FADING BUG
 
-vec3 lerp(vec3 a, vec3 b, float i)
-{
-    if (i > 1.f || i < 0.f)
-        return vec3(0,0,0);
-    return vec3(a.x * (1-i) + b.x * i, a.y * (1-i) + b.y * i, a.z * (1-i) + b.z * i);
-}
-
+// thickens the isolines
 void main()
 {
-    mat4 MVP = projection * view * model; // TODO: implement
-
-    float zoomFactor = 1;
+    float zoomFactor = .125f;
     float yarn_radius = u_yarn_radius / 2.f;
+    float lineHeight = 0.001;
 
+    // four control points
+    vec3 prev = prevPosition[0];
     vec3 start = gl_in[0].gl_Position.xyz;
     vec3 end = gl_in[1].gl_Position.xyz;
-
-    vec3 avg1 = end - start;
-
-    float width = 0.002;
-    vec3 lhs = cross(normalize(avg1), camera_dir); // second argument is plane normal, in this case lines are on XY plane
-    vec3 prev = prevPosition[0];
     vec3 next = nextPosition[1];
 
-    vec3 avg2 = start - prev;
-    vec3 avg3 = start - end;
-    vec3 avg4 = end - next;
+    // have strips face the camera
+   vec3 direction = camera_pos - 0.5f * (end - start);
+   direction = normalize(vec3(0, direction.y, direction.z));
 
-    bool colStart = length(avg2) < EPSILON;
-    bool colEnd = length(avg4) < EPSILON;
+    // the three different height vectors that can be generated given the four control points
+    vec3 leftHeightDir = cross(normalize(start - prev), direction);
+    vec3 heightDir = cross(normalize(end - start), direction);
+    vec3 rightHeightDir = cross(normalize(next - end), direction);
 
-    vec3 a = normalize(avg2);
-    vec3 b = normalize(avg3);
-    vec3 c = (a+b)*0.5f;
-    vec3 startLhs = normalize(c) * sign(dot(c, lhs));
-    a = normalize(avg1);
-    b = normalize(avg4);
-    c = (a+b)*0.5f;
-    vec3 endLhs = normalize(c) * sign(dot(c, lhs));
+    // average the height vectors
+    vec3 startHeightDir = lerp(leftHeightDir, heightDir, 0.5f);
+    vec3 endHeightDir = lerp(heightDir, rightHeightDir, 0.5f);
 
-    if(colStart)
-        startLhs = lhs;
-    if(colEnd)
-        endLhs = lhs;
+    // check if at endpoints
+    if (length(start - prev) < EPSILON)
+    {
+        startHeightDir = heightDir;
+    }
+    if (length(end - next) < EPSILON)
+    {
+        endHeightDir = heightDir;
+    }
 
-    startLhs *= width / 2.f;
-    endLhs *= width / 2.f;
-
+    // keep height direction on the same side of the line segment and add line height 
+    startHeightDir = 0.5f * lineHeight * normalize(startHeightDir) * sign(dot(startHeightDir, heightDir));
+    endHeightDir = 0.5f * lineHeight * normalize(endHeightDir) * sign(dot(endHeightDir, heightDir));
 
     // determine position, height, normal for each vertex
-    gl_Position = MVP * vec4(start+startLhs, zoomFactor);
-    height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); // 0=(yarn_radius/2.f), 1=(yarn_radius/2.f);
+    float maxDistance = (u_yarn_radius / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
+    float maxTransparency = 0.7f;
+
+    gl_Position = vec4((model * vec4(start+startHeightDir, 1)).xyz, zoomFactor);
+    fs_height = start.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[0] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
-    gl_Position = MVP * vec4(start-startLhs, zoomFactor);
-    height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
+    gl_Position = vec4((model * vec4(start-startHeightDir, 1)).xyz, zoomFactor);
+    fs_height = start.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[0] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
-    gl_Position = MVP * vec4(end+endLhs, zoomFactor);
-    height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
+    gl_Position = vec4((model * vec4(end+endHeightDir, 1)).xyz, zoomFactor);
+    fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[1] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
-    gl_Position = MVP * vec4(end-endLhs, zoomFactor);
-    height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
+    gl_Position = vec4((model * vec4(end-endHeightDir, 1)).xyz, zoomFactor);
+    fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[1] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
     EndPrimitive();
+}
+
+vec3 lerp(vec3 p0, vec3 p1, float t)
+{
+    return (1 - t) * p0 + t * p1;
+}
+
+vec3 slerp(vec3 p0, vec3 p1, float t)
+{
+    float theta = acos(dot(normalize(p0), normalize(p1)));
+    return (sin((1 - t)* theta) / sin(theta)) * p0 + (sin(t* theta) / sin(theta)) * p1;
 }

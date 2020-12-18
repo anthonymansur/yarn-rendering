@@ -3,19 +3,25 @@
 layout (lines) in;
 layout (triangle_strip, max_vertices = 4) out;
 
+// fiber parameters
 uniform float u_yarn_radius; 
+uniform float u_ellipse_short;
+uniform float u_r_max;
+
+// other uniforms
+uniform vec3 camera_pos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform vec3 camera_pos;
 
 in float[] isCore;
 in vec3[] prevPosition;
 in vec3[] nextPosition;
+in vec3[] geo_normal;
 
-out float height;
-
-out vec2 normal; // 2D surface normal
+out float fs_height; // height map
+out vec3 fs_normal; // 2D surface normal
+out float fs_alpha; // alpha channel 
 
 #define EPSILON 0.0001f
 
@@ -42,9 +48,9 @@ vec3 slerp(vec3 p0, vec3 p1, float t); // DISABLED DUE TO FADING BUG
 void main()
 {
     mat4 MVP = projection * view * model;
-    float zoomFactor = 1;
+    float zoomFactor = .125f;
     float yarn_radius = u_yarn_radius / 2.f;
-    float lineHeight = isCore[0] > 0.5f ? 0.03 : 0.002;
+    float lineHeight = isCore[0] > 0.5f ? 0.02 : 0.001;
 
     // four control points
     vec3 prev = prevPosition[0];
@@ -80,20 +86,31 @@ void main()
     endHeightDir = 0.5f * lineHeight * normalize(endHeightDir) * sign(dot(endHeightDir, heightDir));
 
     // determine position, height, normal for each vertex
-    gl_Position = MVP * vec4(start+startHeightDir, zoomFactor);
-    height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); // 0=(yarn_radius/2.f), 1=(yarn_radius/2.f);
+    float maxDistance = (u_yarn_radius / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
+    float maxTransparency = 0.7f;
+
+    gl_Position = MVP * vec4(start+startHeightDir, 1);
+    fs_height = start.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[0] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
-    gl_Position = MVP * vec4(start-startHeightDir, zoomFactor);
-    height = ((start.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
+    gl_Position = MVP *  vec4(start-startHeightDir, 1);
+    fs_height = start.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[0] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
-    gl_Position = MVP * vec4(end+endHeightDir, zoomFactor);
-    height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
+    gl_Position = MVP * vec4(end+endHeightDir, 1);
+    fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[1] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
-    gl_Position = MVP * vec4(end-endHeightDir, zoomFactor);
-    height = ((end.z / 2.f) + (yarn_radius / 4.f)) / (yarn_radius / 2.f); 
+    gl_Position = MVP * vec4(end-endHeightDir, 1);
+    fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_normal = geo_normal[1] / 2.f + 0.5f;
+    fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
     EndPrimitive();

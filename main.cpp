@@ -38,6 +38,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4); // for antialiasing
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -71,6 +72,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_MULTISAMPLE); // for antialiasing
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
     // Fiber
@@ -78,10 +80,20 @@ int main()
     Fiber fiber = Fiber();
     fiber.initShaders();
     // add yarn control points
-    pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
-    pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
+    if (fiber.getRenderType() == CORE)
+    {
+        pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.5f * 0.356f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.5f * 0.366114f, 0.f, 0.f));
+    }
+    if (fiber.getRenderType() == FIBER)
+    {
+        pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
+    }
 
     for (glm::vec3 point : pointsToAdd) {
         fiber.addPoint(point[0], point[1], point[2]);
@@ -103,11 +115,22 @@ int main()
         // render
         // ------
         // clear the colorbuffer
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        if (fiber.getRenderType() == CORE)
+            glClearColor(0.f, 0.f, 0.f, 1.f);
+        if (fiber.getRenderType() == FIBER)
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // update the mvp matrices
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.366114f / 2.f, 0, 0));
+        if (fiber.getRenderType() == CORE)
+        {
+            model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.366114f / 4.f, 0, 0));
+        }
+        if (fiber.getRenderType() == FIBER)
+        {
+            model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
+        }
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10.0f);
 

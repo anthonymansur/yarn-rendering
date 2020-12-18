@@ -45,10 +45,10 @@ Fiber::~Fiber() {
 void Fiber::render()
 {
 	glBindVertexArray(vao_id_);
+#ifdef FIBER_RENDER
 	pointsShader_.use();
 	glPointSize(7);
 	glDrawArrays(GL_POINTS, 0, points_.size() / STRIDE);
-#ifdef FIBER_RENDER
 	fiberShader_.use();
 	setFiberParameters(FIBER);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
@@ -69,6 +69,16 @@ const Shader& Fiber::getActiveShader()
 #endif
 #ifdef CORE_RENDER
 	return coreShader_;
+#endif
+}
+
+RENDER_TYPE Fiber::getRenderType()
+{
+#ifdef FIBER_RENDER
+	return FIBER;
+#endif 
+#ifdef CORE_RENDER
+	return CORE;
 #endif
 }
 

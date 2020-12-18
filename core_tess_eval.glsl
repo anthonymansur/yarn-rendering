@@ -12,6 +12,7 @@ patch in int num_of_isolines;
 
 out vec3 prevPosition;
 out vec3 nextPosition;
+out vec3 geo_normal;
 
 // Fiber pre-defined parameters
 // ----------------------------
@@ -93,27 +94,34 @@ void main()
 
 		// TODO: convert parametrization to cubic
 		float position = (1.f - u) * p0[0] + u * p1[0];
-		float theta = (position / u_yarn_alpha) * 2.f * pi; // WARNING: currently linear
+		float theta = (4 * pi * position / u_yarn_alpha); // WARNING: currently linear
 
 		// Calculate the fiber center given the yarn center
 		// ------------------------------------------
+		// calculate ply displacement
+		float ply_radius = u_yarn_radius / 2.f; 
+		float ply_theta = 0; // initial polar angle of i-th ply
+
+		vec4 ply_displacement = 
+			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); 
 		// calculate fiber displacement
 
 		// TODO: compute in cpu and pass as texture
 		float z_i = sampleR(v); // distance between fiber curve and the ply center;
 		float y_i = sampleR(2 * v);
 		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f));
-		float fiber_theta = atan(y_i, z_i) + 2 * pi * rand(vec2(v * 2.f, v * 3.f));  // theta_i
+		float fiber_theta = atan(y_i, z_i) + (v / 64.f) * 4.f * pi;  // theta_i
 		float en = u_ellipse_long;
 		float eb = u_ellipse_short;
 
-		theta = (position / u_alpha) * 2.f * pi; // update theta with ply pitch
+		// TODO: see why we have to multiply by 4 in order to look more visually appealing
+		theta = (4 * pi * position) / u_alpha; // update theta with ply pitch
 
 		if (u_use_migration == 1)
 		{
 			float fiber_r_min = u_rho_min;
 			float fiber_r_max = u_rho_max;
-			float fiber_s = u_s_i;
+			float fiber_s = 1; // hardcoded to 1 for core fiber
 			fiber_radius *= 0.5f * (fiber_r_max + fiber_r_min + 
 							(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
 		}
@@ -128,6 +136,7 @@ void main()
 			prevPosition = fiber_center.xyz;
 		if (i == 1)
 			gl_Position = fiber_center;
+			geo_normal = normalize(fiber_center - yarn_center).xyz;
 		if (i == 2)
 			nextPosition = fiber_center.xyz;
 	}
@@ -179,7 +188,8 @@ float fiberDistribution(float R) {
 float sampleR(float v) {
 	int i = 0;
 	while (true) {
-		float radius = sqrt(rand(vec2(v + i, v + i))) * u_r_max;
+		// get two-thirds of the normal max for core fibers
+		float radius = sqrt(rand(vec2(v + 3*i, v + 2*i))) * u_r_max * (2 / 3.f); 
 		float pdf = rand(vec2(v + i, v + i));
 		if (pdf < fiberDistribution(radius))
 			return radius;

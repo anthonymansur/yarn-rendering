@@ -15,6 +15,7 @@ out float isCore;
 out vec4 _pos;
 out vec3 prevPosition;
 out vec3 nextPosition;
+out vec3 geo_normal;
 out vec2 textureParams;
 
 
@@ -117,7 +118,7 @@ void main()
 
 		// TODO: convert parametrization to cubic
 		float position = (1.f - u) * p0[0] + u * p1[0];
-		float theta = (position / u_yarn_alpha) * 2.f * pi; // WARNING: currently linear
+		float theta = (2 * pi * position / u_yarn_alpha); // WARNING: currently linear
 
 		// Calculate the fiber center given the yarn center
 		// ------------------------------------------
@@ -126,7 +127,7 @@ void main()
 		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0); // initial polar angle of i-th ply
 
 		vec4 ply_displacement = 
-			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); // TODO: see why normal and bitangent don't work
+			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); 
 
 		// calculate fiber displacement
 		vec4 ply_tangent = -sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent;
@@ -141,7 +142,7 @@ void main()
 		float en = u_ellipse_long;
 		float eb = u_ellipse_short;
 
-		theta = (position / u_alpha) * 2.f * pi; // update theta with ply pitch
+		theta = (2 * pi * position / u_alpha); // update theta with ply pitch
 
 		if (u_use_migration == 1)
 		{
@@ -166,6 +167,7 @@ void main()
 			prevPosition = fiber_center.xyz;
 		if (i == 1)
 			gl_Position = fiber_center;
+			geo_normal = normalize(fiber_center - yarn_center).xyz;
 		if (i == 2)
 			nextPosition = fiber_center.xyz;
 		_pos = fiber_center;
