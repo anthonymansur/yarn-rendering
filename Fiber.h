@@ -23,9 +23,12 @@ public:
     const Shader& getActiveShader();
     const std::vector<Shader*> getActiveShaders();
     RENDER_TYPE getRenderType();
+    void initFrameBuffer();
 
     static unsigned int SCR_WIDTH;
     static unsigned int SCR_HEIGHT;
+    static unsigned int CORE_WIDTH;
+    static unsigned int CORE_HEIGHT;
 
 private:
     void loadPoints();

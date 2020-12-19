@@ -75,6 +75,7 @@ int main()
     // -----
     Fiber fiber = Fiber();
     fiber.initShaders();
+    fiber.initFrameBuffer();
     // add yarn control points
     if (fiber.getRenderType() == CORE)
     {
@@ -110,12 +111,6 @@ int main()
 
         // render
         // ------
-        // clear the colorbuffer
-        if (fiber.getRenderType() == CORE)
-            glClearColor(0.f, 0.f, 0.f, 1.f);
-        if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // update the mvp matrices
         glm::mat4 model;
