@@ -16,13 +16,9 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-// settings
-const unsigned int SCR_WIDTH = 3000;
-const unsigned int SCR_HEIGHT = 600;
-
 Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+float lastX = Fiber::SCR_WIDTH / 2.0f;
+float lastY = Fiber::SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -46,7 +42,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(Fiber::SCR_WIDTH, Fiber::SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -84,10 +80,10 @@ int main()
     {
         pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
         pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(0.5f * 0.356f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(0.5f * 0.366114f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.356f / 2.f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.366114f / 2.f, 0.f, 0.f));
     }
-    if (fiber.getRenderType() == FIBER)
+    if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
     {
         pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
         pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
@@ -117,30 +113,49 @@ int main()
         // clear the colorbuffer
         if (fiber.getRenderType() == CORE)
             glClearColor(0.f, 0.f, 0.f, 1.f);
-        if (fiber.getRenderType() == FIBER)
+        if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // update the mvp matrices
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.366114f / 2.f, 0, 0));
+        glm::mat4 model;
         if (fiber.getRenderType() == CORE)
         {
             model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.366114f / 4.f, 0, 0));
         }
-        if (fiber.getRenderType() == FIBER)
+        if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
         {
             model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
         }
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.01f, 10.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 
+                               (float) Fiber::SCR_WIDTH / (float) Fiber::SCR_HEIGHT, 0.01f, 10.0f);
 
-        const Shader& shader = fiber.getActiveShader();
-        shader.use();
+        if (fiber.getRenderType() != COMPLETE)
+        {
+            const Shader& shader = fiber.getActiveShader();
+            shader.use();
 
-        shader.setMat4("model", model);
-        shader.setMat4("view", view);
-        shader.setMat4("projection", projection);
-        shader.setVec3("camera_pos", camera.Position);
+            shader.setMat4("model", model);
+            shader.setMat4("view", view);
+            shader.setMat4("projection", projection);
+            shader.setVec3("camera_pos", camera.Position);
+            shader.setVec3("view_dir", camera.Front);
+        }
+        else
+        {
+            const std::vector<Shader*> shaders = fiber.getActiveShaders();
+
+            for (int i = 0; i < 2; i++)
+            {
+                shaders.at(i)->use();
+                shaders.at(i)->setMat4("model", model);
+                shaders.at(i)->setMat4("view", view);
+                shaders.at(i)->setMat4("projection", projection);
+                shaders.at(i)->setVec3("camera_pos", camera.Position);
+                shaders.at(i)->setVec3("view_dir", camera.Front);
+            }
+        }
 
         fiber.render();
 

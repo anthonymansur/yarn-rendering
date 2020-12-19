@@ -1,12 +1,21 @@
 #include "Fiber.h"
 
-#define FIBER_RENDER
+#define CORE_RENDER
 
 namespace
 {
 	const GLuint POS_VAO_ID = 0;
 	const GLuint STRIDE = 3;
 }
+
+#ifdef CORE_RENDER
+unsigned int Fiber::SCR_WIDTH = 1200;
+unsigned int Fiber::SCR_HEIGHT = 300;
+#else
+unsigned int Fiber::SCR_WIDTH = 3000;
+unsigned int Fiber::SCR_HEIGHT = 600;
+#endif
+
 
 Fiber::Fiber() : 
 	points_{}, 
@@ -15,6 +24,8 @@ Fiber::Fiber() :
 	glGenVertexArrays(1, &vao_id_);
 	glGenBuffers(1, &vbo_id_);
 	glGenBuffers(1, &ebo_id_);
+	glGenFramebuffers(1, &frameBuffer);
+	glGenRenderbuffers(1, &depthrenderbuffer);
 
 	glBindVertexArray(vao_id_);
 
@@ -40,21 +51,75 @@ Fiber::~Fiber() {
 	glDeleteVertexArrays(1, &vao_id_);
 	glDeleteBuffers(1, &vbo_id_);
 	glDeleteBuffers(1, &ebo_id_);
+	glDeleteFramebuffers(1, &frameBuffer);
+	glDeleteBuffers(1, &depthrenderbuffer);
 }
 
 void Fiber::render()
 {
+#ifdef COMPLETE_RENDER
+
+	// Create texture for core fibers
+	// ------------------------------
+	// texture dimension
+	int width = 800;
+	int height = 600;
+
+	// the texture we are going to render to 
+	glGenTextures(1, &renderedTexture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, renderedTexture);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, width, height, 3, 0, GL_RGBA, GL_UNSIGNED_SHORT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	// The depth buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+
+	// configure frame buffer
+	glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, renderedTexture, 0, 0);
+	glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_ARRAY, renderedTexture, 0, 1);
+	glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D_ARRAY, renderedTexture, 0, 2);
+
+	// Set the list of draw buffers.
+	GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		throw std::runtime_error("Framebuffer has not been properly configured.");
+
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glViewport(0, 0, width, height);
+
+	// Start rendering the fibers
+	// --------------------------
 	glBindVertexArray(vao_id_);
+
+	// render core fiber to framebuffer
+	coreShader_.use();
+	setFiberParameters(CORE);
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+
+	// render full fiber to screen
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+	fiberShader_.use();
+	setFiberParameters(FIBER);
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+#endif
 #ifdef FIBER_RENDER
-	pointsShader_.use();
-	glPointSize(7);
-	glDrawArrays(GL_POINTS, 0, points_.size() / STRIDE);
+	glBindVertexArray(vao_id_);
 	fiberShader_.use();
 	setFiberParameters(FIBER);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
 #endif
 #ifdef CORE_RENDER
+	glBindVertexArray(vao_id_);
 	coreShader_.use();
 	setFiberParameters(CORE);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
@@ -70,6 +135,25 @@ const Shader& Fiber::getActiveShader()
 #ifdef CORE_RENDER
 	return coreShader_;
 #endif
+#ifdef COMPLETE_RENDER
+	throw std::logic_error("Incorrect use of function. See Fiber.cpp");
+#endif
+}
+
+const std::vector<Shader*> Fiber::getActiveShaders()
+{
+	std::vector<Shader*> shaders;
+#ifdef FIBER_RENDER
+	shaders.push_back(&fiberShader_);
+#endif
+#ifdef CORE_RENDER
+	shaders.push_back(&coreShader_);
+#endif
+#ifdef COMPLETE_RENDER
+	shaders.push_back(&coreShader_);
+	shaders.push_back(&fiberShader_);
+#endif
+	return shaders;
 }
 
 RENDER_TYPE Fiber::getRenderType()
@@ -79,6 +163,9 @@ RENDER_TYPE Fiber::getRenderType()
 #endif 
 #ifdef CORE_RENDER
 	return CORE;
+#endif
+#ifdef COMPLETE_RENDER
+	return COMPLETE;
 #endif
 }
 

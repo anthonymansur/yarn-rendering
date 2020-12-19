@@ -18,10 +18,12 @@ in float[] isCore;
 in vec3[] prevPosition;
 in vec3[] nextPosition;
 in vec3[] geo_normal;
+in vec2[] geo_texCoords;
 
 out float fs_height; // height map
 out vec3 fs_normal; // 2D surface normal
 out float fs_alpha; // alpha channel 
+out vec2 fs_texCoords;
 
 #define EPSILON 0.0001f
 
@@ -59,8 +61,8 @@ void main()
     vec3 next = nextPosition[1];
 
     // have strips face the camera
-   vec3 direction = camera_pos - 0.5f * (end - start);
-   direction = normalize(vec3(0, direction.y, direction.z));
+    vec3 direction = camera_pos - 0.5f * (end - start);
+    direction = normalize(vec3(0, direction.y, direction.z));
 
     // the three different height vectors that can be generated given the four control points
     vec3 leftHeightDir = cross(normalize(start - prev), direction);
@@ -85,32 +87,40 @@ void main()
     startHeightDir = 0.5f * lineHeight * normalize(startHeightDir) * sign(dot(startHeightDir, heightDir));
     endHeightDir = 0.5f * lineHeight * normalize(endHeightDir) * sign(dot(endHeightDir, heightDir));
 
-    // determine position, height, normal for each vertex
+    // determine position, height, normal, and uv coordinates for each vertex
     float maxDistance = (u_yarn_radius / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
-    float maxTransparency = 0.7f;
+    float maxTransparency = 0.7f; 
 
     gl_Position = MVP * vec4(start+startHeightDir, 1);
     fs_height = start.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
+    fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[0][0] : -1;
+    fs_texCoords[1] = isCore[0] > 0.5f ? 0 : -1;
     EmitVertex();
 
     gl_Position = MVP *  vec4(start-startHeightDir, 1);
     fs_height = start.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
+    fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[0][0] : -1;
+    fs_texCoords[1] = isCore[0] > 0.5f ? 1 : -1;
     EmitVertex();
 
     gl_Position = MVP * vec4(end+endHeightDir, 1);
     fs_height = end.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
+    fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[1][0] : -1;
+    fs_texCoords[1] = isCore[1] > 0.5f ? 0 : -1;
     EmitVertex();
 
     gl_Position = MVP * vec4(end-endHeightDir, 1);
     fs_height = end.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
+    fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[1][0] : -1;
+    fs_texCoords[1] = isCore[1] > 0.5f ? 1 : -1;
     EmitVertex();
 
     EndPrimitive();

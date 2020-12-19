@@ -16,8 +16,9 @@ out vec4 _pos;
 out vec3 prevPosition;
 out vec3 nextPosition;
 out vec3 geo_normal;
-out vec2 textureParams;
+out vec2 geo_texCoords;
 
+uniform vec3 view_dir;
 
 // Fiber pre-defined parameters
 // ----------------------------
@@ -153,6 +154,7 @@ void main()
 							(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
 		}
 
+		// core fibers
 		if (v < u_ply_num)
 			fiber_radius = 0;
 		isCore = v < u_ply_num ? 1.f : 0.f;
@@ -166,8 +168,13 @@ void main()
 		if (i == 0)
 			prevPosition = fiber_center.xyz;
 		if (i == 1)
+		{
 			gl_Position = fiber_center;
 			geo_normal = normalize(fiber_center - yarn_center).xyz;
+			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/(u_yarn_alpha - u_alpha) +
+							   acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
+			geo_texCoords[1] = 0; // will be set by geometry shader
+		}
 		if (i == 2)
 			nextPosition = fiber_center.xyz;
 		_pos = fiber_center;

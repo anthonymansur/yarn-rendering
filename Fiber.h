@@ -8,7 +8,8 @@
 
 enum RENDER_TYPE {
     CORE,
-    FIBER
+    FIBER,
+    COMPLETE
 };
 
 class Fiber {
@@ -20,7 +21,11 @@ public:
     void setFiberParameters(RENDER_TYPE);
     void initShaders();
     const Shader& getActiveShader();
+    const std::vector<Shader*> getActiveShaders();
     RENDER_TYPE getRenderType();
+
+    static unsigned int SCR_WIDTH;
+    static unsigned int SCR_HEIGHT;
 
 private:
     void loadPoints();
@@ -35,9 +40,9 @@ private:
     GLuint heightMap;
     GLuint alphaChannel;
 
-    GLuint normalFrameBuffer;
-    GLuint heightFrameBuffer;
-    GLuint alphaFrameBuffer;
+    GLuint frameBuffer;
+    GLuint renderedTexture;
+    GLuint depthrenderbuffer;
 
     Shader coreShader_;
     Shader fiberShader_;
