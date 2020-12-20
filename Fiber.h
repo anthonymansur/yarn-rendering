@@ -12,24 +12,30 @@ enum RENDER_TYPE {
     COMPLETE
 };
 
+enum FIBER_TYPE {
+    COTTON1
+};
+
 class Fiber {
 public:
     Fiber();
     ~Fiber();
-    void addPoint(float x, float y, float z);
-    void render();
-    void setFiberParameters(RENDER_TYPE);
     void initShaders();
+    void initTextures();
+    void initFrameBuffer();
+    void initFiber(FIBER_TYPE);
+
+    void setFiberParameters(RENDER_TYPE);
+    void addPoint(float x, float y, float z);
+
+    void render();
+
     const Shader& getActiveShader();
     const std::vector<Shader*> getActiveShaders();
     RENDER_TYPE getRenderType();
-    void initTextures();
-    void initFrameBuffer();
 
     static unsigned int SCR_WIDTH;
     static unsigned int SCR_HEIGHT;
-    static unsigned int CORE_WIDTH;
-    static unsigned int CORE_HEIGHT;
 
 private:
     void loadPoints();
@@ -53,4 +59,42 @@ private:
     Shader coreShader_;
     Shader fiberShader_;
     Shader pointsShader_;
+
+    // Fiber parameters
+    int ply_num;
+    int fiber_num;
+
+    glm::vec3 bounding_min;
+    glm::vec3 bounding_max;
+
+    float z_step_size;
+    int z_step_num;
+    int fly_step_size;
+
+    int yarn_clock_wise;
+    int fiber_clock_wise;
+    float yarn_alpha;
+    float alpha;
+
+    float yarn_radius;
+    float ellipse_long;
+    float ellipse_short;
+
+    int epsilon;
+    float beta;
+    float r_max;
+
+    int use_migration;
+    float s_i;
+    float rho_min;
+    float rho_max;
+
+    int use_flyaways;
+    float flyaway_hair_density;
+    glm::vec2 flyaway_hair_ze;
+    glm::vec2 flyaway_hair_r0;
+    glm::vec2 flyaway_hair_re;
+    glm::vec2 flyaway_hair_pe;
+    float flyaway_loop_density;
+    glm::vec2 flyaway_loop_r1;
 };

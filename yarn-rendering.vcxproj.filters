@@ -19,6 +19,9 @@
     <Filter Include="Resource Files\images">
       <UniqueIdentifier>{fdfe594f-d978-4a11-93dd-4dc81bcb3950}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\fiber_types">
+      <UniqueIdentifier>{a77fcad9-f0db-4487-be8d-8abf7c55f3f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\opengl-imports\glad.c">
@@ -77,6 +80,9 @@
   <ItemGroup>
     <Text Include="debug_checklist.txt">
       <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="cotton1.txt">
+      <Filter>Resource Files\fiber_types</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>

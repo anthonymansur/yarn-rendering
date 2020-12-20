@@ -167,6 +167,7 @@
     <None Include="fiber_vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="cotton1.txt" />
     <Text Include="debug_checklist.txt" />
   </ItemGroup>
   <ItemGroup>

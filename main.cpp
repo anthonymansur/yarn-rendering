@@ -74,6 +74,7 @@ int main()
     // Fiber
     // -----
     Fiber fiber = Fiber();
+    fiber.initFiber(COTTON1);
     fiber.initShaders();
     fiber.initFrameBuffer();
     //fiber.initTextures();

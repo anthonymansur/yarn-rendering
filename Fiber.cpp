@@ -1,5 +1,8 @@
 #include "Fiber.h"
 #include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -20,6 +23,8 @@ unsigned int Fiber::SCR_WIDTH = 2400;
 unsigned int Fiber::SCR_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
 
 unsigned int loadTexture(const char* path);
+static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
+static std::vector<std::string> split(const std::string& s, char delim);
 
 Fiber::Fiber() : 
 	points_{}, 
@@ -112,6 +117,101 @@ void Fiber::initFrameBuffer()
 		throw std::runtime_error("Framebuffer has not been properly configured.");
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Fiber::initFiber(FIBER_TYPE type)
+{
+	// TODO: implement
+	string filename;
+
+	switch (type)
+	{
+	case COTTON1:
+		filename = "cotton1.txt";
+		break;
+	}
+
+	ifstream myfile(filename);
+	if (myfile.is_open())
+	{
+		string line;
+		while (getline(myfile, line))
+		{
+			std::vector<std::string> splits = split(line, ' ');
+			if (splits.size() < 2)    continue;
+			std::string p_name = splits[0];
+			if (p_name == "ply_num:")
+				ply_num = stoi(splits[1]);
+			else if (p_name == "fiber_num:")
+				fiber_num = stoi(splits[1]);
+			else if (p_name == "aabb_min:")
+			{
+				string subline = splits[1].substr(1, splits[1].size() - 2);
+				std::vector<std::string> subsplits = split(subline, ',');
+				bounding_min = glm::vec3(stof(subsplits[0]), stof(subsplits[1]), stof(subsplits[2]));
+			}
+			else if (p_name == "aabb_max:")
+			{
+				string subline = splits[1].substr(1, splits[1].size() - 2);
+				std::vector<std::string> subsplits = split(subline, ',');
+				bounding_max = glm::vec3(stof(subsplits[0]), stof(subsplits[1]), stof(subsplits[2]));
+			}
+			else if (p_name == "z_step_size:")
+				z_step_size = stof(splits[1]);
+			else if (p_name == "z_step_num:")
+				z_step_num = stoi(splits[1]);
+			else if (p_name == "fly_step_size:")
+				fly_step_size = stoi(splits[1]);
+			else if (p_name == "yarn_clock_wise:")
+				yarn_clock_wise = stoi(splits[1]);
+			else if (p_name == "fiber_clock_wise:")
+				fiber_clock_wise = stoi(splits[1]);
+			else if (p_name == "yarn_alpha:")
+				yarn_alpha = stof(splits[1]);
+			else if (p_name == "alpha:")
+				alpha = stof(splits[1]);
+			else if (p_name == "yarn_radius:")
+				yarn_radius = stof(splits[1]);
+			else if (p_name == "ellipse_long:")
+				ellipse_long = stof(splits[1]);
+			else if (p_name == "ellipse_short:")
+				ellipse_short = stof(splits[1]);
+			else if (p_name == "epsilon:")
+				epsilon = stoi(splits[1]);
+			else if (p_name == "beta:")
+				beta = stof(splits[1]);
+			else if (p_name == "R_max:")
+				r_max = stof(splits[1]);
+			else if (p_name == "use_migration:")
+				use_migration = stoi(splits[1]);
+			else if (p_name == "s_i:")
+				s_i = stof(splits[1]);
+			else if (p_name == "rho_min:")
+				rho_min = stof(splits[1]);
+			else if (p_name == "rho_max:")
+				rho_max = stof(splits[1]);
+			else if (p_name == "use_flyaways:")
+				use_flyaways = stoi(splits[1]);
+			else if (p_name == "flyaway_hair_density:")
+				flyaway_hair_density = stof(splits[1]);
+			else if (p_name == "flyaway_hair_ze:")
+				flyaway_hair_ze = glm::vec2(stof(splits[1]), stof(splits[2]));
+			else if (p_name == "flyaway_hair_r0:")
+				flyaway_hair_r0 = glm::vec2(stof(splits[1]), stof(splits[2]));
+			else if (p_name == "flyaway_hair_re:")
+				flyaway_hair_re = glm::vec2(stof(splits[1]), stof(splits[2]));
+			else if (p_name == "flyaway_hair_pe:")
+				flyaway_hair_pe = glm::vec2(stof(splits[1]), stof(splits[2]));
+			else if (p_name == "flyaway_loop_density:")
+				flyaway_loop_density = stof(splits[1]);
+			else if (p_name == "flyaway_loop_r1:")
+				flyaway_loop_r1 = glm::vec2(stof(splits[1]), stof(splits[2]));
+		}
+	}
+	else
+	{
+		throw std::runtime_error("Unable to open fiber parameters file.");
+	}
 }
 
 Fiber::~Fiber() {
@@ -283,44 +383,46 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 	shader.setVec3("objectColor", 217/255.f, 109/255.f, 2/255.f);
 
 	// TODO: replace w/ file implementation
-	shader.setInt("u_ply_num", 3);
-	shader.setInt("u_fiber_num", 75);
+	shader.setInt("u_ply_num", ply_num);
+	shader.setInt("u_fiber_num", fiber_num);
 
-	shader.setVec3("u_bounding_min", -0.0538006, -0.0538006, -0.488648);
-	shader.setVec3("u_bounding_max", 0.0538006, 0.0538006, 0.488648);
+	shader.setVec3("u_bounding_min", bounding_min[0], bounding_min[1], bounding_min[2]);
+	shader.setVec3("u_bounding_max", bounding_max[0], bounding_max[1], bounding_max[2]);
 
-	shader.setFloat("u_z_step_size", 0.01);
-	shader.setInt("u_z_step_num", 98);
-	shader.setInt("u_fly_step_size", 0);
+	shader.setFloat("u_z_step_size", z_step_size);
+	shader.setInt("u_z_step_num", z_step_num);
+	shader.setInt("u_fly_step_size", fly_step_size);
 
-	shader.setInt("u_yarn_clock_wise", 0);
-	shader.setInt("u_fiber_clock_wise", 1);
-	shader.setFloat("u_yarn_alpha", 0.452737);
-	shader.setFloat("u_alpha", 0.366114);
+	shader.setInt("u_yarn_clock_wise", yarn_clock_wise);
+	shader.setInt("u_fiber_clock_wise", fiber_clock_wise);
+	shader.setFloat("u_yarn_alpha", yarn_alpha);
+	shader.setFloat("u_alpha", alpha);
 
-	shader.setFloat("u_yarn_radius", 0.0378238);
-	shader.setFloat("u_ellipse_long", 0.0257183);
-	shader.setFloat("u_ellipse_short", 0.0200419);
+	shader.setFloat("u_yarn_radius", yarn_radius);
+	shader.setFloat("u_ellipse_long", ellipse_long);
+	shader.setFloat("u_ellipse_short", ellipse_short);
 
-	shader.setInt("u_epsilon", 0);
-	shader.setFloat("u_beta", 0.200965);
-	shader.setFloat("u_r_max", 1.f);
+	shader.setInt("u_epsilon", epsilon);
+	shader.setFloat("u_beta", beta);
+	shader.setFloat("u_r_max", r_max);
 
-	shader.setInt("u_use_migration", 1);
-	shader.setFloat("u_s_i", 1.1f);
-	shader.setFloat("u_rho_min", 0.85);
-	shader.setFloat("u_rho_max", 1.f);
+	shader.setInt("u_use_migration", use_migration);
+	shader.setFloat("u_s_i", s_i);
+	shader.setFloat("u_rho_min", rho_min);
+	shader.setFloat("u_rho_max", rho_max);
 
-	shader.setInt("u_use_flyaways", 1);
-	shader.setFloat("u_flyaway_hair_density", 30.3559);
-	shader.setVec2("u_flyaway_hair_ze", 0.002419, 0.0631994);
-	shader.setVec2("u_flyaway_hair_r0", 0.0203949, 0.0055814);
-	shader.setVec2("u_flyaway_hair_re", 0.0166551, 0.00949242);
-	shader.setVec2("u_flyaway_hair_pe", 0.390188, 0.342302);
-	shader.setFloat("u_flyaway_loop_density", 19.1003);
-	shader.setVec2("u_flyaway_loop_r1", 0.0245694, 0.00522926);
+	shader.setInt("u_use_flyaways", use_flyaways);
+	shader.setFloat("u_flyaway_hair_density", flyaway_hair_density);
+	shader.setVec2("u_flyaway_hair_ze", flyaway_hair_ze[0], flyaway_hair_ze[1]);
+	shader.setVec2("u_flyaway_hair_r0", flyaway_hair_r0[0], flyaway_hair_r0[1]);
+	shader.setVec2("u_flyaway_hair_re", flyaway_hair_re[0], flyaway_hair_re[1]);
+	shader.setVec2("u_flyaway_hair_pe", flyaway_hair_pe[0], flyaway_hair_pe[1]);
+	shader.setFloat("u_flyaway_loop_density", flyaway_loop_density);
+	shader.setVec2("u_flyaway_loop_r1", flyaway_loop_r1[0], flyaway_loop_r1[1]);
 }
 
+// Helper Functions
+// ----------------
 unsigned int loadTexture(char const* path)
 {
 	unsigned int textureID;
@@ -356,4 +458,20 @@ unsigned int loadTexture(char const* path)
 	}
 
 	return textureID;
+}
+
+std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems) {
+	std::stringstream ss(s);
+	std::string item;
+	while (std::getline(ss, item, delim)) {
+		elems.push_back(item);
+	}
+	return elems;
+}
+
+
+static std::vector<std::string> split(const std::string& s, char delim) {
+	std::vector<std::string> elems;
+	split(s, delim, elems);
+	return elems;
 }
