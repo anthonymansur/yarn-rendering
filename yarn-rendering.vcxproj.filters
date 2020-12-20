@@ -79,4 +79,15 @@
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="normal_texture.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="alpha_texture.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="height_texture.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

@@ -1,7 +1,11 @@
 #include "Fiber.h"
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #define COMPLETE_RENDER
+#define IMAGE_TEXTURE
 
 namespace
 {
@@ -22,6 +26,8 @@ unsigned int Fiber::SCR_HEIGHT = 600;
 
 unsigned int Fiber::CORE_WIDTH = 2400;
 unsigned int Fiber::CORE_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
+
+unsigned int loadTexture(const char* path);
 
 Fiber::Fiber() : 
 	points_{}, 
@@ -51,6 +57,11 @@ void Fiber::initShaders()
 	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
 	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
 	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
+}
+
+void Fiber::initTextures()
+{
+	heightTexture = loadTexture("height_texture.png");
 }
 
 void Fiber::initFrameBuffer()
@@ -110,6 +121,7 @@ void Fiber::render()
 	// --------------------------
 	glBindVertexArray(vao_id_);
 
+#ifdef FRAMEBUFFER_ON
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glClearColor(1.f, 1.f, 1.f, 1.f); // temporary
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -121,7 +133,7 @@ void Fiber::render()
 	setFiberParameters(CORE);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
-
+#endif
 	// render yarn to screen
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -130,8 +142,13 @@ void Fiber::render()
 
 	// draw yarn
 	fiberShader_.use();
-	//glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
+#ifdef FRAMEBUFFER_ON
 	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+#endif
+#ifdef IMAGE_TEXTURE
+	glBindTexture(GL_TEXTURE_2D, heightTexture);
+#endif
 	setFiberParameters(FIBER);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
@@ -282,7 +299,39 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 	shader.setVec2("u_flyaway_loop_r1", 0.0245694, 0.00522926);
 }
 
+unsigned int loadTexture(char const* path)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
 
+	int width, height, nrComponents;
+	unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+	if (data)
+	{
+		GLenum format;
+		if (nrComponents == 1)
+			format = GL_RED;
+		else if (nrComponents == 3)
+			format = GL_RGB;
+		else if (nrComponents == 4)
+			format = GL_RGBA;
 
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+		stbi_image_free(data);
+	}
+	else
+	{
+		std::cout << "Texture failed to load at path: " << path << std::endl;
+		stbi_image_free(data);
+	}
+
+	return textureID;
+}

@@ -23,6 +23,7 @@ public:
     const Shader& getActiveShader();
     const std::vector<Shader*> getActiveShaders();
     RENDER_TYPE getRenderType();
+    void initTextures();
     void initFrameBuffer();
 
     static unsigned int SCR_WIDTH;
@@ -46,6 +47,8 @@ private:
     GLuint frameBuffer;
     GLuint renderedTexture;
     GLuint depthrenderbuffer;
+
+    GLuint heightTexture;
 
     Shader coreShader_;
     Shader fiberShader_;

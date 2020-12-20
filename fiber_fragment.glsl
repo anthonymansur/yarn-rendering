@@ -27,6 +27,6 @@ void main()
     if (fs_texCoords[0] < 0)
         frag_colour = heightColor;
     else
-        frag_colour = vec4(heightTex.rgb, 1);
+        frag_colour = vec4(heightTex.rgb, length(heightTex.rgb) < 0.1 ? 0 : 1);
         //frag_colour = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
 }

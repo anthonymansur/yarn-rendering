@@ -52,7 +52,7 @@ void main()
     mat4 MVP = projection * view * model;
     float zoomFactor = .125f;
     float yarn_radius = u_yarn_radius / 2.f;
-    float lineHeight = isCore[0] > 0.5f ? 0.02 : 0.001;
+    float lineHeight = isCore[0] > 0.5f ? 0.03 : 0.001;
 
     // four control points
     vec3 prev = prevPosition[0];

@@ -75,7 +75,8 @@ int main()
     // -----
     Fiber fiber = Fiber();
     fiber.initShaders();
-    fiber.initFrameBuffer();
+    //fiber.initFrameBuffer();
+    fiber.initTextures();
     std::cout << "Finished fiber initialization" << std::endl;
     // add yarn control points
     if (fiber.getRenderType() == CORE)

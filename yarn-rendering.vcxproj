@@ -169,6 +169,11 @@
   <ItemGroup>
     <Text Include="debug_checklist.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="alpha_texture.png" />
+    <Image Include="height_texture.png" />
+    <Image Include="normal_texture.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
