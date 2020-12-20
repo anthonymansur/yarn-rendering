@@ -4,7 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define COMPLETE_RENDER
+#define CORE_RENDER
 #define FRAMEBUFFER_ON
 
 namespace
@@ -279,6 +279,8 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 		shader.setInt("u_alphaTexture", 0);
 	}
 #endif
+
+	shader.setVec3("objectColor", 217/255.f, 109/255.f, 2/255.f);
 
 	// TODO: replace w/ file implementation
 	shader.setInt("u_ply_num", 3);

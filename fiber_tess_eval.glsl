@@ -133,7 +133,13 @@ void main()
 		// calculate fiber displacement
 		vec4 ply_tangent = -sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent;
 		vec4 ply_normal = normalize(ply_displacement);
+
+		// TODO: see why this is needed for it to look visually appealing
+		ply_normal = vec4(0, 1, 0, 0);
+		ply_tangent = vec4(1, 0, 0, 0);
+
 		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
+
 
 		// TODO: compute in cpu and pass as texture
 		float z_i = sampleR(v); // distance between fiber curve and the ply center;
