@@ -9,7 +9,6 @@ uniform float u_ellipse_short;
 uniform float u_r_max;
 
 // other uniforms
-uniform vec3 camera_pos;
 uniform mat4 model;
 
 in vec3[] prevPosition;
@@ -55,7 +54,7 @@ void main()
     vec3 next = nextPosition[1];
 
     // have strips face the camera
-   vec3 direction = camera_pos - 0.5f * (end - start);
+   vec3 direction = vec3(0, 0, -1) - 0.5f * (end - start); // hardcoded
    direction = normalize(vec3(0, direction.y, direction.z));
 
     // the three different height vectors that can be generated given the four control points
