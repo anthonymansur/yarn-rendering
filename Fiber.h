@@ -13,7 +13,16 @@ enum RENDER_TYPE {
 };
 
 enum FIBER_TYPE {
-    COTTON1
+    COTTON1, 
+    COTTON2,
+    POLYESTER1,
+    POLYESTER2,
+    RAYON1,
+    RAYON2,
+    RAYON3,
+    RAYON4,
+    SILK1,
+    SILK2
 };
 
 class Fiber {
@@ -21,7 +30,6 @@ public:
     Fiber();
     ~Fiber();
     void initShaders();
-    void initTextures();
     void initFrameBuffer();
     void initFiber(FIBER_TYPE);
 

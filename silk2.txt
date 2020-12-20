@@ -1,0 +1,36 @@
+ply_num: 3
+fiber_num: 47
+
+aabb_min: [-0.0685404,-0.0685404,-0.476331]
+aabb_max: [0.0685404,0.0685404,0.476331]
+
+z_step_size: 0.01
+z_step_num: 96
+fly_step_size: 0
+
+yarn_clock_wise: 0
+fiber_clock_wise: 1
+yarn_alpha: 0.701703
+alpha: 0.560199
+
+yarn_radius: 0.0450518
+ellipse_long: 0.0305889
+ellipse_short: 0.025233
+
+epsilon: 0.401672
+beta: 0.594054
+R_max: 1
+
+use_migration: 1
+s_i: 1.2
+rho_min: 0.7
+rho_max: 1
+
+use_flyaways: 1
+flyaway_hair_density: 25.5424
+flyaway_hair_ze: 0.00596582 0.041368
+flyaway_hair_r0: 0.0236179 0.00456369
+flyaway_hair_re: 0.0109529 0.00869167
+flyaway_hair_pe: 0.447557 0.443171
+flyaway_loop_density: 20.6439
+flyaway_loop_r1: 0.0280806 0.0045219

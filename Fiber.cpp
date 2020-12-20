@@ -59,11 +59,6 @@ void Fiber::initShaders()
 	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
 }
 
-void Fiber::initTextures()
-{
-	heightTexture = loadTexture("height_texture.png");
-}
-
 void Fiber::initFrameBuffer()
 {
 	// TODO: initialize
@@ -129,6 +124,32 @@ void Fiber::initFiber(FIBER_TYPE type)
 	case COTTON1:
 		filename = "cotton1.txt";
 		break;
+	case COTTON2:
+		filename = "cotton2.txt";
+		break;
+	case POLYESTER1:
+		filename = "polyester1.txt";
+		break;
+	case RAYON1:
+		filename = "rayon1.txt";
+		break;
+	case RAYON2:
+		filename = "rayon2.txt";
+		break;
+	case RAYON3:
+		filename = "rayon3.txt";
+		break;
+	case RAYON4:
+		filename = "rayon4.txt";
+		break;
+	case SILK1:
+		filename = "silk1.txt";
+		break;
+	case SILK2:
+		filename = "silk2.txt";
+		break;
+	default:
+		throw std::runtime_error("Fiber type has not been implemented yet.");
 	}
 
 	ifstream myfile(filename);
