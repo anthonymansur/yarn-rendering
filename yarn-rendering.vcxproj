@@ -168,7 +168,15 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="cotton1.txt" />
+    <Text Include="cotton2.txt" />
     <Text Include="debug_checklist.txt" />
+    <Text Include="polyester1.txt" />
+    <Text Include="rayon1.txt" />
+    <Text Include="rayon2.txt" />
+    <Text Include="rayon3.txt" />
+    <Text Include="rayon4.txt" />
+    <Text Include="silk1.txt" />
+    <Text Include="silk2.txt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="alpha_texture.png" />

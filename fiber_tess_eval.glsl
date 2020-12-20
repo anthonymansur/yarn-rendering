@@ -62,8 +62,8 @@ vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 
 float rand(vec2 co); // pseudo-random number gen given two floats 
-float fiberDistribution(float R); // rejection sampling
-float sampleR(float v); // get the radius of fiber (<= r_max) given the ply center
+float fiberDistribution(float R, float rho_max); // rejection sampling
+float sampleR(float v, float rho_max); // get the radius of fiber (<= r_max) given the ply center
 float normalDistribution(float x, float mu, float sigma);
 float sampleLoop(float v, float mu, float sigma);
 
@@ -140,10 +140,22 @@ void main()
 
 		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
 
+		float rho_max = u_rho_max;
+
+		if (u_use_flyaways == 1)
+		{
+			/* Loop fiber */
+			// TODO: verify it's addition and not equals
+			if (v < u_flyaway_loop_density)
+				rho_max = sampleLoop(v, u_flyaway_loop_r1[0], u_flyaway_loop_r1[1]);
+			
+			/* Hair fiber */
+			// TODO: implement
+		}
 
 		// TODO: compute in cpu and pass as texture
-		float z_i = sampleR(v); // distance between fiber curve and the ply center;
-		float y_i = sampleR(2 * v);
+		float z_i = sampleR(v, rho_max); // distance between fiber curve and the ply center;
+		float y_i = sampleR(2 * v, rho_max);
 		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f)); // TODO: add fiber migration
 		float fiber_theta = atan(y_i, z_i) + 2 * pi * rand(vec2(v * 2.f, v * 3.f));  // theta_i
 		float en = u_ellipse_long;
@@ -154,7 +166,7 @@ void main()
 		if (u_use_migration == 1)
 		{
 			float fiber_r_min = u_rho_min;
-			float fiber_r_max = u_rho_max;
+			float fiber_r_max = rho_max;
 			float fiber_s = u_s_i;
 			fiber_radius *= 0.5f * (fiber_r_max + fiber_r_min + 
 							(fiber_r_max - fiber_r_min) * cos(fiber_theta + fiber_s * theta)); 
@@ -223,19 +235,19 @@ float rand(vec2 co){
 // TODO: make sure random functions are random per yarn, not per fiber in yarn. i.e., function of its position
 
 // rejection sampling 
-float fiberDistribution(float R) {
-	float eTerm = (e - pow(e, R / u_rho_max)) / (e - 1);
+float fiberDistribution(float R, float rho_max) {
+	float eTerm = (e - pow(e, R / rho_max)) / (e - 1);
 	float pR = (1 - 2 * u_epsilon) * pow(eTerm, u_beta) + u_epsilon;
 	return pR;
 }
 
 // Used to get the radius of each fiber w.r.t. its ply center
-float sampleR(float v) {
+float sampleR(float v, float rho_max) {
 	int i = 0;
 	while (true) {
-		float radius = sqrt(rand(vec2(v + i, v + i))) * u_r_max;
+		float radius = sqrt(rand(vec2(v + i, v + i))) * rho_max;
 		float pdf = rand(vec2(v + i, v + i));
-		if (pdf < fiberDistribution(radius))
+		if (pdf < fiberDistribution(radius, rho_max))
 			return radius;
 		i++;
 	}

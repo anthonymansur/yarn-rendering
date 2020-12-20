@@ -84,6 +84,30 @@
     <Text Include="cotton1.txt">
       <Filter>Resource Files\fiber_types</Filter>
     </Text>
+    <Text Include="cotton2.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
+    <Text Include="polyester1.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
+    <Text Include="rayon1.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
+    <Text Include="rayon2.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
+    <Text Include="rayon3.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
+    <Text Include="rayon4.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
+    <Text Include="silk1.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
+    <Text Include="silk2.txt">
+      <Filter>Resource Files\fiber_types</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="normal_texture.png">
