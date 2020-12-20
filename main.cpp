@@ -85,8 +85,8 @@ int main()
     {
         pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
         pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3((fiber.alpha - 0.01f) / 2.f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(fiber.alpha / 2.f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3((fiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(fiber.getFiberAlpha() / 2.f, 0.f, 0.f));
     }
     if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
     {

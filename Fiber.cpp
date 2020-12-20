@@ -17,7 +17,7 @@ unsigned int loadTexture(const char* path);
 static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
 static std::vector<std::string> split(const std::string& s, char delim);
 
-Fiber::Fiber(FIBER_TYPE type) : points_{}, ebo_{}, renderType(COMPLETE_RENDER)
+Fiber::Fiber(FIBER_TYPE type) : points_{}, ebo_{}, renderType(COMPLETE)
 {
 	string filename;
 	switch (type)
@@ -366,6 +366,11 @@ void Fiber::addPoint(float x, float y, float z) {
 	}
 
 	loadPoints();
+}
+
+float Fiber::getFiberAlpha()
+{
+	return alpha;
 }
 
 /* PRIVATE */

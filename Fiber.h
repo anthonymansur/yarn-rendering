@@ -42,6 +42,7 @@ public:
     const Shader& getActiveShader();
     const std::vector<Shader*> getActiveShaders();
     RENDER_TYPE getRenderType();
+    float getFiberAlpha();
 
     unsigned int SCR_WIDTH;
     unsigned int SCR_HEIGHT;
