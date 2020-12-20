@@ -45,10 +45,10 @@ private:
     GLuint alphaChannel;
 
     GLuint frameBuffer;
-    GLuint renderedTexture;
     GLuint depthrenderbuffer;
-
     GLuint heightTexture;
+    GLuint normalTexture;
+    GLuint alphaTexture;
 
     Shader coreShader_;
     Shader fiberShader_;

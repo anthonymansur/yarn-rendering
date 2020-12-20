@@ -30,6 +30,9 @@ Fiber::Fiber() :
 	glGenBuffers(1, &ebo_id_);
 	glGenFramebuffers(1, &frameBuffer);
 	glGenRenderbuffers(1, &depthrenderbuffer);
+	glGenTextures(1, &heightTexture);
+	glGenTextures(1, &normalTexture);
+	glGenTextures(1, &alphaTexture);
 
 	glBindVertexArray(vao_id_);
 
@@ -66,18 +69,33 @@ void Fiber::initFrameBuffer()
 
 	// step 2: create a texture image to attach the color attachment too
 	// generate texture 
-	glGenTextures(1, &renderedTexture);
+	// TODO: use texture 2d array
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glBindTexture(GL_TEXTURE_2D, heightTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	// TODO: add mipmap
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, normalTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, alphaTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach it to currently bound framebuffer object
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, alphaTexture, 0);
+
 
 	// generate depth buffer for depth testing
 	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
@@ -102,6 +120,9 @@ Fiber::~Fiber() {
 	glDeleteBuffers(1, &ebo_id_);
 	glDeleteFramebuffers(1, &frameBuffer);
 	glDeleteBuffers(1, &depthrenderbuffer);
+	glDeleteTextures(1, &heightTexture);
+	glDeleteTextures(1, &normalTexture);
+	glDeleteTextures(1, &alphaTexture);
 }
 
 void Fiber::render()
@@ -113,6 +134,8 @@ void Fiber::render()
 
 #ifdef FRAMEBUFFER_ON
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, DrawBuffers); 
 	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -133,13 +156,17 @@ void Fiber::render()
 	// draw yarn
 	fiberShader_.use();
 	glActiveTexture(GL_TEXTURE0);
-#ifdef FRAMEBUFFER_ON
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
-#endif
-#ifdef IMAGE_TEXTURE
 	glBindTexture(GL_TEXTURE_2D, heightTexture);
-#endif
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, normalTexture);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, alphaTexture);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
 	setFiberParameters(FIBER);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
@@ -247,7 +274,9 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 #ifdef COMPLETE_RENDER
 	if (type == FIBER)
 	{
-		shader.setInt("u_texture", 0);
+		shader.setInt("u_heightTexture", 0);
+		shader.setInt("u_normalTexture", 1);
+		shader.setInt("u_alphaTexture", 0);
 	}
 #endif
 

@@ -1,7 +1,7 @@
 #version 410 core
 
 uniform float u_yarn_radius; 
-uniform sampler2D u_texture;
+uniform sampler2D u_heightTexture;
 
 in float fs_height;
 in vec3 fs_normal; 
@@ -17,7 +17,7 @@ void main()
 {
     // map 0 to 1 to 0.388 to 0.611
     vec2 texCoords = vec2(fs_texCoords[0], lerp(0.388f, 0.611f, fs_texCoords[1]));
-    vec4 heightTex = texture(u_texture, texCoords);
+    vec4 heightTex = texture(u_heightTexture, texCoords);
 //    vec4 normalTex = texture(u_texture,  vec3(fs_texCoords, 1));
 //    vec4 alphaTex = texture(u_texture,  vec3(fs_texCoords, 2));
 
