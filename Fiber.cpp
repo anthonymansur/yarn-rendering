@@ -7,118 +7,19 @@ using namespace std;
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define COMPLETE_RENDER
-#define FRAMEBUFFER_ON
-
 namespace
 {
 	const GLuint POS_VAO_ID = 0;
 	const GLuint STRIDE = 3;
 }
 
-float fiberWidth = (0.366114f / 2.f);
-float fiberHeight = 0.0200419f * (2 / 3.f);
-
-unsigned int Fiber::SCR_WIDTH = 2400;
-unsigned int Fiber::SCR_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
-
 unsigned int loadTexture(const char* path);
 static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
 static std::vector<std::string> split(const std::string& s, char delim);
 
-Fiber::Fiber() : 
-	points_{}, 
-	ebo_{}
+Fiber::Fiber(FIBER_TYPE type) : points_{}, ebo_{}, renderType(COMPLETE_RENDER)
 {
-	glGenVertexArrays(1, &vao_id_);
-	glGenBuffers(1, &vbo_id_);
-	glGenBuffers(1, &ebo_id_);
-	glGenFramebuffers(1, &frameBuffer);
-	glGenRenderbuffers(1, &depthrenderbuffer);
-	glGenTextures(1, &heightTexture);
-	glGenTextures(1, &normalTexture);
-	glGenTextures(1, &alphaTexture);
-
-	glBindVertexArray(vao_id_);
-
-	loadPoints();
-
-	glVertexAttribPointer(POS_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(POS_VAO_ID);
-
-	// Determine max vertices in a patch
-	GLint maxPatchVertices = 0;
-	glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
-	std::cout << "Max supported patch vertices " << maxPatchVertices << std::endl;
-}
-
-void Fiber::initShaders()
-{
-	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
-	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
-	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
-}
-
-void Fiber::initFrameBuffer()
-{
-	// TODO: initialize
-	// Create texture for core fibers
-	// ------------------------------
-	// step 1: bind the framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
-	// step 2: create a texture image to attach the color attachment too
-	// generate texture 
-	// TODO: use texture 2d array
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, heightTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, alphaTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// attach it to currently bound framebuffer object
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightTexture, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalTexture, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, alphaTexture, 0);
-
-
-	// generate depth buffer for depth testing
-	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	// attach it to currently bound framebuffer oject
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
-
-	// check if framebuffer is complete
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
-		throw std::runtime_error("Framebuffer has not been properly configured.");
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void Fiber::initFiber(FIBER_TYPE type)
-{
-	// TODO: implement
 	string filename;
-
 	switch (type)
 	{
 	case COTTON1:
@@ -233,6 +134,98 @@ void Fiber::initFiber(FIBER_TYPE type)
 	{
 		throw std::runtime_error("Unable to open fiber parameters file.");
 	}
+
+	float fiberWidth = (alpha / 2.f);
+	float fiberHeight = ellipse_short * (2 / 3.f);
+
+	SCR_WIDTH = 2400;
+	SCR_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
+}
+
+void Fiber::initShaders()
+{
+	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
+	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
+}
+
+void Fiber::initFrameBuffer()
+{
+	// TODO: initialize
+	// Create texture for core fibers
+	// ------------------------------
+	// step 1: bind the framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+	// step 2: create a texture image to attach the color attachment too
+	// generate texture 
+	// TODO: use texture 2d array
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, heightTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, normalTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, alphaTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach it to currently bound framebuffer object
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, alphaTexture, 0);
+
+
+	// generate depth buffer for depth testing
+	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach it to currently bound framebuffer oject
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+
+	// check if framebuffer is complete
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
+		throw std::runtime_error("Framebuffer has not been properly configured.");
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Fiber::initializeGL()
+{
+	glGenVertexArrays(1, &vao_id_);
+	glGenBuffers(1, &vbo_id_);
+	glGenBuffers(1, &ebo_id_);
+	glGenFramebuffers(1, &frameBuffer);
+	glGenRenderbuffers(1, &depthrenderbuffer);
+	glGenTextures(1, &heightTexture);
+	glGenTextures(1, &normalTexture);
+	glGenTextures(1, &alphaTexture);
+
+	glBindVertexArray(vao_id_);
+
+	loadPoints();
+
+	glVertexAttribPointer(POS_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(POS_VAO_ID);
+
+	// Determine max vertices in a patch
+	GLint maxPatchVertices = 0;
+	glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
+	std::cout << "Max supported patch vertices " << maxPatchVertices << std::endl;
 }
 
 Fiber::~Fiber() {
@@ -248,111 +241,111 @@ Fiber::~Fiber() {
 
 void Fiber::render()
 {
-#ifdef COMPLETE_RENDER
-	// Start rendering the fibers
+	if (renderType == COMPLETE)
+	{
+		// Start rendering the fibers
 	// --------------------------
-	glBindVertexArray(vao_id_);
+		glBindVertexArray(vao_id_);
 
-#ifdef FRAMEBUFFER_ON
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, DrawBuffers); 
-	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+		GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		glDrawBuffers(3, DrawBuffers);
+		glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-	// draw core fiber
-	coreShader_.use();
-	setFiberParameters(CORE);
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
-#endif
-	// render yarn to screen
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		// draw core fiber
+		coreShader_.use();
+		setFiberParameters(CORE);
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+		// render yarn to screen
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-	// draw yarn
-	fiberShader_.use();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, heightTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
+		// draw yarn
+		fiberShader_.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, heightTexture);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, normalTexture);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, alphaTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, alphaTexture);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
-	setFiberParameters(FIBER);
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
-#endif
-#ifdef FIBER_RENDER
-	glBindVertexArray(vao_id_);
-	fiberShader_.use();
-	setFiberParameters(FIBER);
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
-#endif
-#ifdef CORE_RENDER
-	glBindVertexArray(vao_id_);
-	coreShader_.use();
-	setFiberParameters(CORE);
-	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
-#endif
+		setFiberParameters(FIBER);
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+	}
+	else if (renderType == FIBER)
+	{
+		glBindVertexArray(vao_id_);
+		fiberShader_.use();
+		setFiberParameters(FIBER);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+	}
+	else if (renderType == CORE)
+	{
+		glBindVertexArray(vao_id_);
+		coreShader_.use();
+		setFiberParameters(CORE);
+		glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+	}
+	else
+	{
+		std::runtime_error("Render type is not properly initialized.");
+	}
 }
 
 const Shader& Fiber::getActiveShader()
 {
-#ifdef FIBER_RENDER
-	return fiberShader_;
-#endif
-#ifdef CORE_RENDER
-	return coreShader_;
-#endif
-#ifdef COMPLETE_RENDER
-	throw std::logic_error("Incorrect use of function. See Fiber.cpp");
-#endif
+	if (renderType == FIBER)
+		return fiberShader_;
+	if (renderType == CORE)
+		return coreShader_;
+	if (renderType == COMPLETE)
+	{
+		throw std::logic_error("Incorrect use of function. See Fiber.cpp");
+	}
 }
 
 const std::vector<Shader*> Fiber::getActiveShaders()
 {
 	std::vector<Shader*> shaders;
-#ifdef FIBER_RENDER
-	shaders.push_back(&fiberShader_);
-#endif
-#ifdef CORE_RENDER
-	shaders.push_back(&coreShader_);
-#endif
-#ifdef COMPLETE_RENDER
-	shaders.push_back(&coreShader_);
-	shaders.push_back(&fiberShader_);
-#endif
+	if (renderType == FIBER)
+		shaders.push_back(&fiberShader_);
+	if (renderType == CORE)
+		shaders.push_back(&coreShader_);
+	if (renderType == COMPLETE)
+	{
+		shaders.push_back(&coreShader_);
+		shaders.push_back(&fiberShader_);
+	}
 	return shaders;
+}
+
+void Fiber::setRenderType(RENDER_TYPE renderType)
+{
+	this->renderType = renderType;
 }
 
 RENDER_TYPE Fiber::getRenderType()
 {
-#ifdef FIBER_RENDER
-	return FIBER;
-#endif 
-#ifdef CORE_RENDER
-	return CORE;
-#endif
-#ifdef COMPLETE_RENDER
-	return COMPLETE;
-#endif
+	return renderType;
 }
 
 // Passes to vertex shader in the form of [a, b, c, d], [b, c, d, e], [c, d, e, f] ...
@@ -392,14 +385,12 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 {
 	Shader& shader = type == CORE ? coreShader_ : fiberShader_;
 
-#ifdef COMPLETE_RENDER
-	if (type == FIBER)
+	if (renderType == COMPLETE && type == FIBER)
 	{
 		shader.setInt("u_heightTexture", 0);
 		shader.setInt("u_normalTexture", 1);
 		shader.setInt("u_alphaTexture", 0);
 	}
-#endif
 
 	shader.setVec3("objectColor", 217/255.f, 109/255.f, 2/255.f);
 

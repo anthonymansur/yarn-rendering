@@ -12,7 +12,7 @@ patch out int num_of_isolines;
 void main()
 {
 	if(gl_InvocationID == 0) {
-		num_of_isolines = u_fiber_num - 21 > 64 ? 64 : u_fiber_num - 21;
+		num_of_isolines = 64;
 		gl_TessLevelOuter[0] = float(num_of_isolines); // number of isolines
 		gl_TessLevelOuter[1] = float(64); // curve subdivision
 

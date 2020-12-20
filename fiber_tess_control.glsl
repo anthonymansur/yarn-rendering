@@ -12,7 +12,7 @@ uniform int u_ply_num; // the number of plies
 void main()
 {
 	if(gl_InvocationID == 0) {
-		num_of_isolines = u_ply_num * 21;
+		num_of_isolines = u_ply_num * (64 / u_ply_num);
 		gl_TessLevelOuter[0] = float(num_of_isolines); // number of isolines
 		gl_TessLevelOuter[1] = float(64); // curve subdivision
 

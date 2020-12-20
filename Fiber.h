@@ -27,14 +27,15 @@ enum FIBER_TYPE {
 
 class Fiber {
 public:
-    Fiber();
+    Fiber(FIBER_TYPE type);
     ~Fiber();
     void initShaders();
     void initFrameBuffer();
-    void initFiber(FIBER_TYPE);
+    void initializeGL();
 
     void setFiberParameters(RENDER_TYPE);
     void addPoint(float x, float y, float z);
+    void setRenderType(RENDER_TYPE);
 
     void render();
 
@@ -42,8 +43,10 @@ public:
     const std::vector<Shader*> getActiveShaders();
     RENDER_TYPE getRenderType();
 
-    static unsigned int SCR_WIDTH;
-    static unsigned int SCR_HEIGHT;
+    unsigned int SCR_WIDTH;
+    unsigned int SCR_HEIGHT;
+    
+    RENDER_TYPE renderType;
 
 private:
     void loadPoints();

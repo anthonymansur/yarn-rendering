@@ -16,9 +16,12 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+// Fiber Initialization
+// --------------------
+Fiber fiber = Fiber(COTTON1);
 Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
-float lastX = Fiber::SCR_WIDTH / 2.0f;
-float lastY = Fiber::SCR_HEIGHT / 2.0f;
+float lastX = fiber.SCR_WIDTH / 2.0f;;
+float lastY = fiber.SCR_HEIGHT / 2.0f;;
 bool firstMouse = true;
 
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -42,7 +45,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(Fiber::SCR_WIDTH, Fiber::SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(fiber.SCR_WIDTH, fiber.SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -73,19 +76,17 @@ int main()
 
     // Fiber
     // -----
-    Fiber fiber = Fiber();
-    fiber.initFiber(COTTON1);
+    fiber.initializeGL();
     fiber.initShaders();
     fiber.initFrameBuffer();
-    //fiber.initTextures();
     std::cout << "Finished fiber initialization" << std::endl;
     // add yarn control points
     if (fiber.getRenderType() == CORE)
     {
         pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
         pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(0.356f / 2.f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(0.366114f / 2.f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3((fiber.alpha - 0.01f) / 2.f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(fiber.alpha / 2.f, 0.f, 0.f));
     }
     if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
     {
@@ -131,7 +132,7 @@ int main()
         }
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 
-                               (float) Fiber::SCR_WIDTH / (float) Fiber::SCR_HEIGHT, 0.01f, 10.0f);
+                               (float) fiber.SCR_WIDTH / (float) fiber.SCR_HEIGHT, 0.01f, 10.0f);
 
         if (fiber.getRenderType() != COMPLETE)
         {
