@@ -5,7 +5,7 @@
 #include "stb_image.h"
 
 #define COMPLETE_RENDER
-#define IMAGE_TEXTURE
+#define FRAMEBUFFER_ON
 
 namespace
 {
@@ -16,16 +16,8 @@ namespace
 float fiberWidth = (0.366114f / 2.f);
 float fiberHeight = 0.0200419f * (2 / 3.f);
 
-#ifdef CORE_RENDER
 unsigned int Fiber::SCR_WIDTH = 2400;
 unsigned int Fiber::SCR_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
-#else
-unsigned int Fiber::SCR_WIDTH = 3000;
-unsigned int Fiber::SCR_HEIGHT = 600;
-#endif
-
-unsigned int Fiber::CORE_WIDTH = 2400;
-unsigned int Fiber::CORE_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
 
 unsigned int loadTexture(const char* path);
 
@@ -77,11 +69,9 @@ void Fiber::initFrameBuffer()
 	glGenTextures(1, &renderedTexture);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CORE_WIDTH, CORE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// TODO: add mipmap
@@ -91,7 +81,7 @@ void Fiber::initFrameBuffer()
 
 	// generate depth buffer for depth testing
 	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, CORE_WIDTH, CORE_HEIGHT);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// attach it to currently bound framebuffer oject
@@ -123,10 +113,10 @@ void Fiber::render()
 
 #ifdef FRAMEBUFFER_ON
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glClearColor(1.f, 1.f, 1.f, 1.f); // temporary
+	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	glViewport(0, 0, CORE_WIDTH, CORE_HEIGHT);
+	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 	// draw core fiber
 	coreShader_.use();
@@ -145,6 +135,7 @@ void Fiber::render()
 	glActiveTexture(GL_TEXTURE0);
 #ifdef FRAMEBUFFER_ON
 	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glGenerateMipmap(GL_TEXTURE_2D);
 #endif
 #ifdef IMAGE_TEXTURE
 	glBindTexture(GL_TEXTURE_2D, heightTexture);
@@ -168,7 +159,7 @@ void Fiber::render()
 	setFiberParameters(CORE);
 	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, CORE_WIDTH, CORE_HEIGHT);
+	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
 #endif
