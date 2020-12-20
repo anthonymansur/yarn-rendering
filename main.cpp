@@ -76,6 +76,7 @@ int main()
     Fiber fiber = Fiber();
     fiber.initShaders();
     fiber.initFrameBuffer();
+    std::cout << "Finished fiber initialization" << std::endl;
     // add yarn control points
     if (fiber.getRenderType() == CORE)
     {
@@ -92,9 +93,13 @@ int main()
         pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
     }
 
+    std::cout << "Finished adding control points" << std::endl;
+
     for (glm::vec3 point : pointsToAdd) {
         fiber.addPoint(point[0], point[1], point[2]);
     }
+
+    std::cout << "Rendering" << std::endl;
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))

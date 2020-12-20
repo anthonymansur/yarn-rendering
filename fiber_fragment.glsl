@@ -1,7 +1,7 @@
 #version 410 core
 
 uniform float u_yarn_radius; 
-uniform sampler2DArray u_texture;
+uniform sampler2D u_texture;
 
 in float fs_height;
 in vec3 fs_normal; 
@@ -17,9 +17,9 @@ float clamp(float x)
 
 void main()
 {
-    vec4 heightTex = texture(u_texture,  vec3(fs_texCoords, 0));
-    vec4 normalTex = texture(u_texture,  vec3(fs_texCoords, 1));
-    vec4 alphaTex = texture(u_texture,  vec3(fs_texCoords, 2));
+    vec4 heightTex = texture(u_texture, fs_texCoords);
+//    vec4 normalTex = texture(u_texture,  vec3(fs_texCoords, 1));
+//    vec4 alphaTex = texture(u_texture,  vec3(fs_texCoords, 2));
 
     float height = clamp(fs_height);
     vec4 heightColor = vec4(height, height, height, 1.f);

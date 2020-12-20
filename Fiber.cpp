@@ -1,4 +1,5 @@
 #include "Fiber.h"
+#include <iostream>
 
 #define COMPLETE_RENDER
 
@@ -8,16 +9,19 @@ namespace
 	const GLuint STRIDE = 3;
 }
 
+float fiberWidth = (0.366114f / 2.f);
+float fiberHeight = 0.0200419f * (2 / 3.f);
+
 #ifdef CORE_RENDER
-unsigned int Fiber::SCR_WIDTH = 1200;
-unsigned int Fiber::SCR_HEIGHT = 300;
+unsigned int Fiber::SCR_WIDTH = 2400;
+unsigned int Fiber::SCR_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
 #else
 unsigned int Fiber::SCR_WIDTH = 3000;
 unsigned int Fiber::SCR_HEIGHT = 600;
 #endif
 
-unsigned int Fiber::CORE_WIDTH = 1200;
-unsigned int Fiber::CORE_HEIGHT = 300;
+unsigned int Fiber::CORE_WIDTH = 2400;
+unsigned int Fiber::CORE_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
 
 Fiber::Fiber() : 
 	points_{}, 
@@ -54,42 +58,35 @@ void Fiber::initFrameBuffer()
 	// TODO: initialize
 	// Create texture for core fibers
 	// ------------------------------
+	// step 1: bind the framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
-	// https://stackoverflow.com/questions/24310536/opengl-render-portion-of-screen-to-texture
-	float winWidth = CORE_WIDTH;
-	float winHeight = CORE_HEIGHT;
-	float xMin = (CORE_WIDTH / 2.f) - (0.366114f / 2.f) * 0.5f * (1 / .125f);
-	float xMax = (CORE_WIDTH / 2.f) + (0.366114f / 2.f) * 0.5f * (1 / .125f);
-	float yMin = (CORE_HEIGHT / 2.f) - (0.0200419f * (2 / 3.f)) * 0.5f * (1 / .125f); // TODO: replace with ellipse variable
-	float yMax = (CORE_HEIGHT / 2.f) + (0.0200419f * (2 / 3.f)) * 0.5f * (1 / .125f);
-	float fboWidth = (xMax - xMin);
-	float fboHeight = (yMax - yMin);
-
-	// the texture we are going to render to 
+	// step 2: create a texture image to attach the color attachment too
+	// generate texture 
 	glGenTextures(1, &renderedTexture);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, renderedTexture);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, fboWidth, fboHeight, 3, 0, GL_RGBA, GL_UNSIGNED_SHORT, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CORE_WIDTH, CORE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// TODO: add mipmap
 
-	// The depth buffer
+	// attach it to currently bound framebuffer object
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
+
+	// generate depth buffer for depth testing
 	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, fboWidth, fboHeight);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, CORE_WIDTH, CORE_HEIGHT);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attach it to currently bound framebuffer oject
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
 
-	// configure frame buffer
-	glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, renderedTexture, 0, 0);
-	glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_ARRAY, renderedTexture, 0, 1);
-	glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D_ARRAY, renderedTexture, 0, 2);
-
-	// Set the list of draw buffers.
-	GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, DrawBuffers); // "1" is the size of DrawBuffers
-
+	// check if framebuffer is complete
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
@@ -108,47 +105,33 @@ Fiber::~Fiber() {
 
 void Fiber::render()
 {
-
 #ifdef COMPLETE_RENDER
 	// Start rendering the fibers
 	// --------------------------
 	glBindVertexArray(vao_id_);
 
-	float winWidth = CORE_WIDTH;
-	float winHeight = CORE_HEIGHT;
-	float xMin = (CORE_WIDTH / 2.f) - (0.366114f / 2.f) * 0.5f * (1 / .125f);
-	float xMax = (CORE_WIDTH / 2.f) + (0.366114f / 2.f) * 0.5f * (1 / .125f);
-	float yMin = (CORE_HEIGHT / 2.f) - (0.0200419f * (2 / 3.f)) * 0.5f * (1 / .125f); // TODO: replace with ellipse variable
-	float yMax = (CORE_HEIGHT / 2.f) + (0.0200419f * (2 / 3.f)) * 0.5f * (1 / .125f);
-	float fboWidth = (xMax - xMin);
-	float fboHeight = (yMax - yMin);
-
-	// render core fiber to framebuffer
-	float xZoom = winWidth / (xMax - xMin);
-	float yZoom = winHeight / (yMax - yMin);
-	float vpWidth = xZoom * fboWidth;
-	float vpHeight = yZoom * fboHeight;
-	float xVp = -(xMin / (xMax - xMin)) * fboWidth;
-	float yVp = -(yMin / (yMax - yMin)) * fboHeight;
-
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glViewport(xVp, yVp, vpWidth, vpHeight);
-
-	coreShader_.use();
-	setFiberParameters(CORE);
 	glClearColor(1.f, 1.f, 1.f, 1.f); // temporary
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glViewport(0, 0, CORE_WIDTH, CORE_HEIGHT);
+
+	// draw core fiber
+	coreShader_.use();
+	setFiberParameters(CORE);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
 
-	// render full fiber to screen
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, renderedTexture);
-	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-
+	// render yarn to screen
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+	// draw yarn
 	fiberShader_.use();
+	//glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
 	setFiberParameters(FIBER);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
@@ -166,8 +149,9 @@ void Fiber::render()
 	glBindVertexArray(vao_id_);
 	coreShader_.use();
 	setFiberParameters(CORE);
-	glClearColor(1.f, 1.f, 1.f, 1.f); // temporary
+	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, CORE_WIDTH, CORE_HEIGHT);
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
 #endif
