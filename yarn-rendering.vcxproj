@@ -179,6 +179,7 @@
     <None Include="fiber_tess_control.glsl" />
     <None Include="fiber_tess_eval.glsl" />
     <None Include="fiber_vertex.glsl" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="cotton1.txt" />

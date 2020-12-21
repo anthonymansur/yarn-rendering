@@ -121,6 +121,9 @@
     <None Include="fiber_vertex.glsl">
       <Filter>Resource Files\glsl</Filter>
     </None>
+    <None Include="README.md">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="debug_checklist.txt">
