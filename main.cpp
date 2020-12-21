@@ -6,6 +6,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include "Shader.h"
 #include "Camera.h"
 #include "Fiber.h"
@@ -15,10 +19,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void addControlPoints();
 
-// Fiber Initialization
-// --------------------
-Fiber fiber = Fiber(POLYESTER1);
+FIBER_TYPE fiberType = COTTON1;
+Fiber fiber = Fiber(fiberType);
 Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
 float lastX = fiber.SCR_WIDTH / 2.0f;;
 float lastY = fiber.SCR_HEIGHT / 2.0f;;
@@ -26,6 +31,8 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
+
+bool moveCamera = true;
 
 std::vector<glm::vec3> pointsToAdd;
 
@@ -45,7 +52,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(fiber.SCR_WIDTH, fiber.SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(fiber.SCR_WIDTH, fiber.SCR_HEIGHT, "Fiber-Level Cloth Rendering", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -57,6 +64,7 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -74,39 +82,38 @@ int main()
     glEnable(GL_MULTISAMPLE); // for antialiasing
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
+    // Setup Dear ImGui context
+    // ------------------------
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+    // Setup Platform/Renderer bindings
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 410");
+    io.Fonts->AddFontDefault();
+    io.FontGlobalScale = 1.25f;
+
     // Fiber
     // -----
     fiber.initializeGL();
     fiber.initShaders();
     fiber.initFrameBuffer();
-    std::cout << "Finished fiber initialization" << std::endl;
-    // add yarn control points
-    if (fiber.getRenderType() == CORE)
-    {
-        pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3((fiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(fiber.getFiberAlpha() / 2.f, 0.f, 0.f));
-    }
-    if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
-    {
-        pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
-        pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
-    }
+    addControlPoints();
 
-    std::cout << "Finished adding control points" << std::endl;
-
-    for (glm::vec3 point : pointsToAdd) {
-        fiber.addPoint(point[0], point[1], point[2]);
-    }
-
-    std::cout << "Rendering" << std::endl;
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        // ImGUI
+        // -----
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        fiber.createGUIWindow();
+
         // per-frame time logic
         // --------------------
         float currentFrame = glfwGetTime();
@@ -161,6 +168,22 @@ int main()
         }
 
         fiber.render();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        if (fiber.getFiberType() != fiberType)
+        {
+            fiberType = fiber.getFiberType();
+            pointsToAdd.clear();
+            fiber = Fiber(fiberType);
+            std::cout << "is this working" << std::endl;
+            fiber.initializeGL();
+            fiber.initShaders();
+            fiber.initFrameBuffer();
+            addControlPoints();
+            std::cout << "moment of truth" << std::endl;
+            framebuffer_size_callback(window, fiber.SCR_WIDTH, fiber.SCR_HEIGHT);
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -179,8 +202,7 @@ int main()
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
+        glfwSetWindowShouldClose(window, 1);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -206,6 +228,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    if (!moveCamera)
+        return;
     if (firstMouse)
     {
         lastX = xpos;
@@ -225,4 +249,43 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
+    {
+        moveCamera = !moveCamera;
+        if (!moveCamera)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        else
+        {
+            glfwSetCursorPos(window, lastX, lastY);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+    }
+}
+
+void addControlPoints()
+{
+    if (fiber.getRenderType() == CORE)
+    {
+        pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3((fiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(fiber.getFiberAlpha() / 2.f, 0.f, 0.f));
+    }
+    if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
+    {
+        pointsToAdd.push_back(glm::vec3(0.0f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.01f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(0.99f, 0.f, 0.f));
+        pointsToAdd.push_back(glm::vec3(1.f, 0.f, 0.f));
+    }
+
+    std::cout << "Finished adding control points" << std::endl;
+
+    for (glm::vec3 point : pointsToAdd) {
+        fiber.addPoint(point[0], point[1], point[2]);
+    }
 }

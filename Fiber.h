@@ -16,7 +16,6 @@ enum FIBER_TYPE {
     COTTON1, 
     COTTON2,
     POLYESTER1,
-    POLYESTER2,
     RAYON1,
     RAYON2,
     RAYON3,
@@ -33,6 +32,7 @@ public:
     void initFrameBuffer();
     void initializeGL();
 
+    void readFiberParameters(FIBER_TYPE);
     void setFiberParameters(RENDER_TYPE);
     void addPoint(float x, float y, float z);
     void setRenderType(RENDER_TYPE);
@@ -42,7 +42,10 @@ public:
     const Shader& getActiveShader();
     const std::vector<Shader*> getActiveShaders();
     RENDER_TYPE getRenderType();
+    FIBER_TYPE getFiberType();
     float getFiberAlpha();
+
+    void createGUIWindow();
 
     unsigned int SCR_WIDTH;
     unsigned int SCR_HEIGHT;

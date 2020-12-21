@@ -6,6 +6,9 @@ using namespace std;
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 namespace
 {
@@ -18,6 +21,11 @@ static std::vector<std::string>& split(const std::string& s, char delim, std::ve
 static std::vector<std::string> split(const std::string& s, char delim);
 
 Fiber::Fiber(FIBER_TYPE type) : points_{}, ebo_{}, renderType(COMPLETE), fiberType(type)
+{
+	readFiberParameters(type);
+}
+
+void Fiber::readFiberParameters(FIBER_TYPE type)
 {
 	string filename;
 	switch (type)
@@ -229,6 +237,7 @@ void Fiber::initializeGL()
 }
 
 Fiber::~Fiber() {
+	std::cout << "deleting" << std::endl;
 	glDeleteVertexArrays(1, &vao_id_);
 	glDeleteBuffers(1, &vbo_id_);
 	glDeleteBuffers(1, &ebo_id_);
@@ -348,6 +357,11 @@ RENDER_TYPE Fiber::getRenderType()
 	return renderType;
 }
 
+FIBER_TYPE Fiber::getFiberType()
+{
+	return fiberType;
+}
+
 // Passes to vertex shader in the form of [a, b, c, d], [b, c, d, e], [c, d, e, f] ...
 void Fiber::addPoint(float x, float y, float z) {
 	points_.push_back(x);
@@ -451,6 +465,16 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 	shader.setVec2("u_flyaway_hair_pe", flyaway_hair_pe[0], flyaway_hair_pe[1]);
 	shader.setFloat("u_flyaway_loop_density", flyaway_loop_density);
 	shader.setVec2("u_flyaway_loop_r1", flyaway_loop_r1[0], flyaway_loop_r1[1]);
+}
+
+void Fiber::createGUIWindow()
+{
+	ImGui::Begin("Fiber Editor");
+	ImGui::Text("Fiber Types");
+	const char* fiberTypes[] = { "Cotton 1", "Cotton 2", "Polyester 1", "Rayon 1", "Rayon 2", 
+		"Rayon 3", "Rayon 4", "Silk 1", "Silk 2"};
+	ImGui::Combo("Type", (int*) &fiberType, fiberTypes, IM_ARRAYSIZE(fiberTypes));
+	ImGui::End();
 }
 
 // Helper Functions
