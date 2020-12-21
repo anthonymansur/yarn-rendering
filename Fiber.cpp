@@ -168,6 +168,47 @@ void Fiber::initFrameBuffer()
 	// step 2: create a texture image to attach the color attachment too
 	// generate texture 
 	// TODO: use texture 2d array
+
+
+	// configure MSAA framebuffer
+	// --------------------------
+	glGenFramebuffers(1, &_frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+	// create a multisampled color attachment texture
+	unsigned int textureColorBufferMultiSampled0;
+	unsigned int textureColorBufferMultiSampled1;
+	unsigned int textureColorBufferMultiSampled2;
+
+	glGenTextures(1, &textureColorBufferMultiSampled0);
+	glGenTextures(1, &textureColorBufferMultiSampled1);
+	glGenTextures(1, &textureColorBufferMultiSampled2);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled0);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled1);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled2);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled0, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled1, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled2, 0);
+
+	// create a (also multisampled) renderbuffer object for depth and stencil attachments
+	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Create regular FBO
+	// ------------------
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, heightTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -196,9 +237,10 @@ void Fiber::initFrameBuffer()
 
 
 	// generate depth buffer for depth testing
-	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	//glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
 
 	// attach it to currently bound framebuffer oject
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
@@ -256,19 +298,39 @@ void Fiber::render()
 	// --------------------------
 		glBindVertexArray(vao_id_);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-		GLenum DrawBuffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-		glDrawBuffers(3, DrawBuffers);
+		glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
 		glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		GLenum buffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		glDrawBuffers(3, buffers);
 
 		// draw core fiber
 		coreShader_.use();
 		setFiberParameters(CORE);
 		glPatchParameteri(GL_PATCH_VERTICES, 4);
 		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+
+		// blit multisampled buffer(s) to normal colorbuffer of intermediate FBO
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, _frameBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+
+		glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+
+		for (int i = 0; i < 3; i++) {
+			glReadBuffer(buffers[i]);
+			glDrawBuffer(buffers[i]);
+
+			glBlitFramebuffer(0, 0,
+				SCR_WIDTH,
+				SCR_HEIGHT,
+				0, 0,
+				SCR_WIDTH,
+				SCR_HEIGHT,
+				GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		}
+
 		// render yarn to screen
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -408,7 +470,7 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 	{
 		shader.setInt("u_heightTexture", 0);
 		shader.setInt("u_normalTexture", 1);
-		shader.setInt("u_alphaTexture", 0);
+		shader.setInt("u_alphaTexture", 2);
 	}
 
 	if (fiberType == COTTON1 || fiberType == COTTON2)
@@ -470,11 +532,54 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 void Fiber::createGUIWindow()
 {
 	ImGui::Begin("Fiber Editor");
-	ImGui::Text("Fiber Types");
+	ImGui::Text("--- Fiber Types ---");
 	const char* fiberTypes[] = { "Cotton 1", "Cotton 2", "Polyester 1", "Rayon 1", "Rayon 2", 
 		"Rayon 3", "Rayon 4", "Silk 1", "Silk 2"};
 	ImGui::Combo("Type", (int*) &fiberType, fiberTypes, IM_ARRAYSIZE(fiberTypes));
+	
+	float sMin, sMax;
+	ImGui::Text("");
+	ImGui::Text("--- Fiber-level Parameters ---");
+	ImGui::Text("Distribution & twisting");
+	sMin = 0.000f, sMax = 0.5f;
+	ImGui::SliderScalar("epsilon", ImGuiDataType_::ImGuiDataType_Float, &epsilon, &sMin, &sMax, "%.3lf");
+	sMin = 0.1f, 0.7;
+	ImGui::SliderScalar("beta", ImGuiDataType_::ImGuiDataType_Float, &beta, &sMin, &sMax, "%.3lf");
+	sMin = 0.30f, sMax = 0.79f;
+	ImGui::SliderScalar("alpha", ImGuiDataType_::ImGuiDataType_Float, &alpha, &sMin, &sMax, "%.3lf");
+
+	ImGui::Text("Migration");
+	sMin = 0.6f, sMax = 0.9f;
+	ImGui::SliderScalar("rho_min", ImGuiDataType_::ImGuiDataType_Float, &rho_min, &sMin, &sMax, "%.3lf");
+	sMin = 1.0f, sMax = 2.f;
+	ImGui::SliderScalar("s_i", ImGuiDataType_::ImGuiDataType_Float, &s_i, &sMin, &sMax, "%.3lf");
+
+	ImGui::Text("");
+	ImGui::Text("--- Ply-level parameters ---");
+	ImGui::Text("Cross section");
+	sMin = 0.02f, sMax = 0.06f;
+	ImGui::SliderScalar("ellipse_long", ImGuiDataType_::ImGuiDataType_Float, &ellipse_long, &sMin, &sMax, "%.3lf");
+	sMin = 0.01f, sMax = 0.04f;
+	if ((ellipse_long - 0.005) > ellipse_short)
+		ImGui::SliderScalar("ellipse_short", ImGuiDataType_::ImGuiDataType_Float, &ellipse_short, &sMin, &sMax, "%.3lf");
+	
+	ImGui::Text("Twisting");
+	sMin = 0.02f, sMax = 0.06f;
+	ImGui::SliderScalar("yarn_radius", ImGuiDataType_::ImGuiDataType_Float, &yarn_radius, &sMin, &sMax, "%.3lf");
+	sMin = 0.31f, sMax = 0.8f;
+	ImGui::SliderScalar("yarn_alpha", ImGuiDataType_::ImGuiDataType_Float, &yarn_alpha, &sMin, &sMax, "%.3lf");
+
+	ImGui::Text("");
+	ImGui::Text("--- Flyaway fiber distribution ---");
+	sMin = 10.f, sMax = 64.f;
+	ImGui::SliderScalar("loop distribution", ImGuiDataType_::ImGuiDataType_Float, &yarn_alpha, &sMin, &sMax, "%.3lf");
+	ImGui::SliderScalar("loop max radius", ImGuiDataType_::ImGuiDataType_Float, &yarn_alpha, &sMin, &sMax, "%.3lf");
+
 	ImGui::End();
+	
+	sMin = 0.2f, sMax = 0.6f;
+	ImGui::SliderScalar("yarn_radius", ImGuiDataType_::ImGuiDataType_Float, &yarn_radius, &sMin, &sMax, "%.3lf");
+
 }
 
 // Helper Functions

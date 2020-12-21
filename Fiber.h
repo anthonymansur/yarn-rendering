@@ -65,6 +65,7 @@ private:
     GLuint heightMap;
     GLuint alphaChannel;
 
+    GLuint _frameBuffer;
     GLuint frameBuffer;
     GLuint depthrenderbuffer;
     GLuint heightTexture;

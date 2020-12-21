@@ -176,12 +176,10 @@ int main()
             fiberType = fiber.getFiberType();
             pointsToAdd.clear();
             fiber = Fiber(fiberType);
-            std::cout << "is this working" << std::endl;
             fiber.initializeGL();
             fiber.initShaders();
             fiber.initFrameBuffer();
             addControlPoints();
-            std::cout << "moment of truth" << std::endl;
             framebuffer_size_callback(window, fiber.SCR_WIDTH, fiber.SCR_HEIGHT);
         }
 

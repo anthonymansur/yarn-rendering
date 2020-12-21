@@ -46,11 +46,11 @@ void main()
     // Alpha channel
     // -------------
     float alpha = isCore ? alphaTex[0] : clamp(fs_alpha);
-    alpha = 1.f; // not ready
+    alpha = 1.f; // TODO: not ready
 
     // Lambertian lighting
     // -------------------
-    float ambient = 0.1 + height / 4.f;
+    float ambient = 0.3 + height / 4.f;
     float diff = max(dot(normal, isCore ? view_dir : -view_dir), 0.f); // TODO: fix
     vec3 diffuse = diff * vec3(1.f);
 
