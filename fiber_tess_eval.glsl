@@ -19,6 +19,7 @@ out vec3 geo_normal;
 out vec2 geo_texCoords;
 
 uniform vec3 view_dir;
+uniform float u_time;
 
 // Fiber pre-defined parameters
 // ----------------------------
@@ -61,11 +62,11 @@ vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 
-float rand(vec2 co); // pseudo-random number gen given two floats 
+float rand(vec2 co, float seed); // pseudo-random number gen given two floats 
 float fiberDistribution(float R, float rho_max); // rejection sampling
-float sampleR(float v, float rho_max); // get the radius of fiber (<= r_max) given the ply center
+float sampleR(float v, float rho_max, float seed); // get the radius of fiber (<= r_max) given the ply center
 float normalDistribution(float x, float mu, float sigma);
-float sampleLoop(float v, float mu, float sigma);
+float sampleLoop(float v, float mu, float sigma, float seed);
 
 void main()
 {
@@ -147,17 +148,17 @@ void main()
 			/* Loop fiber */
 			// TODO: verify it's addition and not equals
 			if (v < u_flyaway_loop_density)
-				rho_max = sampleLoop(v, u_flyaway_loop_r1[0], u_flyaway_loop_r1[1]);
+				rho_max += sampleLoop(v, u_flyaway_loop_r1[0], u_flyaway_loop_r1[1], u_time * 10.f) / 2.f; // TODO: verify, and see why you have to divide.
 			
 			/* Hair fiber */
 			// TODO: implement
 		}
 
 		// TODO: compute in cpu and pass as texture
-		float z_i = sampleR(v, rho_max); // distance between fiber curve and the ply center;
-		float y_i = sampleR(2 * v, rho_max);
+		float z_i = sampleR(v, rho_max, u_time * 10.f); // distance between fiber curve and the ply center;
+		float y_i = sampleR(2 * v, rho_max, u_time * 10.f);
 		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f)); // TODO: add fiber migration
-		float fiber_theta = atan(y_i, z_i) + 2 * pi * rand(vec2(v * 2.f, v * 3.f));  // theta_i
+		float fiber_theta = atan(y_i, z_i) + 2 * pi * rand(vec2(v * 2.f, v * 3.f), u_time * 10.f);  // theta_i
 		float en = u_ellipse_long;
 		float eb = u_ellipse_short;
 
@@ -227,7 +228,8 @@ vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 	return b0 + b1;
 }
 
-float rand(vec2 co){
+float rand(vec2 co, float seed){
+	vec2 new = seed * co; // TODO: fix seed
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
@@ -242,11 +244,11 @@ float fiberDistribution(float R, float rho_max) {
 }
 
 // Used to get the radius of each fiber w.r.t. its ply center
-float sampleR(float v, float rho_max) {
+float sampleR(float v, float rho_max, float seed) {
 	int i = 0;
 	while (true) {
-		float radius = sqrt(rand(vec2(v + i, v + i))) * rho_max;
-		float pdf = rand(vec2(v + i, v + i));
+		float radius = sqrt(rand(vec2(v + i, v + i), seed)) * rho_max;
+		float pdf = rand(vec2(v + i, v + i), seed);
 		if (pdf < fiberDistribution(radius, rho_max))
 			return radius;
 		i++;
@@ -258,12 +260,12 @@ float normalDistribution(float x, float mu, float sigma) {
 	return 1 / (sigma * sqrt(2 * pi)) + pow(e, -pow((x - mu),2) / (2*pow(sigma, 2)));
 }
 
-float sampleLoop(float v, float mu, float sigma) {
+float sampleLoop(float v, float mu, float sigma, float seed) {
 	int i = 0;
 	while (true) {
-		float x = rand(vec2(v, v + i));
+		float x = rand(vec2(v, v + i), seed);
 		float distribution = normalDistribution(x, mu, sigma);
-		float pdf = rand(vec2(v, v + i));
+		float pdf = rand(vec2(v, v + i), seed);
 		if (pdf < distribution)
 			return pdf;
 		i++;

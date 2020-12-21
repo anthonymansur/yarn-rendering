@@ -37,6 +37,8 @@ bool moveCamera = true;
 
 std::vector<glm::vec3> pointsToAdd;
 
+float timeValue;
+
 int main()
 {
     // glfw: initialize and configure
@@ -99,6 +101,7 @@ int main()
 
     // Fiber
     // -----
+    timeValue = glfwGetTime();
     fiber.setWindow(window);
     fiber.initializeGL();
     fiber.initShaders();
@@ -153,6 +156,7 @@ int main()
             shader.setMat4("projection", projection);
             shader.setVec3("camera_pos", camera.Position);
             shader.setVec3("view_dir", camera.Front);
+            shader.setFloat("u_time", timeValue);
         }
         else
         {
@@ -179,6 +183,7 @@ int main()
             renderType = fiber.getRenderType();
             pointsToAdd.clear();
             fiber = Fiber(fiberType, renderType);
+            timeValue = glfwGetTime();
             fiber.setWindow(window);
             fiber.initializeGL();
             fiber.initShaders();

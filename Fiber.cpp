@@ -190,13 +190,13 @@ void Fiber::initFrameBuffer()
 	glGenTextures(1, &textureColorBufferMultiSampled2);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled0);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled1);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled2);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled0, 0);
@@ -205,7 +205,7 @@ void Fiber::initFrameBuffer()
 
 	// create a (also multisampled) renderbuffer object for depth and stencil attachments
 	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -393,6 +393,7 @@ void Fiber::render()
 	{
 		std::runtime_error("Render type is not properly initialized.");
 	}
+	std::cout << flyaway_loop_r1[0] << ", " << flyaway_loop_r1[1] << std::endl;
 }
 
 const Shader& Fiber::getActiveShader()
@@ -586,8 +587,11 @@ void Fiber::createGUIWindow()
 	ImGui::Text("");
 	ImGui::Text("--- Flyaway fiber distribution ---");
 	sMin = 10.f, sMax = 64.f;
-	ImGui::SliderScalar("loop distribution", ImGuiDataType_::ImGuiDataType_Float, &yarn_alpha, &sMin, &sMax, "%.3lf");
-	ImGui::SliderScalar("loop max radius", ImGuiDataType_::ImGuiDataType_Float, &yarn_alpha, &sMin, &sMax, "%.3lf");
+	ImGui::SliderScalar("loop distribution", ImGuiDataType_::ImGuiDataType_Float, &flyaway_loop_density, &sMin, &sMax, "%.3lf");
+	sMin = 0.02f, sMax = 0.05f;
+	ImGui::SliderScalar("normal", ImGuiDataType_::ImGuiDataType_Float, &flyaway_loop_r1[0], &sMin, &sMax, "%.3lf");
+	sMin = 0.003f, sMax = 0.02f;
+	ImGui::SliderScalar("standard deviation", ImGuiDataType_::ImGuiDataType_Float, &flyaway_loop_r1[1], &sMin, &sMax, "%.3lf");
 
 	ImGui::End();
 }
