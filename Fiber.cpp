@@ -17,7 +17,7 @@ unsigned int loadTexture(const char* path);
 static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
 static std::vector<std::string> split(const std::string& s, char delim);
 
-Fiber::Fiber(FIBER_TYPE type) : points_{}, ebo_{}, renderType(COMPLETE)
+Fiber::Fiber(FIBER_TYPE type) : points_{}, ebo_{}, renderType(COMPLETE), fiberType(type)
 {
 	string filename;
 	switch (type)
@@ -397,7 +397,22 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 		shader.setInt("u_alphaTexture", 0);
 	}
 
-	shader.setVec3("objectColor", 217/255.f, 109/255.f, 2/255.f);
+	if (fiberType == COTTON1 || fiberType == COTTON2)
+	{
+		shader.setVec3("objectColor", 217 / 255.f, 109 / 255.f, 2 / 255.f);
+	}
+	else if (fiberType == SILK1 || fiberType == SILK2)
+	{
+		shader.setVec3("objectColor", 178 / 255.f, 168 / 255.f, 200 / 255.f);
+	}
+	else if (fiberType == POLYESTER1)
+	{
+		shader.setVec3("objectColor", 171 / 255.f, 201 / 255.f, 228 / 255.f);
+	}
+	else if (fiberType == RAYON1 || fiberType == RAYON2 || fiberType == RAYON3 || fiberType == RAYON4)
+	{
+		shader.setVec3("objectColor", 98 / 255.f, 142 / 255.f, 56 / 255.f);
+	}
 
 	// TODO: replace w/ file implementation
 	shader.setInt("u_ply_num", ply_num);

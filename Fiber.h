@@ -72,6 +72,8 @@ private:
     Shader fiberShader_;
     Shader pointsShader_;
 
+    FIBER_TYPE fiberType;
+
     // Fiber parameters
     int ply_num;
     int fiber_num;

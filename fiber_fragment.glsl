@@ -50,12 +50,13 @@ void main()
 
     // Lambertian lighting
     // -------------------
-    float ambient = 0.3;//0.1 + height / 4.f;
+    float ambient = 0.1 + height / 4.f;
     float diff = max(dot(normal, isCore ? view_dir : -view_dir), 0.f); // TODO: fix
     vec3 diffuse = diff * vec3(1.f);
 
     vec3 color = (ambient + diffuse) * objectColor.rgb;
-    out_color = vec4(color, length(color) < .01 ? 0 : alpha);    
+    out_color = vec4(color, length(color) < .1 ? 0 : alpha);  
+    //out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
 }
 
 float lerp(float p0, float p1, float t)

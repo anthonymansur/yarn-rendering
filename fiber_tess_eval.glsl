@@ -189,7 +189,7 @@ void main()
 		{
 			gl_Position = fiber_center;
 			geo_normal = normalize(fiber_center - yarn_center).xyz;
-			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/(u_yarn_alpha - u_alpha) +
+			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha) +
 							   acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
 			geo_texCoords[1] = 0; // will be set by geometry shader
 		}

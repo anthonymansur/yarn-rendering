@@ -18,7 +18,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // Fiber Initialization
 // --------------------
-Fiber fiber = Fiber(COTTON1);
+Fiber fiber = Fiber(POLYESTER1);
 Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
 float lastX = fiber.SCR_WIDTH / 2.0f;;
 float lastY = fiber.SCR_HEIGHT / 2.0f;;
