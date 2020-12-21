@@ -23,6 +23,8 @@ static std::vector<std::string> split(const std::string& s, char delim);
 Fiber::Fiber(FIBER_TYPE type, RENDER_TYPE rType) : points_{}, ebo_{}, renderType(rType), fiberType(type)
 {
 	readFiberParameters(type);
+	if (renderType == CORE)
+		renderCore = true;
 }
 
 void Fiber::readFiberParameters(FIBER_TYPE type)
@@ -393,7 +395,6 @@ void Fiber::render()
 	{
 		std::runtime_error("Render type is not properly initialized.");
 	}
-	std::cout << flyaway_loop_r1[0] << ", " << flyaway_loop_r1[1] << std::endl;
 }
 
 const Shader& Fiber::getActiveShader()
