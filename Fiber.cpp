@@ -150,6 +150,12 @@ void Fiber::readFiberParameters(FIBER_TYPE type)
 	SCR_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
 }
 
+void Fiber::setWindow(GLFWwindow* window)
+{
+	this->window = window;
+	glfwSetWindowSize(window, SCR_WIDTH, SCR_HEIGHT);
+}
+
 void Fiber::initShaders()
 {
 	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
@@ -335,7 +341,9 @@ void Fiber::render()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		glfwSetWindowSize(window, 3000, 1200);
+		glViewport(0, 0, 3000, 1200);
+
 
 		// draw yarn
 		fiberShader_.use();
@@ -576,10 +584,6 @@ void Fiber::createGUIWindow()
 	ImGui::SliderScalar("loop max radius", ImGuiDataType_::ImGuiDataType_Float, &yarn_alpha, &sMin, &sMax, "%.3lf");
 
 	ImGui::End();
-	
-	sMin = 0.2f, sMax = 0.6f;
-	ImGui::SliderScalar("yarn_radius", ImGuiDataType_::ImGuiDataType_Float, &yarn_radius, &sMin, &sMax, "%.3lf");
-
 }
 
 // Helper Functions

@@ -32,6 +32,7 @@ public:
     void initFrameBuffer();
     void initializeGL();
 
+    void setWindow(GLFWwindow* window);
     void readFiberParameters(FIBER_TYPE);
     void setFiberParameters(RENDER_TYPE);
     void addPoint(float x, float y, float z);
@@ -54,6 +55,8 @@ public:
 
 private:
     void loadPoints();
+
+    GLFWwindow* window;
 
     std::vector<float> points_;
     std::vector<GLuint> ebo_;

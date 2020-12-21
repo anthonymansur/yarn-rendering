@@ -25,8 +25,8 @@ void addControlPoints();
 FIBER_TYPE fiberType = COTTON1;
 Fiber fiber = Fiber(fiberType);
 Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
-float lastX = fiber.SCR_WIDTH / 2.0f;;
-float lastY = fiber.SCR_HEIGHT / 2.0f;;
+float lastX = fiber.SCR_WIDTH / 2.0f;
+float lastY = fiber.SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -98,6 +98,7 @@ int main()
 
     // Fiber
     // -----
+    fiber.setWindow(window);
     fiber.initializeGL();
     fiber.initShaders();
     fiber.initFrameBuffer();
@@ -176,6 +177,7 @@ int main()
             fiberType = fiber.getFiberType();
             pointsToAdd.clear();
             fiber = Fiber(fiberType);
+            fiber.setWindow(window);
             fiber.initializeGL();
             fiber.initShaders();
             fiber.initFrameBuffer();
