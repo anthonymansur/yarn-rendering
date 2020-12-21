@@ -20,7 +20,7 @@ unsigned int loadTexture(const char* path);
 static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
 static std::vector<std::string> split(const std::string& s, char delim);
 
-Fiber::Fiber(FIBER_TYPE type) : points_{}, ebo_{}, renderType(COMPLETE), fiberType(type)
+Fiber::Fiber(FIBER_TYPE type, RENDER_TYPE rType) : points_{}, ebo_{}, renderType(rType), fiberType(type)
 {
 	readFiberParameters(type);
 }
@@ -298,6 +298,11 @@ Fiber::~Fiber() {
 
 void Fiber::render()
 {
+	if (renderCore)
+		renderType = CORE;
+	else
+		renderType = COMPLETE;
+
 	if (renderType == COMPLETE)
 	{
 		// Start rendering the fibers
@@ -540,11 +545,12 @@ void Fiber::setFiberParameters(RENDER_TYPE type)
 void Fiber::createGUIWindow()
 {
 	ImGui::Begin("Fiber Editor");
-	ImGui::Text("--- Fiber Types ---");
+	ImGui::Text("--- Fiber and Render Types ---");
 	const char* fiberTypes[] = { "Cotton 1", "Cotton 2", "Polyester 1", "Rayon 1", "Rayon 2", 
 		"Rayon 3", "Rayon 4", "Silk 1", "Silk 2"};
 	ImGui::Combo("Type", (int*) &fiberType, fiberTypes, IM_ARRAYSIZE(fiberTypes));
-	
+	ImGui::Checkbox("Render Core", &renderCore);
+
 	float sMin, sMax;
 	ImGui::Text("");
 	ImGui::Text("--- Fiber-level Parameters ---");

@@ -26,7 +26,7 @@ enum FIBER_TYPE {
 
 class Fiber {
 public:
-    Fiber(FIBER_TYPE type);
+    Fiber(FIBER_TYPE type, RENDER_TYPE rType);
     ~Fiber();
     void initShaders();
     void initFrameBuffer();
@@ -50,8 +50,6 @@ public:
 
     unsigned int SCR_WIDTH;
     unsigned int SCR_HEIGHT;
-    
-    RENDER_TYPE renderType;
 
 private:
     void loadPoints();
@@ -79,7 +77,10 @@ private:
     Shader fiberShader_;
     Shader pointsShader_;
 
+    RENDER_TYPE renderType;
     FIBER_TYPE fiberType;
+
+    bool renderCore = false;
 
     // Fiber parameters
     int ply_num;

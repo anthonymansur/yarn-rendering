@@ -23,7 +23,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void addControlPoints();
 
 FIBER_TYPE fiberType = COTTON1;
-Fiber fiber = Fiber(fiberType);
+RENDER_TYPE renderType = COMPLETE;
+Fiber fiber = Fiber(fiberType, renderType);
 Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
 float lastX = fiber.SCR_WIDTH / 2.0f;
 float lastY = fiber.SCR_HEIGHT / 2.0f;
@@ -172,11 +173,12 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        if (fiber.getFiberType() != fiberType)
+        if (fiber.getFiberType() != fiberType || fiber.getRenderType() != renderType)
         {
             fiberType = fiber.getFiberType();
+            renderType = fiber.getRenderType();
             pointsToAdd.clear();
-            fiber = Fiber(fiberType);
+            fiber = Fiber(fiberType, renderType);
             fiber.setWindow(window);
             fiber.initializeGL();
             fiber.initShaders();
