@@ -24,6 +24,12 @@ enum FIBER_TYPE {
     SILK2
 };
 
+struct ControlPoint
+{
+    glm::vec3 pos;
+    glm::vec3 norm;
+};
+
 class Fiber {
 public:
     Fiber(FIBER_TYPE type, RENDER_TYPE rType);
@@ -35,7 +41,7 @@ public:
     void setWindow(GLFWwindow* window);
     void readFiberParameters(FIBER_TYPE);
     void setFiberParameters(RENDER_TYPE);
-    void addPoint(float x, float y, float z);
+    void addPoint(ControlPoint);
     void setRenderType(RENDER_TYPE);
 
     void render();

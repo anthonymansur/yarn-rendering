@@ -8,6 +8,7 @@ layout (isolines) in; // patch type: isolines
 // ----------------------
 patch in vec4 p_1; // left endpoint
 patch in vec4 p2; // right endpoint
+patch in vec4 control_norm[4];
 patch in int num_of_isolines;
 
 out vec3 prevPosition;
@@ -89,7 +90,7 @@ void main()
 		//		 equal zero. https://tutorial.math.lamar.edu/classes/calciii/TangentNormalVectors.aspx
 		//       When given the control points, you may want to calculate the normals in CPU first.
 		vec4 tangent = vec4(normalize(computeBezierDerivative(u, p_1, p0, p1, p2).xyz), 0);
-		vec4 normal = vec4(normalize(computeBezierSecondDerivative(u, p_1, p0, p1, p2).xyz), 0);
+		vec4 normal = computeBezierCurve(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]);
 		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
 
 		// TODO: convert parametrization to cubic

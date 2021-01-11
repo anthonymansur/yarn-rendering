@@ -9,6 +9,7 @@ layout (isolines) in; // patch type: isolines
 // ----------------------
 patch in vec4 p_1; // left endpoint
 patch in vec4 p2; // right endpoint
+patch in vec4 control_norm[4];
 patch in int num_of_isolines;
 
 out float isCore;
@@ -70,16 +71,17 @@ float sampleLoop(float v, float mu, float sigma, float seed);
 
 void main()
 {
+	// init variables 
+	// --------------
 	vec4 p0 = gl_in[0].gl_Position; // left endpoint of yarn
 	vec4 p1 = gl_in[1].gl_Position; // right endpoint of yarn
 	float u = gl_TessCoord.x; // location at the curve; from 0 to 1
-	float v = round(num_of_isolines * gl_TessCoord.y); // the i-th fiber we are working with
-
 	/* NOTE: v represents the i-th fiber are are working with. In general, we will have 3 plies, and 
-	   each ply will have v / 3 fibers. Thus, the i-th fiber corresponds to the mod(v/3)-th ply. 
+	each ply will have v / 3 fibers. Thus, the i-th fiber corresponds to the mod(v/3)-th ply. 
 	*/
-	// needed for adjacency information
-		float prev = u - 1/64.f;
+	float v = round(num_of_isolines * gl_TessCoord.y); // the i-th fiber we are working with
+	// needed for adjacency information for triangle strip in geometry shader 
+	float prev = u - 1/64.f;
 	float curr = u;
 	float next = u + 1/64.f;
 
@@ -92,6 +94,7 @@ void main()
 		next = u;
 	}
 
+	// iterate three times for adjacency information
 	for (int i = 0; i < 3; i++)
 	{
 		if (i == 0)
@@ -110,10 +113,10 @@ void main()
 		//		 equal zero. https://tutorial.math.lamar.edu/classes/calciii/TangentNormalVectors.aspx
 		//       When given the control points, you may want to calculate the normals in CPU first.
 		vec4 tangent = computeBezierDerivative(u, p_1, p0, p1, p2);
-		vec4 normal = computeBezierSecondDerivative(u, p_1, p0, p1, p2);
+		vec4 normal = computeBezierCurve(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]);
 
 		// short-term solution
-		normal = vec4(0, 1, 0, 0);
+		//normal = vec4(0, 1, 0, 0);
 		tangent = vec4(1, 0, 0, 0);
 
 		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);

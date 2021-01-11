@@ -13,7 +13,8 @@ using namespace std;
 namespace
 {
 	const GLuint POS_VAO_ID = 0;
-	const GLuint STRIDE = 3;
+	const GLuint NORM_VAO_ID = 1;
+	const GLuint STRIDE = 6;
 }
 
 unsigned int loadTexture(const char* path);
@@ -279,6 +280,8 @@ void Fiber::initializeGL()
 
 	glVertexAttribPointer(POS_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(POS_VAO_ID);
+	glVertexAttribPointer(NORM_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(NORM_VAO_ID);
 
 	// Determine max vertices in a patch
 	GLint maxPatchVertices = 0;
@@ -440,20 +443,26 @@ FIBER_TYPE Fiber::getFiberType()
 }
 
 // Passes to vertex shader in the form of [a, b, c, d], [b, c, d, e], [c, d, e, f] ...
-void Fiber::addPoint(float x, float y, float z) {
-	points_.push_back(x);
-	points_.push_back(y);
-	points_.push_back(z);
+void Fiber::addPoint(ControlPoint cp) {
+	glm::vec3 pos = cp.pos;
+	glm::vec3 norm = cp.norm;
 
-	if (points_.size() <= 4 * 3) {
+	points_.push_back(pos.x);
+	points_.push_back(pos.y);
+	points_.push_back(pos.z);
+	points_.push_back(norm.x);
+	points_.push_back(norm.y);
+	points_.push_back(norm.z);
+
+	if (points_.size() <= 4 * STRIDE) {
 		// first patch
-		ebo_.push_back(points_.size() / 3 - 1);
+		ebo_.push_back(points_.size() / STRIDE - 1);
 	}
 	else {
-		ebo_.push_back(points_.size() / 3 - 4);
-		ebo_.push_back(points_.size() / 3 - 3);
-		ebo_.push_back(points_.size() / 3 - 2);
-		ebo_.push_back(points_.size() / 3 - 1);
+		ebo_.push_back(points_.size() / STRIDE - 4);
+		ebo_.push_back(points_.size() / STRIDE - 3);
+		ebo_.push_back(points_.size() / STRIDE - 2);
+		ebo_.push_back(points_.size() / STRIDE - 1);
 	}
 
 	loadPoints();
