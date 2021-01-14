@@ -115,10 +115,6 @@ void main()
 		vec4 tangent = computeBezierDerivative(u, p_1, p0, p1, p2);
 		vec4 normal = computeBezierCurve(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]);
 
-		// short-term solution
-		//normal = vec4(0, 1, 0, 0);
-		tangent = vec4(1, 0, 0, 0);
-
 		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
 
 		// TODO: convert parametrization to cubic

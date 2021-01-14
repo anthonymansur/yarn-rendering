@@ -272,26 +272,39 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
+// TODO: add two different points vector, one for core and one for fiber.
 void addControlPoints()
 {
-    if (fiber.getRenderType() == CORE)
-    {
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3((fiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(fiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    }
-    if (fiber.getRenderType() == FIBER || fiber.getRenderType() == COMPLETE)
+    if (fiber.getRenderType() == COMPLETE)
     {
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+        for (const ControlPoint& point : pointsToAdd) {
+            fiber.addPoint(point, true);
+        }
+        pointsToAdd.clear();
+    }
+    else if (fiber.getRenderType() == CORE)
+    {
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3((fiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(fiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+        for (const ControlPoint& point : pointsToAdd) {
+            fiber.addPoint(point, true);
+        }
+        pointsToAdd.clear();
     }
 
-    std::cout << "Finished adding control points" << std::endl;
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
 
     for (const ControlPoint& point : pointsToAdd) {
-        fiber.addPoint(point);
+        fiber.addPoint(point, false);
     }
+    pointsToAdd.clear();
 }

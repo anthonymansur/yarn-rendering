@@ -39,10 +39,12 @@ public:
     void initializeGL();
 
     void setWindow(GLFWwindow* window);
-    void readFiberParameters(FIBER_TYPE);
     void setFiberParameters(RENDER_TYPE);
-    void addPoint(ControlPoint);
     void setRenderType(RENDER_TYPE);
+
+    void readFiberParameters(FIBER_TYPE);
+
+    void addPoint(ControlPoint, bool);
 
     void render();
 
@@ -58,14 +60,17 @@ public:
     unsigned int SCR_HEIGHT;
 
 private:
-    void loadPoints();
+    void loadPoints(bool);
 
     GLFWwindow* window;
 
-    std::vector<float> points_;
+    std::vector<float> corepoints_;
+    std::vector<float> fiberpoints_;
     std::vector<GLuint> ebo_;
-    GLuint vao_id_;
-    GLuint vbo_id_;
+    GLuint corevao_id_;
+    GLuint fibervao_id_;
+    GLuint corevbo_id_;
+    GLuint fibervbo_id_;
     GLuint ebo_id_;
 
     GLuint normalMap;
