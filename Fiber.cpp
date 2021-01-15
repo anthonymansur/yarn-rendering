@@ -466,7 +466,7 @@ void Fiber::addPoint(ControlPoint cp, bool isCore) {
 	glm::vec3 norm = cp.norm;
 
 	std::vector<float> &points_ = isCore ? corepoints_ : fiberpoints_;
-	std::vector<GLuint> ebo_ = isCore ? coreebo_ : fiberebo_;
+	std::vector<GLuint> &ebo_ = isCore ? coreebo_ : fiberebo_;
 
 	points_.push_back(pos.x);
 	points_.push_back(pos.y);
@@ -501,7 +501,7 @@ void Fiber::loadPoints(bool isCore) {
 	GLuint vao_id_ = isCore ? corevao_id_ : fibervao_id_;
 	GLuint vbo_id_ = isCore ? corevbo_id_ : fibervbo_id_;
 	GLuint ebo_id_ = isCore ? coreebo_id_ : fiberebo_id_;
-	std::vector<GLuint> ebo_ = isCore ? coreebo_ : fiberebo_;
+	std::vector<GLuint> &ebo_ = isCore ? coreebo_ : fiberebo_;
 	glBindVertexArray(vao_id_);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_id_);
 	glBufferData(GL_ARRAY_BUFFER, points_.size() * sizeof(float),

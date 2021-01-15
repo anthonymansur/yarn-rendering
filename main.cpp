@@ -142,8 +142,8 @@ int main()
             model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
         }
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 
-                               (float) fiber.SCR_WIDTH / (float) fiber.SCR_HEIGHT, 0.01f, 10.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
+            (float)fiber.SCR_WIDTH / (float)fiber.SCR_HEIGHT, 0.01f, 10.0f);
 
         if (fiber.getRenderType() != COMPLETE)
         {
@@ -300,16 +300,10 @@ void addControlPoints()
         pointsToAdd.clear();
     }
 
-    // TODO: update the index buffer!
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
 
     for (const ControlPoint& point : pointsToAdd) {
         fiber.addPoint(point, false);
