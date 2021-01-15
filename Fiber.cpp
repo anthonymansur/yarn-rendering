@@ -21,7 +21,7 @@ unsigned int loadTexture(const char* path);
 static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
 static std::vector<std::string> split(const std::string& s, char delim);
 
-Fiber::Fiber(FIBER_TYPE type, RENDER_TYPE rType) : corepoints_{}, fiberpoints_{}, ebo_{}, renderType(rType), fiberType(type)
+Fiber::Fiber(FIBER_TYPE type, RENDER_TYPE rType) : corepoints_{}, fiberpoints_{}, coreebo_{}, fiberebo_{},  renderType(rType), fiberType(type)
 {
 	readFiberParameters(type);
 	if (renderType == CORE)
@@ -269,7 +269,8 @@ void Fiber::initializeGL()
 	glGenVertexArrays(1, &fibervao_id_);
 	glGenBuffers(1, &corevbo_id_);
 	glGenBuffers(1, &fibervbo_id_);
-	glGenBuffers(1, &ebo_id_);
+	glGenBuffers(1, &coreebo_id_);
+	glGenBuffers(1, &fiberebo_id_);
 	glGenFramebuffers(1, &frameBuffer);
 	glGenRenderbuffers(1, &depthrenderbuffer);
 	glGenTextures(1, &heightTexture);
@@ -309,7 +310,8 @@ Fiber::~Fiber() {
 	glDeleteVertexArrays(1, &fibervao_id_);
 	glDeleteBuffers(1, &corevbo_id_);
 	glDeleteBuffers(1, &fibervbo_id_);
-	glDeleteBuffers(1, &ebo_id_);
+	glDeleteBuffers(1, &coreebo_id_);
+	glDeleteBuffers(1, &fiberebo_id_);
 	glDeleteFramebuffers(1, &frameBuffer);
 	glDeleteBuffers(1, &depthrenderbuffer);
 	glDeleteTextures(1, &heightTexture);
@@ -341,7 +343,7 @@ void Fiber::render()
 		coreShader_.use();
 		setFiberParameters(CORE);
 		glPatchParameteri(GL_PATCH_VERTICES, 4);
-		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_PATCHES, coreebo_.size(), GL_UNSIGNED_INT, 0);
 
 		// blit multisampled buffer(s) to normal colorbuffer of intermediate FBO
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, _frameBuffer);
@@ -387,7 +389,7 @@ void Fiber::render()
 
 		setFiberParameters(FIBER);
 		glPatchParameteri(GL_PATCH_VERTICES, 4);
-		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_PATCHES, fiberebo_.size(), GL_UNSIGNED_INT, 0);
 	}
 	else if (renderType == FIBER)
 	{
@@ -397,7 +399,7 @@ void Fiber::render()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glPatchParameteri(GL_PATCH_VERTICES, 4);
-		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_PATCHES, fiberebo_.size(), GL_UNSIGNED_INT, 0);
 	}
 	else if (renderType == CORE)
 	{
@@ -408,7 +410,7 @@ void Fiber::render()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glPatchParameteri(GL_PATCH_VERTICES, 4);
-		glDrawElements(GL_PATCHES, ebo_.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_PATCHES, coreebo_.size(), GL_UNSIGNED_INT, 0);
 	}
 	else
 	{
@@ -464,6 +466,7 @@ void Fiber::addPoint(ControlPoint cp, bool isCore) {
 	glm::vec3 norm = cp.norm;
 
 	std::vector<float> &points_ = isCore ? corepoints_ : fiberpoints_;
+	std::vector<GLuint> ebo_ = isCore ? coreebo_ : fiberebo_;
 
 	points_.push_back(pos.x);
 	points_.push_back(pos.y);
@@ -497,6 +500,8 @@ void Fiber::loadPoints(bool isCore) {
 	std::vector<float>& points_ = isCore ? corepoints_ : fiberpoints_;
 	GLuint vao_id_ = isCore ? corevao_id_ : fibervao_id_;
 	GLuint vbo_id_ = isCore ? corevbo_id_ : fibervbo_id_;
+	GLuint ebo_id_ = isCore ? coreebo_id_ : fiberebo_id_;
+	std::vector<GLuint> ebo_ = isCore ? coreebo_ : fiberebo_;
 	glBindVertexArray(vao_id_);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_id_);
 	glBufferData(GL_ARRAY_BUFFER, points_.size() * sizeof(float),

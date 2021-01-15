@@ -66,12 +66,14 @@ private:
 
     std::vector<float> corepoints_;
     std::vector<float> fiberpoints_;
-    std::vector<GLuint> ebo_;
+    std::vector<GLuint> coreebo_;
+    std::vector<GLuint> fiberebo_;
     GLuint corevao_id_;
     GLuint fibervao_id_;
     GLuint corevbo_id_;
     GLuint fibervbo_id_;
-    GLuint ebo_id_;
+    GLuint coreebo_id_;
+    GLuint fiberebo_id_;
 
     GLuint normalMap;
     GLuint heightMap;

@@ -275,6 +275,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 // TODO: add two different points vector, one for core and one for fiber.
 void addControlPoints()
 {
+    // NOTE: control points must be added in the following order: [a b c d] [b c d e] [c d e f] 
+    // to draw the curves from b-c-d-e, where a and f are the end points.
     if (fiber.getRenderType() == COMPLETE)
     {
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
@@ -298,10 +300,16 @@ void addControlPoints()
         pointsToAdd.clear();
     }
 
+    // TODO: update the index buffer!
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+
+    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    //pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
 
     for (const ControlPoint& point : pointsToAdd) {
         fiber.addPoint(point, false);
