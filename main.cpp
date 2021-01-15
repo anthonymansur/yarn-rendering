@@ -305,6 +305,11 @@ void addControlPoints()
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
 
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+
     for (const ControlPoint& point : pointsToAdd) {
         fiber.addPoint(point, false);
     }

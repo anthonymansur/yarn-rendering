@@ -475,16 +475,7 @@ void Fiber::addPoint(ControlPoint cp, bool isCore) {
 	points_.push_back(norm.y);
 	points_.push_back(norm.z);
 
-	if (points_.size() <= 4 * STRIDE) {
-		// first patch
-		ebo_.push_back(points_.size() / STRIDE - 1);
-	}
-	else {
-		ebo_.push_back(points_.size() / STRIDE - 4);
-		ebo_.push_back(points_.size() / STRIDE - 3);
-		ebo_.push_back(points_.size() / STRIDE - 2);
-		ebo_.push_back(points_.size() / STRIDE - 1);
-	}
+	ebo_.push_back(points_.size() / STRIDE - 1);
 
 	loadPoints(isCore);
 }
