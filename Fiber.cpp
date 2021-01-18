@@ -464,20 +464,22 @@ FIBER_TYPE Fiber::getFiberType()
 void Fiber::addPoint(ControlPoint cp, bool isCore) {
 	glm::vec3 pos = cp.pos;
 	glm::vec3 norm = cp.norm;
+	int inx = cp.inx;
 
 	std::vector<float> &points_ = isCore ? corepoints_ : fiberpoints_;
 	std::vector<GLuint> &ebo_ = isCore ? coreebo_ : fiberebo_;
 
-	points_.push_back(pos.x);
-	points_.push_back(pos.y);
-	points_.push_back(pos.z);
-	points_.push_back(norm.x);
-	points_.push_back(norm.y);
-	points_.push_back(norm.z);
+	if (std::find(ebo_.begin(), ebo_.end(), inx) == ebo_.end())
+	{
+		points_.push_back(pos.x);
+		points_.push_back(pos.y);
+		points_.push_back(pos.z);
+		points_.push_back(norm.x);
+		points_.push_back(norm.y);
+		points_.push_back(norm.z);
+	}
 
-	ebo_.push_back(points_.size() / STRIDE - 1);
-
-	loadPoints(isCore);
+	ebo_.push_back(inx);
 }
 
 float Fiber::getFiberAlpha()

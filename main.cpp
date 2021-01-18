@@ -279,39 +279,59 @@ void addControlPoints()
     // to draw the curves from b-c-d-e, where a and f are the end points.
     if (fiber.getRenderType() == COMPLETE)
     {
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
         for (const ControlPoint& point : pointsToAdd) {
             fiber.addPoint(point, true);
         }
+        fiber.loadPoints(true);
         pointsToAdd.clear();
     }
     else if (fiber.getRenderType() == CORE)
     {
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3((fiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(fiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3((fiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(fiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
         for (const ControlPoint& point : pointsToAdd) {
             fiber.addPoint(point, true);
         }
+        fiber.loadPoints(true);
         pointsToAdd.clear();
     }
 
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    /*
+        TODO: currently got adding the control points in order with proper indexing, I believe. 
+    */
 
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.25f, 0.f), glm::vec3(0.f, 1.f, 0.f) });
+    /*pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.99f, 0.1f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(2.f, 0.1f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });*/
 
-    for (const ControlPoint& point : pointsToAdd) {
-        fiber.addPoint(point, false);
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.25f, -0.1f, 0.f), glm::vec3(0.5f, 0.5f, 0.f), 2 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.1f, 0.f), glm::vec3(0.f, -1.f, 0.f), 3 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.75f, -0.1f, 0.f), glm::vec3(-0.5f, 0.5f, 0.f), 4 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5 });
+    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6 });
+
+    // add patches of the bezier curve
+    for (unsigned int i = 0; i < pointsToAdd.size(); i++)
+    {
+        if ((i + 3) < pointsToAdd.size())
+        {
+            for (int j = i; j < i + 4; j++)
+            {
+                fiber.addPoint(pointsToAdd.at(j), false);
+                std::cout << j << std::endl;
+            }
+        }
     }
+    fiber.loadPoints(false);
     pointsToAdd.clear();
 }

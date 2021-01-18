@@ -28,6 +28,7 @@ struct ControlPoint
 {
     glm::vec3 pos;
     glm::vec3 norm;
+    int inx;
 };
 
 class Fiber {
@@ -45,6 +46,7 @@ public:
     void readFiberParameters(FIBER_TYPE);
 
     void addPoint(ControlPoint, bool);
+    void loadPoints(bool);
 
     void render();
 
@@ -60,7 +62,6 @@ public:
     unsigned int SCR_HEIGHT;
 
 private:
-    void loadPoints(bool);
 
     GLFWwindow* window;
 

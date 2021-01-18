@@ -183,6 +183,8 @@ void main()
 		// fiber center
 		vec4 fiber_center = yarn_center + ply_displacement + fiber_displacement;
 
+		fiber_center = yarn_center; // DEBUG
+
 		if (i == 0)
 			prevPosition = fiber_center.xyz;
 		if (i == 1)
