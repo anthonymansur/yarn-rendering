@@ -22,6 +22,7 @@ float clamp(float x);
 
 void main()
 {
+    // out_color = vec4(0, 0, 0, 1); return; // DEBUG
     bool isCore = fs_texCoords[0] >= 0;
     mat4 MVP = projection * view * model;
     MVP = mat4(1.f); // not ready

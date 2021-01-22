@@ -71,6 +71,7 @@ float sampleLoop(float v, float mu, float sigma, float seed);
 
 void main()
 {
+
 	// init variables 
 	// --------------
 	vec4 p0 = gl_in[0].gl_Position; // left endpoint of yarn
@@ -183,9 +184,9 @@ void main()
 		// fiber center
 		vec4 fiber_center = yarn_center + ply_displacement + fiber_displacement;
 
-		fiber_center = yarn_center; // DEBUG
+		//fiber_center = yarn_center; // DEBUG
 
-		if (i == 0)
+		if (i == 0) 
 			prevPosition = fiber_center.xyz;
 		if (i == 1)
 		{
@@ -195,38 +196,37 @@ void main()
 							   acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
 			geo_texCoords[1] = 0; // will be set by geometry shader
 		}
-		if (i == 2)
+		if (i == 2) 
 			nextPosition = fiber_center.xyz;
-		_pos = fiber_center;
+		_pos = fiber_center; // TODO: is this being used anywhere?
 	}
 }
 
 // Defintion of helper functions
 // -----------------------------
-vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
+vec4 computeBezierCurve(float u, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 {
-		vec4 b0 = pow(1 - t, 3.f) * p_1;
-		vec4 b1 = 3 * pow(1 - t, 2.f) * t * p0;
-		vec4 b2 = 3 * (1 - t) * pow(t, 2.f) * p1;
-		vec4 b3 = pow(t, 3.f) * p2;
-
-		return b0 + b1 + b2 + b3;
+	float b0 = (-1.f * u) + (2.f * u * u) + (-1.f * u * u * u);
+	float b1 = (2.f) + (-5.f * u * u) + (3.f * u * u * u);
+	float b2 = (u) + (4.f * u * u) + (-3.f * u * u * u);
+	float b3 = (-1.f * u * u) + (u * u * u);
+	return 0.5f * (b0*p_1 + b1*p0 + b2*p1 + b3*p2);
 }
 
-vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
+vec4 computeBezierDerivative(float u, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 {
-	vec4 b0 = 3 * pow(1 - t, 2.f) * (p0 - p_1);
-	vec4 b1 = 6 * (1 - t) * t * (p1 - p0);
-	vec4 b2 = 3 * pow(t, 2.f) * (p2 - p1);
-
-	return b0 + b1 + b2;
+	// TODO: implement
+	float b0 = -1.f + 4.f * u - 3.f * u * u;
+	float b1 = -10 * u + 9 * u * u;
+	float b2 = 1 + 8.f * u - 9.f * u * u;
+	float b3 = -2.f * u + 3 * u * u;
+	return 0.5f * (b0*p_1 + b1*p0 + b2*p1 + b3*p2);
+	return vec4(0);
 }
 vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 {
-	vec4 b0 = 6 * (1 - t) * (p1 - 2 * p0 + p_1);
-	vec4 b1 = 6 * t * (p2 - 2 * p1 + p0);
-
-	return b0 + b1;
+	// TODO: implement
+	return vec4(0);
 }
 
 float rand(vec2 co, float seed){

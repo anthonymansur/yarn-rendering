@@ -162,7 +162,7 @@ void Fiber::setWindow(GLFWwindow* window)
 void Fiber::initShaders()
 {
 	coreShader_ = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
-	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+	fiberShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl"); // DEBUG
 	pointsShader_ = Shader("fiber_vertex.glsl", "fiber_fragment.glsl");
 }
 
@@ -305,7 +305,6 @@ void Fiber::initializeGL()
 }
 
 Fiber::~Fiber() {
-	std::cout << "deleting" << std::endl;
 	glDeleteVertexArrays(1, &corevao_id_);
 	glDeleteVertexArrays(1, &fibervao_id_);
 	glDeleteBuffers(1, &corevbo_id_);
@@ -323,8 +322,6 @@ void Fiber::render()
 {
 	if (renderCore)
 		renderType = CORE;
-	else
-		renderType = COMPLETE;
 
 	if (renderType == COMPLETE)
 	{
