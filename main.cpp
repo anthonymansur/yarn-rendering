@@ -13,6 +13,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Fiber.h"
+#include "Pattern.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -306,12 +307,15 @@ void addControlPoints()
         TODO: currently got adding the control points in order with proper indexing, I believe. 
     */
 
-    /* DEBUG: Get Enoch's code and modify the control points and test if still works. */
+    Pattern fiberPattern = Pattern(&fiber);
+    std::vector<Strand> strands = fiberPattern.getBasicWeave(4);
 
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-    //pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+    ///* DEBUG: Get Enoch's code and modify the control points and test if still works. */
+
+    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
 
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
@@ -321,17 +325,9 @@ void addControlPoints()
     pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5 });
     pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6 });
 
-    // add patches of the bezier curve
-    for (unsigned int i = 0; i < pointsToAdd.size(); i++)
-    {
-        if ((i + 3) < pointsToAdd.size())
-        {
-            for (int j = i; j < i + 4; j++)
-            {
-                fiber.addPoint(pointsToAdd.at(j), false);
-            }
-        }
-    }
+    strands.clear();
+    strands.push_back(Strand{ pointsToAdd });
+    
+    fiber.addStrands(strands);
     fiber.loadPoints(false);
-    pointsToAdd.clear();
 }

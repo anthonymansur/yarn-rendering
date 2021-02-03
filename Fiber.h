@@ -24,11 +24,19 @@ enum FIBER_TYPE {
     SILK2
 };
 
+using Point3f = glm::vec3;
+using Normal3f = glm::vec3;
+
 struct ControlPoint
 {
-    glm::vec3 pos;
-    glm::vec3 norm;
+    Point3f pos;
+    Normal3f norm;
     int inx;
+};
+
+struct Strand
+{
+    std::vector<ControlPoint> points;
 };
 
 class Fiber {
@@ -48,13 +56,16 @@ public:
     void addPoint(ControlPoint, bool);
     void loadPoints(bool);
 
+    void addStrands(const std::vector<Strand>& strands);
+
     void render();
 
-    const Shader& getActiveShader();
+    const Shader& getActiveShader() const;
     const std::vector<Shader*> getActiveShaders();
-    RENDER_TYPE getRenderType();
-    FIBER_TYPE getFiberType();
-    float getFiberAlpha();
+    RENDER_TYPE getRenderType() const;
+    FIBER_TYPE getFiberType() const;
+    float getFiberAlpha() const;
+    float getYarnRadius() const;
 
     void createGUIWindow();
 

@@ -415,7 +415,7 @@ void Fiber::render()
 	}
 }
 
-const Shader& Fiber::getActiveShader()
+const Shader& Fiber::getActiveShader() const
 {
 	if (renderType == FIBER)
 		return fiberShader_;
@@ -447,14 +447,24 @@ void Fiber::setRenderType(RENDER_TYPE renderType)
 	this->renderType = renderType;
 }
 
-RENDER_TYPE Fiber::getRenderType()
+RENDER_TYPE Fiber::getRenderType() const
 {
 	return renderType;
 }
 
-FIBER_TYPE Fiber::getFiberType()
+FIBER_TYPE Fiber::getFiberType() const
 {
 	return fiberType;
+}
+
+float Fiber::getFiberAlpha() const
+{
+	return alpha;
+}
+
+float Fiber::getYarnRadius() const
+{
+	return yarn_radius;
 }
 
 // Passes to vertex shader in the form of [a, b, c, d], [b, c, d, e], [c, d, e, f] ...
@@ -479,12 +489,21 @@ void Fiber::addPoint(ControlPoint cp, bool isCore) {
 	ebo_.push_back(inx);
 }
 
-float Fiber::getFiberAlpha()
+// Should only be called once
+void Fiber::addStrands(const std::vector<Strand>& strands)
 {
-	return alpha;
+	for (const Strand& strand : strands)
+	{
+		for (unsigned int i = 0; i < strand.points.size(); i++)
+		{
+			if ((i + 3) < strand.points.size())
+			{
+				for (int j = i; j < i + 4; j++)
+					addPoint(strand.points.at(j), false);
+			}
+		}
+	}
 }
-
-/* PRIVATE */
 
 void Fiber::loadPoints(bool isCore) {
 	std::vector<float>& points_ = isCore ? corepoints_ : fiberpoints_;
@@ -501,6 +520,8 @@ void Fiber::loadPoints(bool isCore) {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ebo_.size() * sizeof(GLuint),
 		ebo_.size() > 0 ? &ebo_.front() : nullptr, GL_STATIC_DRAW);
 }
+
+/* PRIVATE */
 
 void Fiber::setFiberParameters(RENDER_TYPE type)
 {
