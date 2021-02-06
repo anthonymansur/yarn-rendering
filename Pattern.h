@@ -9,6 +9,10 @@ public:
 	Pattern(Fiber* type);
 	
 	std::vector<Strand> getBasicWeave(uint8_t size) const;
+
+	// for debugging purposes
+	std::vector<Strand> _getHorizontalStrand() const;
+	std::vector<Strand> _getVerticalStrand() const;
 private:
 	Fiber* type;
 	float yarnRadius;

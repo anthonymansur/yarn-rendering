@@ -35,6 +35,8 @@ void main()
     vec4 normalTex = texture(u_normalTexture, texCoords);
     vec4 alphaTex = texture(u_alphaTexture, texCoords);
 
+    //isCore = false; // debug
+
     // Height map
     // ----------
     float height = isCore ? heightTex[0] : clamp(fs_height);
@@ -58,6 +60,8 @@ void main()
     vec3 color = (ambient + diffuse) * objectColor.rgb;
     out_color = vec4(color, length(color) < .1 ? 0 : alpha);  
     //out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
+
+    //out_color = vec4(color, 1);  // debug
 }
 
 float lerp(float p0, float p1, float t)

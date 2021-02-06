@@ -22,7 +22,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void addControlPoints();
 
-FIBER_TYPE fiberType = COTTON1;
+FIBER_TYPE fiberType = SILK1;
 RENDER_TYPE renderType = COMPLETE; // DEBUG
 Fiber fiber = Fiber(fiberType, renderType);
 Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
@@ -222,6 +222,7 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(DOWN, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         camera.ProcessKeyboard(UP, deltaTime);
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -305,89 +306,116 @@ void addControlPoints()
 
     // TODO: check algorithm to render multiple strands of yarn before testing pattern weave
 
-    /*
-        Checklist:
-        - TEST 0: Basic horizontal yarn is rendered
-        - TEST 1: The yarn formed by the control points 0 -> 0.01 -> .99 -> 1 is equivalent to the one formed by the control 
-          points 0 -> 0.01 -> 0.5 -> 0.99 -> 1
-        - TEST 2: Can render two strands of yarn on top of each other
-        - TEST 3: Can render vertical yarn
-    */
-
     enum RENDER{
         TEST0, 
         TEST1,
         TEST2,
         TEST3,
+        TEST4,
+        TEST5,
+        TEST6,
+        TEST7,
         LIVE
     };
 
-    RENDER render = LIVE;
+    RENDER render = TEST6;
     std::vector<Strand> strands;
 
     switch (render)
     {
-    case TEST0:
-        // Basic yarn along the X-axis
-        // STATUS: passed
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
-        strands.push_back(Strand{ pointsToAdd });
-        fiber.addStrands(strands);
-        fiber.loadPoints(false);
-        break;
-    case TEST1:
-        // Additional control point. Should render basic yarn from previous test.
-        // STATUS: passed
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
-        strands.push_back(Strand{ pointsToAdd });
-        fiber.addStrands(strands);
-        fiber.loadPoints(false);
-        break;
-    case TEST2:
-        // Additional strand on top of basic yarn.
-        // STATUS: passed
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
-        strands.push_back(Strand{ pointsToAdd });
+        case TEST0:
+            // Basic yarn along the X-axis
+            // STATUS: passed
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
+            strands.push_back(Strand{ pointsToAdd });
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+            break;
+        case TEST1:
+            // Additional control point. Should render basic yarn from previous test.
+            // STATUS: passed
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
+            strands.push_back(Strand{ pointsToAdd });
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+            break;
+        case TEST2:
+            // Additional strand on top of basic yarn.
+            // STATUS: passed
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
+            strands.push_back(Strand{ pointsToAdd });
 
-        pointsToAdd.clear();
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 7 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 8 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 9 });
-        strands.push_back(Strand{ pointsToAdd });
+            pointsToAdd.clear();
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 7 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 8 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 9 });
+            strands.push_back(Strand{ pointsToAdd });
 
-        fiber.addStrands(strands);
-        fiber.loadPoints(false);
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+            break;
+        case TEST3:
+            // Basic yarn along the Y-axis
+            // STATUS: passed
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 0 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.01f, 0.f), glm::vec3(1.f, 0.f, 0.f), 1 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.99f, 0.f), glm::vec3(1.f, 0.f, 0.f), 3 });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 1.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 4 });
+            strands.push_back(Strand{ pointsToAdd });
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+            break;
+        case TEST4:
+        {
+            // Basic weave pattern - horizontal
+            // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
+            // TODO: remove texture effect from fiber_fragment.glsl
+            // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
+            // STATUS: passed
+            Pattern pattern = Pattern(&fiber);
+            strands = pattern._getHorizontalStrand();
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+        }
+            break;
+        case TEST5:
+        {
+            // Basic weave pattern - vertical
+            // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
+            // TODO: remove texture effect from fiber_fragment.glsl
+            // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
+            // STATUS: passed
+            Pattern pattern = Pattern(&fiber);
+            strands = pattern._getVerticalStrand();
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+        }
         break;
-    case TEST3:
-        // Basic yarn along the Y-axis
-        // STATUS: passed
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 0 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.01f, 0.f), glm::vec3(1.f, 0.f, 0.f), 1 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.99f, 0.f), glm::vec3(1.f, 0.f, 0.f), 3 });
-        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 1.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 4 });
-        strands.push_back(Strand{ pointsToAdd });
-        fiber.addStrands(strands);
-        fiber.loadPoints(false);
-        break;
-    case LIVE:
-        // What you want to be rendered
-        Pattern pattern = Pattern(&fiber);
-        strands = pattern.getBasicWeave(4);
-        fiber.addStrands(strands);
-        fiber.loadPoints(false);
-        break;
+        case TEST6:
+        {
+            // Basic weave pattern
+            // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
+            // TODO: remove texture effect from fiber_fragment.glsl
+            // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
+            // STATUS: passed
+            Pattern pattern = Pattern(&fiber);
+            strands = pattern.getBasicWeave(10);
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+        }
+            break;
     }
 }
