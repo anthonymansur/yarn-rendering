@@ -303,31 +303,78 @@ void addControlPoints()
         pointsToAdd.clear();
     }
 
+    // TODO: check algorithm to render multiple strands of yarn before testing pattern weave
+
     /*
-        TODO: currently got adding the control points in order with proper indexing, I believe. 
+        Checklist:
+        - TEST 0: Basic horizontal yarn is rendered
+        - TEST 1: The yarn formed by the control points 0 -> 0.01 -> .99 -> 1 is equivalent to the one formed by the control 
+          points 0 -> 0.01 -> 0.5 -> 0.99 -> 1
+        - TEST 2: Can render two strands of yarn on top of each other
+        - TEST 3: Can render vertical yarn
     */
 
-    Pattern fiberPattern = Pattern(&fiber);
-    std::vector<Strand> strands = fiberPattern.getBasicWeave(4);
+    enum RENDER{
+        TEST0, 
+        TEST1,
+        TEST2,
+        TEST3,
+        LIVE
+    };
 
-    ///* DEBUG: Get Enoch's code and modify the control points and test if still works. */
+    RENDER render = TEST0;
+    std::vector<Strand> strands;
 
-    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-    ////pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+    switch (render)
+    {
+    case TEST0:
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
+        strands.push_back(Strand{ pointsToAdd });
+        fiber.addStrands(strands);
+        fiber.loadPoints(false);
+        break;
+    case TEST1:
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
+        strands.push_back(Strand{ pointsToAdd });
+        fiber.addStrands(strands);
+        fiber.loadPoints(false);
+        break;
+    case TEST2:
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4 });
+        strands.push_back(Strand{ pointsToAdd });
 
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.25f, -0.02f, 0.f), glm::vec3(0.5f, 0.5f, 0.f), 2 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.02f, 0.f), glm::vec3(0.f, -1.f, 0.f), 3 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.75f, -0.02f, 0.f), glm::vec3(-0.5f, 0.5f, 0.f), 4 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6 });
+        pointsToAdd.clear();
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 7 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 8 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 9 });
+        strands.push_back(Strand{ pointsToAdd });
 
-    strands.clear();
-    strands.push_back(Strand{ pointsToAdd });
-    
-    fiber.addStrands(strands);
-    fiber.loadPoints(false);
+        fiber.addStrands(strands);
+        fiber.loadPoints(false);
+        break;
+    case TEST3:
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 0 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.01f, 0.f), glm::vec3(1.f, 0.f, 0.f), 1 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.99f, 0.f), glm::vec3(1.f, 0.f, 0.f), 3 });
+        pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 1.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 4 });
+        strands.push_back(Strand{ pointsToAdd });
+        fiber.addStrands(strands);
+        fiber.loadPoints(false);
+        break;
+    case LIVE:
+        break;
+    }
 }

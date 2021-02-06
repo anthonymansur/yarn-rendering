@@ -494,6 +494,7 @@ void Fiber::addStrands(const std::vector<Strand>& strands)
 {
 	for (const Strand& strand : strands)
 	{
+		// add patches of the bezier curve
 		for (unsigned int i = 0; i < strand.points.size(); i++)
 		{
 			if ((i + 3) < strand.points.size())
