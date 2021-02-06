@@ -322,12 +322,14 @@ void addControlPoints()
         LIVE
     };
 
-    RENDER render = TEST0;
+    RENDER render = LIVE;
     std::vector<Strand> strands;
 
     switch (render)
     {
     case TEST0:
+        // Basic yarn along the X-axis
+        // STATUS: passed
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
@@ -337,6 +339,8 @@ void addControlPoints()
         fiber.loadPoints(false);
         break;
     case TEST1:
+        // Additional control point. Should render basic yarn from previous test.
+        // STATUS: passed
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
@@ -347,6 +351,8 @@ void addControlPoints()
         fiber.loadPoints(false);
         break;
     case TEST2:
+        // Additional strand on top of basic yarn.
+        // STATUS: passed
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
@@ -366,6 +372,8 @@ void addControlPoints()
         fiber.loadPoints(false);
         break;
     case TEST3:
+        // Basic yarn along the Y-axis
+        // STATUS: passed
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 0 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.01f, 0.f), glm::vec3(1.f, 0.f, 0.f), 1 });
         pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.99f, 0.f), glm::vec3(1.f, 0.f, 0.f), 3 });
@@ -375,6 +383,11 @@ void addControlPoints()
         fiber.loadPoints(false);
         break;
     case LIVE:
+        // What you want to be rendered
+        Pattern pattern = Pattern(&fiber);
+        strands = pattern.getBasicWeave(4);
+        fiber.addStrands(strands);
+        fiber.loadPoints(false);
         break;
     }
 }

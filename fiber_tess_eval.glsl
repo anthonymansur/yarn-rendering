@@ -63,6 +63,8 @@ vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 
+vec4 slerp(vec4 p0, vec4 p1, float t);
+
 float rand(vec2 co, float seed); // pseudo-random number gen given two floats 
 float fiberDistribution(float R, float rho_max); // rejection sampling
 float sampleR(float v, float rho_max, float seed); // get the radius of fiber (<= r_max) given the ply center
@@ -113,13 +115,16 @@ void main()
 		// NOTE: the reason why these values don't work is because the derivative and second derivative
 		//		 equal zero. https://tutorial.math.lamar.edu/classes/calciii/TangentNormalVectors.aspx
 		//       When given the control points, you may want to calculate the normals in CPU first.
-		vec4 tangent = computeBezierDerivative(u, p_1, p0, p1, p2);
-		vec4 normal = computeBezierCurve(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]);
+		vec4 tangent = normalize(computeBezierDerivative(u, p_1, p0, p1, p2));
+		vec4 normal = normalize(computeBezierCurve(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]));
 
-		vec4 bitangent = vec4(cross(tangent.xyz, normal.xyz), 0);
+//		tangent = vec4(1, 0, 0, 0); // DEBUG
+//	    normal = vec4(0, 1, 0, 0); // DEBUG
+
+		vec4 bitangent = normalize(vec4(cross(tangent.xyz, normal.xyz), 0));
 
 		// TODO: convert parametrization to cubic
-		float position = (1.f - u) * p0[0] + u * p1[0];
+		float position = length(slerp(p0, p1, u) - p0);
 		float theta = (2 * pi * position / u_yarn_alpha); // WARNING: currently linear
 
 		// Calculate the fiber center given the yarn center
@@ -132,12 +137,16 @@ void main()
 			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); 
 
 		// calculate fiber displacement
-		vec4 ply_tangent = -sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent;
+		vec4 derivNormal = computeBezierDerivative(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]);
+		vec4 derivTangent = computeBezierSecondDerivative(u, p_1, p0, p1, p2);
+		vec4 derivBitangent = normalize(vec4(cross(derivTangent.xyz, normal.xyz), 0) + 
+							  vec4(cross(tangent.xyz, derivNormal.xyz), 0));
+		vec4 ply_tangent = normalize(-sin(ply_theta + theta) * normal + cos(ply_theta + theta) * derivNormal + cos(ply_theta + theta) * bitangent + sin(ply_theta + theta) * derivBitangent);
 		vec4 ply_normal = normalize(ply_displacement);
 
 		// TODO: see why this is needed for it to look visually appealing
-		ply_normal = vec4(0, 1, 0, 0);
-		ply_tangent = vec4(1, 0, 0, 0);
+		//ply_normal = vec4(0, 1, 0, 0);
+		//ply_tangent = vec4(1, 0, 0, 0);
 
 		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
 
@@ -184,7 +193,7 @@ void main()
 		// fiber center
 		vec4 fiber_center = yarn_center + ply_displacement + fiber_displacement;
 
-		//fiber_center = yarn_center; // DEBUG
+		// fiber_center = yarn_center + ply_displacement; // DEBUG
 
 		if (i == 0) 
 			prevPosition = fiber_center.xyz;
@@ -215,18 +224,20 @@ vec4 computeBezierCurve(float u, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 
 vec4 computeBezierDerivative(float u, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 {
-	// TODO: implement
 	float b0 = -1.f + 4.f * u - 3.f * u * u;
 	float b1 = -10 * u + 9 * u * u;
 	float b2 = 1 + 8.f * u - 9.f * u * u;
 	float b3 = -2.f * u + 3 * u * u;
 	return 0.5f * (b0*p_1 + b1*p0 + b2*p1 + b3*p2);
-	return vec4(0);
 }
-vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
+vec4 computeBezierSecondDerivative(float u, vec4 p_1, vec4 p0, vec4 p1, vec4 p2)
 {
 	// TODO: implement
-	return vec4(0);
+	float b0 = 4.f - 6.f * u;
+	float b1 = -10 + 18 * u;
+	float b2 = 8.f - 18.f * u;
+	float b3 = -2.f + 6 * u;
+	return 0.5f * (b0*p_1 + b1*p0 + b2*p1 + b3*p2);
 }
 
 float rand(vec2 co, float seed){
@@ -271,4 +282,10 @@ float sampleLoop(float v, float mu, float sigma, float seed) {
 			return pdf;
 		i++;
 	}
+}
+
+vec4 slerp(vec4 p0, vec4 p1, float t)
+{
+	float angle = acos(dot(p0, p1) / (length(p0) * length(p1)));
+	return ((sin(1 - t) * angle) / sin(angle)) * p0 + (sin(t * angle) / sin(angle)) * p1;
 }
