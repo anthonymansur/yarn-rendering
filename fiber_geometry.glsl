@@ -54,8 +54,7 @@ void main()
     float yarn_radius = u_yarn_radius / 2.f;
     float lineHeight = isCore[0] > 0.5f ? 0.03 : 0.001;
 
-    //lineHeight = 0.03;//u_r_max * (2/3.f); // DEBUG
-    //lineHeight = yarn_radius * 2.f;
+    //lineHeight = yarn_radius * 2.f; 
 
     // four control points
     vec3 prev = prevPosition[0];

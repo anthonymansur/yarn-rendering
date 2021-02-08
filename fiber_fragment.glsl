@@ -61,7 +61,7 @@ void main()
     out_color = vec4(color, length(color) < .1 ? 0 : alpha);  
     //out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
 
-    //out_color = vec4(color, 1);  // debug
+   // out_color = vec4(fs_normal, 1);  // debug
 }
 
 float lerp(float p0, float p1, float t)

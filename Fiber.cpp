@@ -14,7 +14,8 @@ namespace
 {
 	const GLuint POS_VAO_ID = 0;
 	const GLuint NORM_VAO_ID = 1;
-	const GLuint STRIDE = 6;
+	const GLuint DIST_VAO_ID = 2;
+	const GLuint STRIDE = 7;
 }
 
 unsigned int loadTexture(const char* path);
@@ -294,6 +295,8 @@ void Fiber::initializeGL()
 		glEnableVertexAttribArray(POS_VAO_ID);
 		glVertexAttribPointer(NORM_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(NORM_VAO_ID);
+		glVertexAttribPointer(DIST_VAO_ID, 1, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(DIST_VAO_ID);
 		glBindVertexArray(0);
 	}
 
@@ -471,6 +474,7 @@ float Fiber::getYarnRadius() const
 void Fiber::addPoint(ControlPoint cp, bool isCore) {
 	glm::vec3 pos = cp.pos;
 	glm::vec3 norm = cp.norm;
+	float distance = cp.distanceFromStart;
 	int inx = cp.inx;
 
 	std::vector<float> &points_ = isCore ? corepoints_ : fiberpoints_;
@@ -484,6 +488,7 @@ void Fiber::addPoint(ControlPoint cp, bool isCore) {
 		points_.push_back(norm.x);
 		points_.push_back(norm.y);
 		points_.push_back(norm.z);
+		points_.push_back(distance);
 	}
 
 	ebo_.push_back(inx);

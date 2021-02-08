@@ -32,6 +32,7 @@ struct ControlPoint
     Point3f pos;
     Normal3f norm;
     int inx;
+    float distanceFromStart = -1;
 };
 
 struct Strand

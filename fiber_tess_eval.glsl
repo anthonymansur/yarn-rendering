@@ -9,7 +9,8 @@ layout (isolines) in; // patch type: isolines
 // ----------------------
 patch in vec4 p_1; // left endpoint
 patch in vec4 p2; // right endpoint
-patch in vec4 control_norm[4];
+patch in vec4 tcs_norm[4];
+patch in float tcs_dist[4];
 patch in int num_of_isolines;
 
 out float isCore;
@@ -63,6 +64,8 @@ vec4 computeBezierCurve(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 vec4 computeBezierDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 vec4 computeBezierSecondDerivative(float t, vec4 p_1, vec4 p0, vec4 p1, vec4 p2);
 
+float lerp(float p0, float p1, float t);
+vec4 lerp(vec4 p0, vec4 p1, float t);
 vec4 slerp(vec4 p0, vec4 p1, float t);
 
 float rand(vec2 co, float seed); // pseudo-random number gen given two floats 
@@ -70,6 +73,9 @@ float fiberDistribution(float R, float rho_max); // rejection sampling
 float sampleR(float v, float rho_max, float seed); // get the radius of fiber (<= r_max) given the ply center
 float normalDistribution(float x, float mu, float sigma);
 float sampleLoop(float v, float mu, float sigma, float seed);
+
+bool vectorEquality(vec3 a, vec3 b);
+bool vectorEquality(vec4 a, vec4 b);
 
 void main()
 {
@@ -116,15 +122,15 @@ void main()
 		//		 equal zero. https://tutorial.math.lamar.edu/classes/calciii/TangentNormalVectors.aspx
 		//       When given the control points, you may want to calculate the normals in CPU first.
 		vec4 tangent = normalize(computeBezierDerivative(u, p_1, p0, p1, p2));
-		vec4 normal = normalize(computeBezierCurve(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]));
+		vec4 normal = normalize(computeBezierCurve(u, tcs_norm[0], tcs_norm[1], tcs_norm[2], tcs_norm[3]));
 
-//		tangent = vec4(1, 0, 0, 0); // DEBUG
-//	    normal = vec4(0, 1, 0, 0); // DEBUG
+		//tangent = vec4(1, 0, 0, 0); // DEBUG
+	    //normal = vec4(0, 1, 0, 0); // DEBUG
 
 		vec4 bitangent = normalize(vec4(cross(tangent.xyz, normal.xyz), 0));
 
 		// TODO: convert parametrization to cubic
-		float position = length(slerp(p0, p1, u) - p0);
+		float position = lerp(tcs_dist[1], tcs_dist[2], u);
 		float theta = (2 * pi * position / u_yarn_alpha); // WARNING: currently linear
 
 		// Calculate the fiber center given the yarn center
@@ -137,7 +143,7 @@ void main()
 			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); 
 
 		// calculate fiber displacement
-		vec4 derivNormal = computeBezierDerivative(u, control_norm[0], control_norm[1], control_norm[2], control_norm[3]);
+		vec4 derivNormal = computeBezierDerivative(u, tcs_norm[0], tcs_norm[1], tcs_norm[2], tcs_norm[3]);
 		vec4 derivTangent = computeBezierSecondDerivative(u, p_1, p0, p1, p2);
 		vec4 derivBitangent = normalize(vec4(cross(derivTangent.xyz, normal.xyz), 0) + 
 							  vec4(cross(tangent.xyz, derivNormal.xyz), 0));
@@ -200,7 +206,10 @@ void main()
 		if (i == 1)
 		{
 			gl_Position = fiber_center;
-			geo_normal = normalize(fiber_center - yarn_center).xyz;
+			//geo_normal = normalize(fiber_center - yarn_center).xyz;
+			geo_normal = normal.xyz; // DEBUG
+			//geo_normal = u < 0.5 ? glm::vec3(-1, 0, 0) : glm::vec3(0, 1, 0); // DEBUG
+			//geo_normal = normalize(computeBezierSecondDerivative(u, p_1, p0, p1, p2)).xyz;
 			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha) +
 							   acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
 			geo_texCoords[1] = 0; // will be set by geometry shader
@@ -284,8 +293,32 @@ float sampleLoop(float v, float mu, float sigma, float seed) {
 	}
 }
 
+float lerp(float p0, float p1, float t)
+{
+	return p0 * (1 - t) + p1 * t;
+}
+
+vec4 lerp(vec4 p0, vec4 p1, float t)
+{
+	return p0 * (1 - t) + p1 * t;
+}
+
 vec4 slerp(vec4 p0, vec4 p1, float t)
 {
 	float angle = acos(dot(p0, p1) / (length(p0) * length(p1)));
 	return ((sin(1 - t) * angle) / sin(angle)) * p0 + (sin(t * angle) / sin(angle)) * p1;
+}
+
+bool vectorEquality(vec3 a, vec3 b)
+{
+	return (a.x - b.x) < EPSILON && 
+		   (a.y - b.y) < EPSILON &&
+		   (a.z - b.z) < EPSILON;
+}
+bool vectorEquality(vec4 a, vec4 b)
+{
+	return (a.x - b.x) < EPSILON && 
+		   (a.y - b.y) < EPSILON &&
+		   (a.z - b.z) < EPSILON &&
+		   (a.w - b.w) < EPSILON;
 }

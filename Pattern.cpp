@@ -1,4 +1,6 @@
 #include "Pattern.h"
+#define pi 3.14159265358979323846f
+
 
 Pattern::Pattern(Fiber* type) : type(type), yarnRadius(type->getYarnRadius())
 {}
@@ -19,7 +21,8 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			ControlPoint{
 				Point3f(-r, 2 * r * i, 0),
 				Normal3f(-1, 0, 0),
-				inx++
+				inx++,
+				((pi * r) / 2.f)* inx
 			}
 		);
 		for (uint8_t j = 0; j < size / 2; j++)
@@ -28,14 +31,32 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 				ControlPoint{
 					Point3f(j * 4 * r, 2 * r * i, r),
 					Normal3f(0, 0, 1),
-					inx++
+					inx++,
+					((pi * r) / 2.f)* inx
+				}
+			);
+			points.push_back(
+				ControlPoint{
+					Point3f((j * 4 + 1) * r, 2 * r * i, r),
+					Normal3f(1, 0, 0),
+					inx++,
+					((pi * r) / 2.f)* inx
 				}
 			);
 			points.push_back(
 				ControlPoint{
 					Point3f((j * 4 + 2) * r, 2 * r * i, -r),
 					Normal3f(0, 0, 1),
-					inx++
+					inx++,
+					((pi * r) / 2.f)* inx
+				}
+			);
+			points.push_back(
+				ControlPoint{
+					Point3f((j * 4 + 3) * r, 2 * r * i, -r),
+					Normal3f(-1, 0, 0),
+					inx++,
+					((pi * r) / 2.f)* inx
 				}
 			);
 		}
@@ -45,7 +66,8 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			ControlPoint{
 				Point3f(((size / 2 - 1) * 4 + 3) * r, 2 * r * i, 0),
 				Normal3f(1, 0, 0),
-				inx++
+				inx++,
+				((pi * r) / 2.f)* inx
 			}
 		);
 
@@ -60,25 +82,44 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 		// left endpoint
 		points.push_back(
 			ControlPoint{
-				Point3f(2 * r * i, -r, 0 - r),
+				Point3f(2 * r * i + r/2.f, -r, 0 - r),
 				Normal3f(0, -1, 0),
-				inx++
+				inx++,
+				((pi * r) / 2.f)* inx
 			}
 		);
 		for (uint8_t j = 0; j < size / 2; j++)
 		{
 			points.push_back(
 				ControlPoint{
-					Point3f(2 * r * i, j * 4 * r, -r - r),
-					Normal3f(-1, 0, 0),
-					inx++
+					Point3f(2 * r * i + r / 2.f, j * 4 * r, -r - r),
+					Normal3f(0, 0, 1),
+					inx++,
+					((pi * r) / 2.f)* inx
 				}
 			);
 			points.push_back(
 				ControlPoint{
-					Point3f(2 * r * i, (j * 4 + 2) * r, r - r),
-					Normal3f(-1, 0, 0),
-					inx++
+					Point3f(2 * r * i + r / 2.f, (j * 4 + 1) * r, -r - r),
+					Normal3f(0, 1, 0),
+					inx++,
+					((pi * r) / 2.f)* inx
+				}
+			);
+			points.push_back(
+				ControlPoint{
+					Point3f(2 * r * i + r / 2.f, (j * 4 + 2) * r, r - r),
+					Normal3f(0, 0, 1),
+					inx++,
+					((pi * r) / 2.f)* inx
+				}
+			);
+			points.push_back(
+				ControlPoint{
+					Point3f(2 * r * i + r / 2.f, (j * 4 + 3) * r, r - r),
+					Normal3f(0, -1, 0),
+					inx++,
+					((pi * r) / 2.f)* inx
 				}
 			);
 		}
@@ -86,9 +127,10 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 		// right endpoint
 		points.push_back(
 			ControlPoint{
-				Point3f(2 * r * i, ((size / 2 - 1) * 4 + 3) * r, 0 - r),
+				Point3f(2 * r * i + r / 2.f, ((size / 2 - 1) * 4 + 3) * r, 0 - r),
 				Normal3f(0, 1, 0),
-				inx++
+				inx++,
+				((pi* r) / 2.f)* inx
 			}
 		);
 
@@ -112,7 +154,8 @@ std::vector<Strand> Pattern::_getHorizontalStrand() const
 		ControlPoint{
 			Point3f(-r, 0, 0),
 			Normal3f(-1, 0, 0),
-			inx++
+			inx++, 
+			0
 		}
 	);
 	for (uint8_t j = 0; j < size / 2; j++)
@@ -121,14 +164,32 @@ std::vector<Strand> Pattern::_getHorizontalStrand() const
 			ControlPoint{
 				Point3f(j * 4 * r, 0, r),
 				Normal3f(0, 0, 1),
-				inx++
+				inx++, 
+				((pi * r) / 2.f) * inx
+			}
+		);
+		points.push_back(
+			ControlPoint{
+				Point3f((j * 4 + 1) * r, 0, r),
+				Normal3f(1, 0, 0),
+				inx++,
+				((pi * r) / 2.f)* inx
 			}
 		);
 		points.push_back(
 			ControlPoint{
 				Point3f((j * 4 + 2) * r, 0, -r),
 				Normal3f(0, 0, 1),
-				inx++
+				inx++,
+				((pi * r) / 2.f)* inx
+			}
+		);
+		points.push_back(
+			ControlPoint{
+				Point3f((j * 4 + 3) * r, 0, -r),
+				Normal3f(-1, 0, 0),
+				inx++,
+				((pi * r) / 2.f)* inx
 			}
 		);
 	}
@@ -136,9 +197,10 @@ std::vector<Strand> Pattern::_getHorizontalStrand() const
 	// right endpoint
 	points.push_back(
 		ControlPoint{
-			Point3f(((size - 1) * 4 + 3) * r, 0, 0),
+			Point3f(((size / 2 - 1) * 4 + 3) * r, 0, 0),
 			Normal3f(1, 0, 0),
-			inx++
+			inx++,
+			((pi * r) / 2.f)* inx
 		}
 	);
 
@@ -159,7 +221,8 @@ std::vector<Strand> Pattern::_getVerticalStrand() const
 		ControlPoint{
 			Point3f(0, -r, 0),
 			Normal3f(0, -1, 0),
-			inx++
+			inx++,
+			((pi * r) / 2.f)* inx
 		}
 	);
 	for (uint8_t j = 0; j < size / 2; j++)
@@ -167,15 +230,33 @@ std::vector<Strand> Pattern::_getVerticalStrand() const
 		points.push_back(
 			ControlPoint{
 				Point3f(0, j * 4 * r, -r),
-				Normal3f(-1, 0, 0),
-				inx++
+				Normal3f(0, 0, 1),
+				inx++,
+				((pi * r) / 2.f)* inx
+			}
+		);
+		points.push_back(
+			ControlPoint{
+				Point3f(0, (j * 4 + 1) * r, -r),
+				Normal3f(0, 1, 0),
+				inx++,
+				((pi * r) / 2.f)* inx
 			}
 		);
 		points.push_back(
 			ControlPoint{
 				Point3f(0, (j * 4 + 2) * r, r),
-				Normal3f(-1, 0, 0),
-				inx++
+				Normal3f(0, 0, 1),
+				inx++,
+				((pi * r) / 2.f)* inx
+			}
+		);
+		points.push_back(
+			ControlPoint{
+				Point3f(0, (j * 4 + 3) * r, r),
+				Normal3f(0, -1, 0),
+				inx++,
+				((pi * r) / 2.f)* inx
 			}
 		);
 	}
@@ -183,9 +264,10 @@ std::vector<Strand> Pattern::_getVerticalStrand() const
 	// right endpoint
 	points.push_back(
 		ControlPoint{
-			Point3f(0, ((size - 1) * 4 + 3) * r, 0),
+			Point3f(0, ((size / 2 - 1) * 4 + 3) * r, 0),
 			Normal3f(0, 1, 0),
-			inx++
+			inx++,
+				((pi * r) / 2.f)* inx
 		}
 	);
 
