@@ -321,6 +321,9 @@ void addControlPoints()
     RENDER render = TEST6;
     std::vector<Strand> strands;
 
+    //TODO: Fix height problem between horizontal and vertical yarns
+    // TODO: implement hair fibers
+
     switch (render)
     {
         case TEST0:
@@ -417,5 +420,16 @@ void addControlPoints()
             fiber.loadPoints(false);
         }
             break;
+        case TEST7:
+        {
+            Pattern pattern = Pattern(&fiber);
+            strands = pattern._getHorizontalStrand();
+            std::vector<Strand> strands2 = pattern._getVerticalStrand(strands.at(0).points.size());
+            for (const Strand& strand : strands2)
+                strands.push_back(strand);
+            fiber.addStrands(strands);
+            fiber.loadPoints(false);
+        }
+        break;
     }
 }

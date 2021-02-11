@@ -115,49 +115,39 @@ void main()
 
 		// Calculate yarn center and its orientation
 		// -----------------------------------------
+		// Calculate yarn center using input control points
 		vec4 yarn_center = computeBezierCurve(u, p_1, p0, p1, p2);
 
-		// TODO: these values are incorrect for some reason; not working properly
-		// NOTE: the reason why these values don't work is because the derivative and second derivative
-		//		 equal zero. https://tutorial.math.lamar.edu/classes/calciii/TangentNormalVectors.aspx
-		//       When given the control points, you may want to calculate the normals in CPU first.
-		vec4 tangent = normalize(computeBezierDerivative(u, p_1, p0, p1, p2));
-		vec4 normal = normalize(computeBezierCurve(u, tcs_norm[0], tcs_norm[1], tcs_norm[2], tcs_norm[3]));
-
-		//tangent = vec4(1, 0, 0, 0); // DEBUG
-	    //normal = vec4(0, 1, 0, 0); // DEBUG
-
+		// Calculate yarn orientation 
+		vec4 tangent = normalize(vec4(computeBezierDerivative(u, p_1, p0, p1, p2).xyz, 0));
+		vec4 normal = normalize(vec4(computeBezierCurve(u, tcs_norm[0], tcs_norm[1], tcs_norm[2], tcs_norm[3]).xyz, 0));
 		vec4 bitangent = normalize(vec4(cross(tangent.xyz, normal.xyz), 0));
 
-		// TODO: convert parametrization to cubic
-		float position = lerp(tcs_dist[1], tcs_dist[2], u);
-		float theta = (2 * pi * position / u_yarn_alpha); // WARNING: currently linear
+		// Calculate polar angle that parameterizes fiber helix
+		float position = lerp(tcs_dist[1], tcs_dist[2], u); // WARNING: currently linear
+		float theta = (2 * pi * position / u_yarn_alpha); 
 
-		// Calculate the fiber center given the yarn center
-		// ------------------------------------------
-		// calculate ply displacement
+		// Calculate the ply center and orientation given the yarn center
+		// --------------------------------------------------------------
+		// Calculate ply displacement
 		float ply_radius = u_yarn_radius / 2.f; 
 		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0); // initial polar angle of i-th ply
-
 		vec4 ply_displacement = 
 			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); 
 
-		// calculate fiber displacement
-		vec4 derivNormal = computeBezierDerivative(u, tcs_norm[0], tcs_norm[1], tcs_norm[2], tcs_norm[3]);
-		vec4 derivTangent = computeBezierSecondDerivative(u, p_1, p0, p1, p2);
-		vec4 derivBitangent = normalize(vec4(cross(derivTangent.xyz, normal.xyz), 0) + 
-							  vec4(cross(tangent.xyz, derivNormal.xyz), 0));
-		vec4 ply_tangent = normalize(-sin(ply_theta + theta) * normal + cos(ply_theta + theta) * derivNormal + cos(ply_theta + theta) * bitangent + sin(ply_theta + theta) * derivBitangent);
-		vec4 ply_normal = normalize(ply_displacement);
+		// Calculate ply orientation
+		// derivatives w.r.t. theta
+		vec3 deriv_ply_displacement = ply_radius * (-sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent).xyz;		
+		float uToTheta = ((theta * u_yarn_alpha) / (2 * pi) - tcs_dist[1]) / (tcs_dist[2] - tcs_dist[1]);
+		vec3 deriv_yarn_center = computeBezierDerivative(uToTheta, p_1, p0, p1, p2).xyz * (u_yarn_alpha / (2 * pi * (tcs_dist[2] - tcs_dist[1])));
 
-		// TODO: see why this is needed for it to look visually appealing
-		//ply_normal = vec4(0, 1, 0, 0);
-		//ply_tangent = vec4(1, 0, 0, 0);
+		vec4 ply_tangent = normalize(vec4(deriv_ply_displacement + deriv_yarn_center, 0));
+		vec4 ply_normal = normalize(vec4(ply_displacement.xyz, 0));
+		vec4 ply_bitangent = normalize(vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0));
 
-		vec4 ply_bitangent = vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0);
-
-		float rho_max = u_rho_max;
-
+		// Calculate the position of fiber
+		// -------------------------------
+		float rho_max = u_rho_max; // distance from ply center
 		if (u_use_flyaways == 1)
 		{
 			/* Loop fiber */
@@ -170,10 +160,10 @@ void main()
 		}
 
 		// TODO: compute in cpu and pass as texture
-		float z_i = sampleR(v, rho_max, u_time * 10.f); // distance between fiber curve and the ply center;
+		float z_i = sampleR(v, rho_max, u_time * 10.f); 
 		float y_i = sampleR(2 * v, rho_max, u_time * 10.f);
-		float fiber_radius = sqrt(pow(z_i, 2.f) + pow(y_i, 2.f)); // TODO: add fiber migration
-		float fiber_theta = atan(y_i, z_i) + 2 * pi * rand(vec2(v * 2.f, v * 3.f), u_time * 10.f);  // theta_i
+		float fiber_radius = sqrt(z_i * z_i + y_i * y_i); // distance between fiber curve and the ply center;
+		float fiber_theta = 2 * pi * rand(vec2(v * 2.f, v * 3.f), u_time * 10.f);  // theta_i
 		float en = u_ellipse_long;
 		float eb = u_ellipse_short;
 
@@ -181,6 +171,7 @@ void main()
 
 		if (u_use_migration == 1)
 		{
+			// edit the distance between the ply and the fiber as you move along yarn
 			float fiber_r_min = u_rho_min;
 			float fiber_r_max = rho_max;
 			float fiber_s = u_s_i;
@@ -206,12 +197,8 @@ void main()
 		if (i == 1)
 		{
 			gl_Position = fiber_center;
-			//geo_normal = normalize(fiber_center - yarn_center).xyz;
-			geo_normal = normal.xyz; // DEBUG
-			//geo_normal = u < 0.5 ? glm::vec3(-1, 0, 0) : glm::vec3(0, 1, 0); // DEBUG
-			//geo_normal = normalize(computeBezierSecondDerivative(u, p_1, p0, p1, p2)).xyz;
-			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha) +
-							   acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
+			geo_normal = normalize(fiber_center - yarn_center).xyz;
+			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha) + acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
 			geo_texCoords[1] = 0; // will be set by geometry shader
 		}
 		if (i == 2) 

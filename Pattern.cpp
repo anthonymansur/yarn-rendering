@@ -208,11 +208,11 @@ std::vector<Strand> Pattern::_getHorizontalStrand() const
 
 	return strands;
 }
-std::vector<Strand> Pattern::_getVerticalStrand() const
+std::vector<Strand> Pattern::_getVerticalStrand(int offset) const
 {
 	float r = this->yarnRadius;
 	std::vector<Strand> strands;
-	int inx = 0;
+	int inx = offset;
 	int size = 10;
 
 	std::vector<ControlPoint> points;
@@ -222,7 +222,7 @@ std::vector<Strand> Pattern::_getVerticalStrand() const
 			Point3f(0, -r, 0),
 			Normal3f(0, -1, 0),
 			inx++,
-			((pi * r) / 2.f)* inx
+			((pi * r) / 2.f)* (inx - offset)
 		}
 	);
 	for (uint8_t j = 0; j < size / 2; j++)

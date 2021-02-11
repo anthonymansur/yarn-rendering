@@ -54,8 +54,6 @@ void main()
     float yarn_radius = u_yarn_radius / 2.f;
     float lineHeight = isCore[0] > 0.5f ? 0.03 : 0.001;
 
-    //lineHeight = yarn_radius * 2.f; 
-
     // four control points
     vec3 prev = prevPosition[0];
     vec3 start = gl_in[0].gl_Position.xyz;

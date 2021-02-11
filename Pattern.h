@@ -12,7 +12,7 @@ public:
 
 	// for debugging purposes
 	std::vector<Strand> _getHorizontalStrand() const;
-	std::vector<Strand> _getVerticalStrand() const;
+	std::vector<Strand> _getVerticalStrand(int offset = 0) const;
 private:
 	Fiber* type;
 	float yarnRadius;
