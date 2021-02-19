@@ -12,6 +12,8 @@ patch out float tcs_dist[4];
 
 patch out int num_of_isolines; // the number of fibers
 
+patch out float scaleFactor;
+
 uniform int u_ply_num; // the number of plies
 uniform float u_yarn_radius;
 
@@ -52,7 +54,7 @@ void main()
 		float lambda = LOD <= fiber_width ? 1 :
 					   ply_width <= LOD ? 0 :
 					   (fiber_width / LOD) * ((ply_width - LOD)/(ply_width - fiber_width));
-		float scaleFactor = lambda * lambda;
+		scaleFactor = lambda * lambda;
 
 
 		// check if within viewing frustum

@@ -20,6 +20,7 @@ in vec3[] prevPosition;
 in vec3[] nextPosition;
 in vec3[] geo_normal;
 in vec2[] geo_texCoords;
+in float[] tes_scaleFactor;
 
 out float fs_height; // height map
 out vec3 fs_normal; // 2D surface normal
@@ -45,6 +46,7 @@ out float fs_disable;
     DEPRECATED: http://www.songho.ca/opengl/gl_cylinder.html 
     DEPRECATED: http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-10-transparency/
 */
+float lerp(float p0, float p1, float t);
 vec3 lerp(vec3 p0, vec3 p1, float t);
 vec3 slerp(vec3 p0, vec3 p1, float t); // DISABLED DUE TO FADING BUG
 
@@ -54,7 +56,7 @@ void main()
     mat4 MVP = projection * view * model;
     float zoomFactor = .125f;
     float yarn_radius = u_yarn_radius / 2.f;
-    float lineHeight = isCore[0] > 0.5f ? u_yarn_radius * (2/3.f) : 0.001;
+    float lineHeight = isCore[0] > 0.5f ? lerp(u_yarn_radius, (2/3.f) * u_yarn_radius, tes_scaleFactor[0]) : 0.001;
 
     //lineHeight = 0.001; // debug
 
@@ -132,6 +134,11 @@ void main()
     EmitVertex();
 
     EndPrimitive();
+}
+
+float lerp(float p0, float p1, float t)
+{
+    return (1 - t) * p0 + t * p1;
 }
 
 vec3 lerp(vec3 p0, vec3 p1, float t)

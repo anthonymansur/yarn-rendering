@@ -12,6 +12,7 @@ patch in vec4 p2; // right endpoint
 patch in vec4 tcs_norm[4];
 patch in float tcs_dist[4];
 patch in int num_of_isolines;
+patch in float scaleFactor;
 
 out float isCore;
 out vec4 _pos;
@@ -20,6 +21,7 @@ out vec3 nextPosition;
 out vec3 geo_normal;
 out vec2 geo_texCoords;
 out float disable;
+out float tes_scaleFactor;
 
 uniform vec3 view_dir;
 uniform float u_time;
@@ -80,7 +82,6 @@ bool vectorEquality(vec4 a, vec4 b);
 
 void main()
 {
-
 	// init variables 
 	// --------------
 	vec4 p0 = gl_in[0].gl_Position; // left endpoint of yarn
@@ -238,7 +239,7 @@ void main()
 			float fiber_r_max = spanRadius + minRadius;
 			float t = (position - theta_min) / theta_span;
 
-			fiber_radius = lerp(fiber_r_min, fiber_r_max, t) * 2.f; // modified
+			fiber_radius = lerp(fiber_r_min, fiber_r_max, t); // modified
 			theta = 2 * pi * position / hairAlpha;
 		} 
 
@@ -295,6 +296,9 @@ void main()
 		}
 		_pos = fiber_center; // TODO: is this being used anywhere?
 	}
+
+	// pass variables from one shader to next
+	tes_scaleFactor = scaleFactor;
 }
 
 // Defintion of helper functions

@@ -424,10 +424,7 @@ void addControlPoints()
         case TEST7:
         {
             Pattern pattern = Pattern(&fiber);
-            strands = pattern._getHorizontalStrand();
-            std::vector<Strand> strands2 = pattern._getVerticalStrand(strands.at(0).points.size());
-            for (const Strand& strand : strands2)
-                strands.push_back(strand);
+            strands = pattern.getBasicWeave(30);
             fiber.addStrands(strands);
             fiber.loadPoints(false);
         }
