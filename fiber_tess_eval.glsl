@@ -19,6 +19,7 @@ out vec3 prevPosition;
 out vec3 nextPosition;
 out vec3 geo_normal;
 out vec2 geo_texCoords;
+out float disable;
 
 uniform vec3 view_dir;
 uniform float u_time;
@@ -53,10 +54,10 @@ uniform vec2 u_flyaway_loop_r1;
 uniform float u_flyaway_loop_density;
 
 uniform float u_flyaway_hair_density;
-uniform float u_flyaway_hair_ze;
-uniform float u_flyaway_hair_r0;
-uniform float u_flyaway_hair_re;
-uniform float u_flyaway_hair_pe;
+uniform vec2 u_flyaway_hair_ze;
+uniform vec2 u_flyaway_hair_r0;
+uniform vec2 u_flyaway_hair_re;
+uniform vec2 u_flyaway_hair_pe;
 
 // helper functions (see below for definitions)
 // ----------------
@@ -93,6 +94,10 @@ void main()
 	float prev = u - 1/64.f;
 	float curr = u;
 	float next = u + 1/64.f;
+
+	bool prevIsHair = false;
+	bool currIsHair = false;
+	bool nextIsHair = false;
 
 	if (u < 1/64.f)
 	{
@@ -141,6 +146,7 @@ void main()
 		float uToTheta = ((theta * u_yarn_alpha) / (2 * pi) - tcs_dist[1]) / (tcs_dist[2] - tcs_dist[1]);
 		vec3 deriv_yarn_center = computeBezierDerivative(uToTheta, p_1, p0, p1, p2).xyz * (u_yarn_alpha / (2 * pi * (tcs_dist[2] - tcs_dist[1])));
 
+		// basis vectors
 		vec4 ply_tangent = normalize(vec4(deriv_ply_displacement + deriv_yarn_center, 0));
 		vec4 ply_normal = normalize(vec4(ply_displacement.xyz, 0));
 		vec4 ply_bitangent = normalize(vec4(cross(ply_tangent.xyz, ply_normal.xyz), 0));
@@ -148,26 +154,53 @@ void main()
 		// Calculate the position of fiber
 		// -------------------------------
 		float rho_max = u_rho_max; // distance from ply center
+		float alpha = u_alpha;
+
+		// loop variables
+		bool isLoop = false;
+
+		// hair variables 
+		bool isHair = false;
+		float minRadius = 0;
+		float spanRadius = 0;
+		float hairAlpha = 0;
+		float theta_min;
+		float theta_span;
+
 		if (u_use_flyaways == 1)
 		{
 			/* Loop fiber */
 			// TODO: verify it's addition and not equals
-			if (v < u_flyaway_loop_density)
+			if (v < u_flyaway_loop_density * (tcs_dist[2] - tcs_dist[1]) + u_ply_num && v > u_ply_num)
+			{
 				rho_max += sampleLoop(v, u_flyaway_loop_r1[0], u_flyaway_loop_r1[1], u_time * 10.f) / 2.f; // TODO: verify, and see why you have to divide.
+				isLoop = true;
+			}
 			
 			/* Hair fiber */
-			// TODO: implement
+			// TODO: fix the whole process
+			if (v > (u_flyaway_loop_density * (tcs_dist[2] - tcs_dist[1]) + u_ply_num) && v < ((u_flyaway_loop_density + u_flyaway_hair_density) * (tcs_dist[2] - tcs_dist[1]) + u_ply_num))
+			{
+				theta_min = lerp(tcs_dist[1], tcs_dist[2], rand(vec2(v *3.f, v*2.f), u_time)); 
+				float z_min = lerp(0, 2 * pi, rand(vec2(v *4.f, v*5.f), u_time));
+				theta_span = sampleLoop(v, u_flyaway_hair_pe.x, u_flyaway_hair_pe.y, u_time); // modified
+				float z_span = sampleLoop(v, u_flyaway_hair_ze.x, u_flyaway_hair_ze.y, u_time);
+				minRadius = sampleLoop(v, u_flyaway_hair_r0.x, u_flyaway_hair_r0.y, u_time);
+				spanRadius = sampleLoop(v, u_flyaway_hair_re.x, u_flyaway_hair_re.y, u_time);
+
+				hairAlpha = (2 * pi * z_span) / theta_span;
+				isHair = true;
+			}
 		}
 
 		// TODO: compute in cpu and pass as texture
+		float fiber_radius = 0;
+		float fiber_theta = 2 * pi * rand(vec2(v * 2.f, v * 3.f), u_time * 10.f);  // theta_i
+		theta = (2 * pi * position / alpha); // update theta with ply pitch
 		float z_i = sampleR(v, rho_max, u_time * 10.f); 
 		float y_i = sampleR(2 * v, rho_max, u_time * 10.f);
-		float fiber_radius = sqrt(z_i * z_i + y_i * y_i); // distance between fiber curve and the ply center;
-		float fiber_theta = 2 * pi * rand(vec2(v * 2.f, v * 3.f), u_time * 10.f);  // theta_i
-		float en = u_ellipse_long;
-		float eb = u_ellipse_short;
+		fiber_radius = sqrt(z_i * z_i + y_i * y_i); // distance between fiber curve and the ply center;
 
-		theta = (2 * pi * position / u_alpha); // update theta with ply pitch
 
 		if (u_use_migration == 1)
 		{
@@ -184,25 +217,82 @@ void main()
 			fiber_radius = 0;
 		isCore = v < u_ply_num ? 1.f : 0.f;
 
+		if (isHair)
+		{
+			float prevPos = lerp(tcs_dist[1], tcs_dist[2], prev);
+			float currPos = position;
+			float nextPos = lerp(tcs_dist[1], tcs_dist[2], next);
+
+			if (i == 0 && prevPos >= theta_min && prevPos < (theta_min + theta_span))
+				prevIsHair = true;
+			if (i == 1 && currPos >= theta_min && currPos < (theta_min + theta_span))
+				currIsHair = true;
+			if (i == 2 && nextPos >= theta_min && nextPos < (theta_min + theta_span))
+				nextIsHair = true;
+		}
+
+		// TODO: implement 
+		if (isHair && currIsHair)
+		{
+			float fiber_r_min = minRadius;
+			float fiber_r_max = spanRadius + minRadius;
+			float t = (position - theta_min) / theta_span;
+
+			fiber_radius = lerp(fiber_r_min, fiber_r_max, t) * 2.f; // modified
+			theta = 2 * pi * position / hairAlpha;
+		} 
+
+		// fiber displacement
+		float en = u_ellipse_long;
+		float eb = u_ellipse_short;
 		vec4 fiber_displacement = fiber_radius * (cos(fiber_theta + theta) * ply_normal * en + 
 												  sin(fiber_theta + theta) * ply_bitangent * eb);
 
 		// fiber center
 		vec4 fiber_center = yarn_center + ply_displacement + fiber_displacement;
 
-		//fiber_center = yarn_center + ply_displacement; // DEBUG
+		//fiber_center = yarn_center; // DEBUG
 
 		if (i == 0) 
 			prevPosition = fiber_center.xyz;
 		if (i == 1)
 		{
 			gl_Position = fiber_center;
+			disable = 0.f;
 			geo_normal = normalize(fiber_center - yarn_center).xyz;
+			//geo_normal = isHair ? position >= theta_min && position < (theta_min + theta_span) ? vec3(1, 1, 0) : vec3(1, 0, 0) : isLoop ? vec3(0, 1, 0) : vec3(0, 0, 1); // DEBUG
 			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha) + acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
 			geo_texCoords[1] = 0; // will be set by geometry shader
 		}
-		if (i == 2) 
+		if (i == 2)
+		{
 			nextPosition = fiber_center.xyz;
+			// handle hair cases
+			if (!prevIsHair && !currIsHair && nextIsHair)
+			{
+				// case 1
+				gl_Position = vec4(prevPosition, 1);
+				disable = 1.f;
+			}
+			if (!prevIsHair && currIsHair && nextIsHair)
+			{
+				// case 2 
+				gl_Position = vec4(nextPosition, 1);
+				disable = 1.f;
+			}
+			if (prevIsHair && currIsHair && !nextIsHair)
+			{
+				// case 3
+				gl_Position = vec4(prevPosition, 1);
+				disable = 1.f;
+			}
+			if (prevIsHair && !currIsHair && !nextIsHair)
+			{
+				// case 4
+				gl_Position = vec4(prevPosition, 1);
+				disable = 1.f;
+			}
+		}
 		_pos = fiber_center; // TODO: is this being used anywhere?
 	}
 }

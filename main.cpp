@@ -25,7 +25,7 @@ void addControlPoints();
 FIBER_TYPE fiberType = COTTON1;
 RENDER_TYPE renderType = COMPLETE; // DEBUG
 Fiber fiber = Fiber(fiberType, renderType);
-Camera camera(glm::vec3(0.0f, 0.0f, 0.5f));
+Camera camera(glm::vec3(0.0f, 0.f, 2.f));
 float lastX = fiber.SCR_WIDTH / 2.0f;
 float lastY = fiber.SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -331,9 +331,10 @@ void addControlPoints()
             // STATUS: passed
             pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0 });
             pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1, 0.01f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 0.99f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4, 1.f });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2, 0.99f });
+            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 1.f });
             strands.push_back(Strand{ pointsToAdd });
+
             fiber.addStrands(strands);
             fiber.loadPoints(false);
             break;

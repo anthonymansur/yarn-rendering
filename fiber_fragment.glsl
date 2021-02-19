@@ -14,6 +14,7 @@ in float fs_height;
 in vec3 fs_normal; 
 in float fs_alpha;
 in vec2 fs_texCoords;
+in float fs_disable;
 
 out vec4 out_color;
 
@@ -58,7 +59,9 @@ void main()
     vec3 diffuse = diff * vec3(1.f);
 
     vec3 color = (ambient + diffuse) * objectColor.rgb;
-    out_color = vec4(color, length(color) < .1 ? 0 : alpha);  
+    out_color = vec4(color, length(color) < .1 ? 0 : fs_disable > 0.5 ? 0 : alpha);  
+
+
     //out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
 
     //out_color = vec4(fs_normal, 1);  // debug

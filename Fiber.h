@@ -72,6 +72,7 @@ public:
 
     unsigned int SCR_WIDTH;
     unsigned int SCR_HEIGHT;
+    unsigned int CORE_HEIGHT;
 
 private:
 

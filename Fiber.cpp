@@ -10,6 +10,13 @@ using namespace std;
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+/*
+	Things that can be improved
+	1. The core fiber textures might be slightly hardcoded and thus may not be as accurate as it can be. Go through the implementation and see if 
+	   anything can be refactored.
+
+*/
+
 namespace
 {
 	const GLuint POS_VAO_ID = 0;
@@ -151,13 +158,14 @@ void Fiber::readFiberParameters(FIBER_TYPE type)
 	float fiberHeight = ellipse_short * (2 / 3.f);
 
 	SCR_WIDTH = 2400;
-	SCR_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
+	SCR_HEIGHT = 2400;// SCR_WIDTH* (fiberHeight / fiberWidth) * 4.f;
+	CORE_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
 }
 
 void Fiber::setWindow(GLFWwindow* window)
 {
 	this->window = window;
-	glfwSetWindowSize(window, SCR_WIDTH, SCR_HEIGHT);
+	glfwSetWindowSize(window, SCR_WIDTH, CORE_HEIGHT);
 }
 
 void Fiber::initShaders()
@@ -194,13 +202,13 @@ void Fiber::initFrameBuffer()
 	glGenTextures(1, &textureColorBufferMultiSampled2);
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled0);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, CORE_HEIGHT, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled1);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, CORE_HEIGHT, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled2);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, SCR_WIDTH, CORE_HEIGHT, GL_TRUE);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled0, 0);
@@ -209,7 +217,7 @@ void Fiber::initFrameBuffer()
 
 	// create a (also multisampled) renderbuffer object for depth and stencil attachments
 	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_DEPTH_COMPONENT, SCR_WIDTH, CORE_HEIGHT);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -221,21 +229,21 @@ void Fiber::initFrameBuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, heightTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, CORE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, CORE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, alphaTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, CORE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -335,7 +343,7 @@ void Fiber::render()
 		glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
-		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		glViewport(0, 0, SCR_WIDTH, CORE_HEIGHT);
 		GLenum buffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 		glDrawBuffers(3, buffers);
 
@@ -349,7 +357,7 @@ void Fiber::render()
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, _frameBuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
 
-		glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+		glBlitFramebuffer(0, 0, SCR_WIDTH, CORE_HEIGHT, 0, 0, SCR_WIDTH, CORE_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
 
 		for (int i = 0; i < 3; i++) {
 			glReadBuffer(buffers[i]);
@@ -357,10 +365,10 @@ void Fiber::render()
 
 			glBlitFramebuffer(0, 0,
 				SCR_WIDTH,
-				SCR_HEIGHT,
+				CORE_HEIGHT,
 				0, 0,
 				SCR_WIDTH,
-				SCR_HEIGHT,
+				CORE_HEIGHT,
 				GL_COLOR_BUFFER_BIT, GL_LINEAR);
 		}
 
@@ -369,8 +377,10 @@ void Fiber::render()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glfwSetWindowSize(window, 3000, 1200);
-		glViewport(0, 0, 3000, 1200);
+		glfwSetWindowSize(window, 3000, 3000);
+		glViewport(0, 0, 3000, 3000);
+		//glfwSetWindowSize(window, 3000, 1200);
+		//glViewport(0, 0, 3000, 1200);
 
 
 		// draw yarn
@@ -408,7 +418,7 @@ void Fiber::render()
 		setFiberParameters(CORE);
 		glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+		glViewport(0, 0, SCR_WIDTH, CORE_HEIGHT);
 		glPatchParameteri(GL_PATCH_VERTICES, 4);
 		glDrawElements(GL_PATCHES, coreebo_.size(), GL_UNSIGNED_INT, 0);
 	}

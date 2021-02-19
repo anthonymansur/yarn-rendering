@@ -15,6 +15,7 @@ uniform mat4 view;
 uniform mat4 projection;
 
 in float[] isCore;
+in float[] disable;
 in vec3[] prevPosition;
 in vec3[] nextPosition;
 in vec3[] geo_normal;
@@ -24,6 +25,7 @@ out float fs_height; // height map
 out vec3 fs_normal; // 2D surface normal
 out float fs_alpha; // alpha channel 
 out vec2 fs_texCoords;
+out float fs_disable;
 
 #define EPSILON 0.0001f
 
@@ -52,7 +54,9 @@ void main()
     mat4 MVP = projection * view * model;
     float zoomFactor = .125f;
     float yarn_radius = u_yarn_radius / 2.f;
-    float lineHeight = isCore[0] > 0.5f ? 0.03 : 0.001;
+    float lineHeight = isCore[0] > 0.5f ? (u_yarn_radius / 2.f) : 0.001;
+
+    //lineHeight = 0.001; // debug
 
     // four control points
     vec3 prev = prevPosition[0];
@@ -94,6 +98,7 @@ void main()
     gl_Position = MVP * vec4(start+startHeightDir, 1);
     fs_height = start.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[0] / 2.f + 0.5f;
+    fs_disable = disable[0];
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[0][0] : -1;
     fs_texCoords[1] = isCore[0] > 0.5f ? 0 : -1;
@@ -102,6 +107,7 @@ void main()
     gl_Position = MVP *  vec4(start-startHeightDir, 1);
     fs_height = start.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[0] / 2.f + 0.5f;
+    fs_disable = disable[0];
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[0][0] : -1;
     fs_texCoords[1] = isCore[0] > 0.5f ? 1 : -1;
@@ -110,6 +116,7 @@ void main()
     gl_Position = MVP * vec4(end+endHeightDir, 1);
     fs_height = end.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[1] / 2.f + 0.5f;
+    fs_disable = disable[1];
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[1][0] : -1;
     fs_texCoords[1] = isCore[1] > 0.5f ? 0 : -1;
@@ -118,6 +125,7 @@ void main()
     gl_Position = MVP * vec4(end-endHeightDir, 1);
     fs_height = end.z / (2 * maxDistance) + 0.5;
     fs_normal = geo_normal[1] / 2.f + 0.5f;
+    fs_disable = disable[1];
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[1][0] : -1;
     fs_texCoords[1] = isCore[1] > 0.5f ? 1 : -1;
