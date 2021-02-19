@@ -318,7 +318,7 @@ void addControlPoints()
         LIVE
     };
 
-    RENDER render = TEST6;
+    RENDER render = TEST0;
     std::vector<Strand> strands;
 
     //TODO: Fix height problem between horizontal and vertical yarns

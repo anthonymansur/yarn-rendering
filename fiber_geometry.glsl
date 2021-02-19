@@ -54,7 +54,7 @@ void main()
     mat4 MVP = projection * view * model;
     float zoomFactor = .125f;
     float yarn_radius = u_yarn_radius / 2.f;
-    float lineHeight = isCore[0] > 0.5f ? (u_yarn_radius / 2.f) : 0.001;
+    float lineHeight = isCore[0] > 0.5f ? u_yarn_radius * (2/3.f) : 0.001;
 
     //lineHeight = 0.001; // debug
 
