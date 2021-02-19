@@ -424,7 +424,7 @@ void addControlPoints()
         case TEST7:
         {
             Pattern pattern = Pattern(&fiber);
-            strands = pattern.getBasicWeave(30);
+            strands = pattern.getBasicWeave(50);
             fiber.addStrands(strands);
             fiber.loadPoints(false);
         }

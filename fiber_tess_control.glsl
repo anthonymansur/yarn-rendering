@@ -73,6 +73,9 @@ void main()
 			subdivision = int(lerp(2, 64, sqrt(lambda))); // TODO: make less constant?
 		}
 
+		//num_of_isolines = 64; // debug
+		//subdivision = 64; // debug
+
 		gl_TessLevelOuter[0] = float(num_of_isolines); // number of isolines
 		gl_TessLevelOuter[1] = float(subdivision); // curve subdivision
 	}
