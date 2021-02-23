@@ -39,6 +39,7 @@ std::vector<ControlPoint> pointsToAdd;
 
 float timeValue;
 
+// NOTE: need to converge on these global OpenGL settings
 int main()
 {
     // glfw: initialize and configure
@@ -114,6 +115,7 @@ int main()
     {
         // ImGUI
         // -----
+        // NOTE: change UI contents depending if simulation or rendering is running
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -126,13 +128,14 @@ int main()
         lastFrame = currentFrame;
 
         // input
-        // -----
+        // ----- 
         processInput(window);
 
         // render
         // ------
 
         // update the mvp matrices
+        // TODO: change model so that world coordinate system is standardized.
         glm::mat4 model;
         if (fiber.getRenderType() == CORE)
         {
@@ -318,7 +321,7 @@ void addControlPoints()
         LIVE
     };
 
-    RENDER render = TEST0;
+    RENDER render = TEST6;
     std::vector<Strand> strands;
 
     //TODO: Fix height problem between horizontal and vertical yarns

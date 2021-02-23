@@ -9,6 +9,8 @@
 #include <sstream>
 #include <iostream>
 
+// NOTE: need to merge Alex's shader with this shader. Perhaps use some inheritance
+
 class Shader
 {
 public:

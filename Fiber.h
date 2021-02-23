@@ -6,6 +6,8 @@
 
 #include "Shader.h"
 
+// TODO: separate rendering from this class
+
 enum RENDER_TYPE {
     CORE,
     FIBER,
