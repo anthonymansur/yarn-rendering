@@ -1,21 +1,15 @@
 #pragma once
-
 #include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
-#include "Shader.h"
+#include "mygl.h"
 
-// TODO: separate rendering from this class
-
-enum RENDER_TYPE {
-    CORE,
-    FIBER,
-    COMPLETE
-};
+typedef glm::vec3 Point3f, Normal3f;
 
 enum FIBER_TYPE {
-    COTTON1, 
+    COTTON1,
     COTTON2,
     POLYESTER1,
     RAYON1,
@@ -25,9 +19,6 @@ enum FIBER_TYPE {
     SILK1,
     SILK2
 };
-
-using Point3f = glm::vec3;
-using Normal3f = glm::vec3;
 
 struct ControlPoint
 {
@@ -42,76 +33,55 @@ struct Strand
     std::vector<ControlPoint> points;
 };
 
-class Fiber {
+class Fiber
+{
 public:
-    Fiber(FIBER_TYPE type, RENDER_TYPE rType);
-    ~Fiber();
-    void initShaders();
-    void initFrameBuffer();
-    void initializeGL();
+    Fiber(MyGL *mygl, FIBER_TYPE type);
+    virtual ~Fiber();
+    
+    virtual void initShaders() = 0;
+    virtual void initializeGL();
 
-    void setWindow(GLFWwindow* window);
-    void setFiberParameters(RENDER_TYPE);
-    void setRenderType(RENDER_TYPE);
+    void setFiberParameters();
 
     void readFiberParameters(FIBER_TYPE);
 
     void addPoint(ControlPoint, bool);
-    void loadPoints(bool);
-
+    void loadPoints();
     void addStrands(const std::vector<Strand>& strands);
 
-    void render();
+    virtual void render() = 0;
 
-    const Shader& getActiveShader() const;
-    const std::vector<Shader*> getActiveShaders();
-    RENDER_TYPE getRenderType() const;
     FIBER_TYPE getFiberType() const;
     float getFiberAlpha() const;
     float getYarnRadius() const;
 
     void createGUIWindow();
 
-    unsigned int SCR_WIDTH;
-    unsigned int SCR_HEIGHT;
-    unsigned int CORE_HEIGHT;
+protected:
+    MyGL* mygl;
 
-private:
-
-    GLFWwindow* window;
-
-    std::vector<float> corepoints_;
-    std::vector<float> fiberpoints_;
-    std::vector<GLuint> coreebo_;
-    std::vector<GLuint> fiberebo_;
-    GLuint corevao_id_;
-    GLuint fibervao_id_;
-    GLuint corevbo_id_;
-    GLuint fibervbo_id_;
-    GLuint coreebo_id_;
-    GLuint fiberebo_id_;
-
-    GLuint normalMap;
-    GLuint heightMap;
-    GLuint alphaChannel;
-
-    GLuint _frameBuffer;
-    GLuint frameBuffer;
+    // OpenGL variables
+    std::vector<float> m_points;
+    std::vector<GLuint> m_indices;
+    GLuint m_vao;
+    GLuint m_vbo;
+    GLuint m_ebo;
     GLuint depthrenderbuffer;
     GLuint heightTexture;
     GLuint normalTexture;
     GLuint alphaTexture;
 
-    Shader coreShader_;
-    Shader fiberShader_;
-    Shader pointsShader_;
+    Shader* shader;
 
-    RENDER_TYPE renderType;
+    unsigned int SCR_WIDTH;
+    unsigned int SCR_HEIGHT;
+    unsigned int CORE_HEIGHT;
+
+
+    // Fiber-specific parameters
     FIBER_TYPE fiberType;
 
-    bool renderCore = false;
-
-    // Fiber parameters
     int ply_num;
     int fiber_num;
 
