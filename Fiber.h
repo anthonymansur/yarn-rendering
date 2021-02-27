@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include "mygl.h"
+#include "Shader.h"
 
 typedef glm::vec3 Point3f, Normal3f;
 
@@ -36,7 +36,7 @@ struct Strand
 class Fiber
 {
 public:
-    Fiber(MyGL *mygl, FIBER_TYPE type);
+    Fiber(FIBER_TYPE type);
     virtual ~Fiber();
     
     virtual void initializeGL();
@@ -58,8 +58,6 @@ public:
     void createGUIWindow();
 
 protected:
-    MyGL* mygl;
-
     // OpenGL variables
     std::vector<float> m_points;
     std::vector<GLuint> m_indices;
@@ -71,7 +69,7 @@ protected:
     GLuint normalTexture;
     GLuint alphaTexture;
 
-    Shader* shader;
+    Shader* m_shader;
 
     unsigned int SCR_WIDTH;
     unsigned int SCR_HEIGHT;

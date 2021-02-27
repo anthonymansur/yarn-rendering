@@ -18,7 +18,16 @@
 #include "OrdinaryFiber.h"
 #include "Pattern.h"
 
-#include "mygl.h"
+// global variables
+// ----------------
+float deltaTime = 0.f; // Time between current frame and last frame
+float lastFrame; // Time of last frame
+float lastX;
+float lastY;
+bool firstMouse;
+bool moveCamera;
+GLFWwindow* window;
+Camera camera;
 
 // glfw callbacks
 // --------------
@@ -27,54 +36,105 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-MyGL mygl;
+void processInput();
 
-FIBER_TYPE fiberType = COTTON1;
-void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber);
-std::vector<ControlPoint> pointsToAdd;
-float timeValue;
+void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber, std::vector<ControlPoint> &pointsToAdd);
 
-// NOTE: need to converge on these global OpenGL settings
 int main()
 {
     // Initialize OpenGL global settings
     // ---------------------------------
-    mygl.initializeGL();
-    GLFWwindow* m_window = mygl.getWindow();
-    glfwMakeContextCurrent(m_window);
-    glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(m_window, mouse_callback);
-    glfwSetScrollCallback(m_window, scroll_callback);
-    glfwSetKeyCallback(m_window, key_callback);
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4); // for antialiasing
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    // glfw window creation
+    // --------------------
+    window = glfwCreateWindow(2400, 2400, "Fiber-Level Cloth Rendering", NULL, NULL);
+    if (!window || window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
+
+    // glad: load all OpenGL function pointers
+    // ---------------------------------------
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    // Initialize Shaders
+    // ------------------
+    Shader coreShader = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
+    Shader fiberShader = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_MULTISAMPLE); // for antialiasing
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
+
+    glfwMakeContextCurrent(window);
 
     // Setup Dear ImGui context
     // ------------------------
-    mygl.initializeImGuiContext();
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+    // Setup Platform/Renderer bindings
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 410");
+    io.Fonts->AddFontDefault();
+    io.FontGlobalScale = 1.25f;
 
     // Fiber
     // -----
-    timeValue = glfwGetTime();
+    FIBER_TYPE fiberType = COTTON1;
+    std::vector<ControlPoint> pointsToAdd;
+    float timeValue = glfwGetTime();
 
-    CoreFiber coreFiber = CoreFiber(&mygl, fiberType);
+    CoreFiber coreFiber = CoreFiber(&coreShader, fiberType);
     coreFiber.initializeGL();
     coreFiber.initFrameBuffer();
 
+    // TODO: resize GL
     coreFiber.render(); // render off-screen
 
-    OrdinaryFiber fiber = OrdinaryFiber(&mygl, fiberType);
+    OrdinaryFiber fiber = OrdinaryFiber(&fiberShader, fiberType);
     fiber.initializeGL();
     fiber.setHeightTexture(coreFiber.getHeightTexture());
     fiber.setNormalTexture(coreFiber.getNormalTexture());
     fiber.setAlphaTexture(coreFiber.getAlphaTexture());
+    // TODO: resize GL
 
-    addControlPoints(coreFiber, fiber);
+    addControlPoints(coreFiber, fiber, pointsToAdd);
 
-    Camera& camera = mygl.getCamera();
+    camera = Camera(glm::vec3(0.0f, 0.f, 2.f));
 
     // render loop
     // -----------
-    while (!glfwWindowShouldClose(mygl.getWindow()))
+    while (!glfwWindowShouldClose(window))
     {
         // ImGUI
         // -----
@@ -84,11 +144,15 @@ int main()
         ImGui::NewFrame();
         fiber.createGUIWindow();
 
-        mygl.updateTime();
+        // per-frame time logic
+        // --------------------
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
         // input
         // ----- 
-        mygl.processInput();
+        processInput();
 
         // render
         // ------
@@ -100,14 +164,12 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
             (float)2400 / (float)2400, 0.01f, 10.0f);
 
-        Shader* fiberShader = mygl.getFiberShader();
-
-        fiberShader->use();
-        fiberShader->setMat4("model", model);
-        fiberShader->setMat4("view", view);
-        fiberShader->setMat4("projection", projection);
-        fiberShader->setVec3("camera_pos", camera.Position);
-        fiberShader->setVec3("view_dir", camera.Front);
+        fiberShader.use();
+        fiberShader.setMat4("model", model);
+        fiberShader.setMat4("view", view);
+        fiberShader.setMat4("projection", projection);
+        fiberShader.setVec3("camera_pos", camera.Position);
+        fiberShader.setVec3("view_dir", camera.Front);
 
         fiber.render();
         ImGui::Render();
@@ -120,7 +182,8 @@ int main()
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
-        mygl.swapAndPoll();
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -131,7 +194,7 @@ int main()
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber)
+void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber, std::vector<ControlPoint> &pointsToAdd)
 {
     // NOTE: control points must be added in the following order: [a b c d] [b c d e] [c d e f] 
     // to draw the curves from b-c-d-e, where a and f are the end points.
@@ -276,20 +339,67 @@ void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber)
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    mygl.framebuffer_size_callback(width, height);
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
 }
+
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    mygl.mouse_callback(xpos, ypos);
+    if (!moveCamera)
+        return;
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
 }
+
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    mygl.scroll_callback(xoffset, yoffset);
+    camera.ProcessMouseScroll(yoffset);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    mygl.key_callback(key, scancode, action, mods);
+    if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
+    {
+        moveCamera = !moveCamera;
+        if (!moveCamera)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        else
+        {
+            glfwSetCursorPos(window, lastX, lastY);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+    }
+}
+
+void processInput()
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, 1);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        camera.ProcessKeyboard(DOWN, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        camera.ProcessKeyboard(UP, deltaTime);
 }

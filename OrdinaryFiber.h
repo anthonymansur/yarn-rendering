@@ -4,7 +4,7 @@
 class OrdinaryFiber : public Fiber
 {
 public:
-	OrdinaryFiber(MyGL* mygl, FIBER_TYPE type);
+	OrdinaryFiber(Shader* shader, FIBER_TYPE type);
 	~OrdinaryFiber();
 
 	void initializeGL();

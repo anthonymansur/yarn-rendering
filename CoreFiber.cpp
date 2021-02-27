@@ -1,7 +1,9 @@
 #include "CoreFiber.h"
 
-CoreFiber::CoreFiber(MyGL* mygl, FIBER_TYPE type) : Fiber::Fiber(mygl, type)
-{}
+CoreFiber::CoreFiber(Shader *shader, FIBER_TYPE type) : Fiber::Fiber(type)
+{
+	m_shader = shader;
+}
 
 CoreFiber::~CoreFiber()
 {
@@ -17,7 +19,6 @@ CoreFiber::~CoreFiber()
 void CoreFiber::initializeGL()
 {
 	Fiber::initializeGL();
-	shader = mygl->getCoreShader();
 	glGenFramebuffers(1, &m_interFramebuffer);
 	glGenFramebuffers(1, &m_frameBuffer);
 	glGenRenderbuffers(1, &depthrenderbuffer);
@@ -123,8 +124,6 @@ void CoreFiber::initFrameBuffer()
 
 void CoreFiber::render()
 {
-	mygl->resizeGl(SCR_WIDTH, CORE_HEIGHT);
-
 	glBindVertexArray(m_vao);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_interFramebuffer);
 	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
@@ -135,7 +134,7 @@ void CoreFiber::render()
 	glDrawBuffers(3, buffers);
 
 	// draw core fiber
-	shader->use();
+	m_shader->use();
 	setFiberParameters();
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_INT, 0);
@@ -163,7 +162,7 @@ void CoreFiber::render()
 void CoreFiber::draw()
 {
 	glBindVertexArray(m_vao);
-	shader->use();
+	m_shader->use();
 	setFiberParameters();
 	glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

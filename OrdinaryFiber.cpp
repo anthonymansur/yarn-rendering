@@ -1,7 +1,9 @@
 #include "OrdinaryFiber.h"
 
-OrdinaryFiber::OrdinaryFiber(MyGL* mygl, FIBER_TYPE type) : Fiber::Fiber(mygl, type)
-{}
+OrdinaryFiber::OrdinaryFiber(Shader* shader, FIBER_TYPE type) : Fiber::Fiber(type)
+{
+	m_shader = shader;
+}
 
 OrdinaryFiber::~OrdinaryFiber()
 {
@@ -11,7 +13,6 @@ OrdinaryFiber::~OrdinaryFiber()
 void OrdinaryFiber::initializeGL()
 {
 	Fiber::initializeGL();
-	shader = mygl->getFiberShader();
 }
 
 void OrdinaryFiber::render()
@@ -21,10 +22,9 @@ void OrdinaryFiber::render()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	mygl->resizeGl(SCR_WIDTH, SCR_HEIGHT);
 
 	// draw yarn
-	shader->use();
+	m_shader->use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, heightTexture);
 	glGenerateMipmap(GL_TEXTURE_2D);

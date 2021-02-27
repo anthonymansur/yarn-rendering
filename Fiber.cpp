@@ -23,7 +23,7 @@ unsigned int loadTexture(const char* path);
 static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
 static std::vector<std::string> split(const std::string& s, char delim);
 
-Fiber::Fiber(MyGL *mygl, FIBER_TYPE type) : mygl(mygl), fiberType(type), shader(nullptr) // TODO: change
+Fiber::Fiber(FIBER_TYPE type) : fiberType(type), m_shader(nullptr) // TODO: change
 {
 	readFiberParameters(type);
 }
@@ -250,64 +250,64 @@ void Fiber::addStrands(const std::vector<Strand>& strands)
 
 void Fiber::setFiberParameters()
 {
-	shader->setInt("u_heightTexture", 0);
-	shader->setInt("u_normalTexture", 1);
-	shader->setInt("u_alphaTexture", 2);
+	m_shader->setInt("u_heightTexture", 0);
+	m_shader->setInt("u_normalTexture", 1);
+	m_shader->setInt("u_alphaTexture", 2);
 
 	if (fiberType == COTTON1 || fiberType == COTTON2)
 	{
-		shader->setVec3("objectColor", 217 / 255.f, 109 / 255.f, 2 / 255.f);
+		m_shader->setVec3("objectColor", 217 / 255.f, 109 / 255.f, 2 / 255.f);
 	}
 	else if (fiberType == SILK1 || fiberType == SILK2)
 	{
-		shader->setVec3("objectColor", 178 / 255.f, 168 / 255.f, 200 / 255.f);
+		m_shader->setVec3("objectColor", 178 / 255.f, 168 / 255.f, 200 / 255.f);
 	}
 	else if (fiberType == POLYESTER1)
 	{
-		shader->setVec3("objectColor", 171 / 255.f, 201 / 255.f, 228 / 255.f);
+		m_shader->setVec3("objectColor", 171 / 255.f, 201 / 255.f, 228 / 255.f);
 	}
 	else if (fiberType == RAYON1 || fiberType == RAYON2 || fiberType == RAYON3 || fiberType == RAYON4)
 	{
-		shader->setVec3("objectColor", 98 / 255.f, 142 / 255.f, 56 / 255.f);
+		m_shader->setVec3("objectColor", 98 / 255.f, 142 / 255.f, 56 / 255.f);
 	}
 
 	// TODO: replace w/ file implementation
-	shader->setInt("u_ply_num", ply_num);
-	shader->setInt("u_fiber_num", fiber_num);
+	m_shader->setInt("u_ply_num", ply_num);
+	m_shader->setInt("u_fiber_num", fiber_num);
 
-	shader->setVec3("u_bounding_min", bounding_min[0], bounding_min[1], bounding_min[2]);
-	shader->setVec3("u_bounding_max", bounding_max[0], bounding_max[1], bounding_max[2]);
+	m_shader->setVec3("u_bounding_min", bounding_min[0], bounding_min[1], bounding_min[2]);
+	m_shader->setVec3("u_bounding_max", bounding_max[0], bounding_max[1], bounding_max[2]);
 
-	shader->setFloat("u_z_step_size", z_step_size);
-	shader->setInt("u_z_step_num", z_step_num);
-	shader->setInt("u_fly_step_size", fly_step_size);
+	m_shader->setFloat("u_z_step_size", z_step_size);
+	m_shader->setInt("u_z_step_num", z_step_num);
+	m_shader->setInt("u_fly_step_size", fly_step_size);
 
-	shader->setInt("u_yarn_clock_wise", yarn_clock_wise);
-	shader->setInt("u_fiber_clock_wise", fiber_clock_wise);
-	shader->setFloat("u_yarn_alpha", yarn_alpha);
-	shader->setFloat("u_alpha", alpha);
+	m_shader->setInt("u_yarn_clock_wise", yarn_clock_wise);
+	m_shader->setInt("u_fiber_clock_wise", fiber_clock_wise);
+	m_shader->setFloat("u_yarn_alpha", yarn_alpha);
+	m_shader->setFloat("u_alpha", alpha);
 	
-	shader->setFloat("u_yarn_radius", yarn_radius);
-	shader->setFloat("u_ellipse_long", ellipse_long);
-	shader->setFloat("u_ellipse_short", ellipse_short);
+	m_shader->setFloat("u_yarn_radius", yarn_radius);
+	m_shader->setFloat("u_ellipse_long", ellipse_long);
+	m_shader->setFloat("u_ellipse_short", ellipse_short);
 	
-	shader->setInt("u_epsilon", epsilon);
-	shader->setFloat("u_beta", beta);
-	shader->setFloat("u_r_max", r_max);
+	m_shader->setInt("u_epsilon", epsilon);
+	m_shader->setFloat("u_beta", beta);
+	m_shader->setFloat("u_r_max", r_max);
 	
-	shader->setInt("u_use_migration", use_migration);
-	shader->setFloat("u_s_i", s_i);
-	shader->setFloat("u_rho_min", rho_min);
-	shader->setFloat("u_rho_max", rho_max);
+	m_shader->setInt("u_use_migration", use_migration);
+	m_shader->setFloat("u_s_i", s_i);
+	m_shader->setFloat("u_rho_min", rho_min);
+	m_shader->setFloat("u_rho_max", rho_max);
 	
-	shader->setInt("u_use_flyaways", use_flyaways);
-	shader->setFloat("u_flyaway_hair_density", flyaway_hair_density);
-	shader->setVec2("u_flyaway_hair_ze", flyaway_hair_ze[0], flyaway_hair_ze[1]);
-	shader->setVec2("u_flyaway_hair_r0", flyaway_hair_r0[0], flyaway_hair_r0[1]);
-	shader->setVec2("u_flyaway_hair_re", flyaway_hair_re[0], flyaway_hair_re[1]);
-	shader->setVec2("u_flyaway_hair_pe", flyaway_hair_pe[0], flyaway_hair_pe[1]);
-	shader->setFloat("u_flyaway_loop_density", flyaway_loop_density);
-	shader->setVec2("u_flyaway_loop_r1", flyaway_loop_r1[0], flyaway_loop_r1[1]);
+	m_shader->setInt("u_use_flyaways", use_flyaways);
+	m_shader->setFloat("u_flyaway_hair_density", flyaway_hair_density);
+	m_shader->setVec2("u_flyaway_hair_ze", flyaway_hair_ze[0], flyaway_hair_ze[1]);
+	m_shader->setVec2("u_flyaway_hair_r0", flyaway_hair_r0[0], flyaway_hair_r0[1]);
+	m_shader->setVec2("u_flyaway_hair_re", flyaway_hair_re[0], flyaway_hair_re[1]);
+	m_shader->setVec2("u_flyaway_hair_pe", flyaway_hair_pe[0], flyaway_hair_pe[1]);
+	m_shader->setFloat("u_flyaway_loop_density", flyaway_loop_density);
+	m_shader->setVec2("u_flyaway_loop_r1", flyaway_loop_r1[0], flyaway_loop_r1[1]);
 }
 
 void Fiber::createGUIWindow()

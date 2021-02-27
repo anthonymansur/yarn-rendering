@@ -4,7 +4,7 @@
 class CoreFiber : public Fiber
 {
 public:
-	CoreFiber(MyGL *mygl, FIBER_TYPE type);
+	CoreFiber(Shader* shader, FIBER_TYPE type);
 	~CoreFiber();
 
 	void initializeGL();
