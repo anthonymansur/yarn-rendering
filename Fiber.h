@@ -39,7 +39,6 @@ public:
     Fiber(MyGL *mygl, FIBER_TYPE type);
     virtual ~Fiber();
     
-    virtual void initShaders() = 0;
     virtual void initializeGL();
 
     void setFiberParameters();

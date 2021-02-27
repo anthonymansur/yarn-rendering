@@ -5,18 +5,10 @@
 
 // initializing static member variables
 // ------------------------------------
-Camera m_camera(glm::vec3(0.0f, 0.f, 2.f));
 
-float lastX = 800 / 2.0f;
-float lastY = 600 / 2.0f;
-float deltaTime = 0.0f; // Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
-bool firstMouse = true;
-bool moveCamera = true;
 
 MyGL::MyGL() :
-	m_coreShader(Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl")),
-	m_fiberShader(Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl")),
+	m_camera(Camera(glm::vec3(0.0f, 0.f, 2.f))),
 	m_window(nullptr)
 {
 }
@@ -49,13 +41,8 @@ int MyGL::initializeGL()
 		glfwTerminate();
 		return -1;
 	}
-	glfwMakeContextCurrent(m_window);
-	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(m_window, mouse_callback);
-	glfwSetScrollCallback(m_window, scroll_callback);
-	glfwSetKeyCallback(m_window, key_callback);
 
+	/* INSERT CALLBACKS HERE */
 
 	// glad: load all OpenGL function pointers
 	// ---------------------------------------
@@ -64,6 +51,11 @@ int MyGL::initializeGL()
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+
+	// Initialize Shaders
+	// ------------------
+	m_coreShader = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
+	m_fiberShader = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
 
 	// configure global opengl state
 	// -----------------------------
@@ -162,14 +154,16 @@ Camera& MyGL::getCamera()
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void MyGL::framebuffer_size_callback(GLFWwindow* window, int width, int height)
+
+void MyGL::framebuffer_size_callback(int width, int height)
 {
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
 }
 
-void MyGL::mouse_callback(GLFWwindow* window, double xpos, double ypos)
+
+void MyGL::mouse_callback(double xpos, double ypos)
 {
 	if (!moveCamera)
 		return;
@@ -189,22 +183,23 @@ void MyGL::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	m_camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void MyGL::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+
+void MyGL::scroll_callback(double xoffset, double yoffset)
 {
 	m_camera.ProcessMouseScroll(yoffset);
 }
 
-void MyGL::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void MyGL::key_callback(int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
 	{
 		moveCamera = !moveCamera;
 		if (!moveCamera)
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		else
 		{
-			glfwSetCursorPos(window, lastX, lastY);
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetCursorPos(m_window, lastX, lastY);
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 	}
 }

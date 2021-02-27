@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <memory>
 
 #include <iostream>
 #include <glm/glm.hpp>
@@ -19,6 +20,15 @@
 
 #include "mygl.h"
 
+// glfw callbacks
+// --------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+MyGL mygl;
+
 FIBER_TYPE fiberType = COTTON1;
 void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber);
 std::vector<ControlPoint> pointsToAdd;
@@ -27,11 +37,16 @@ float timeValue;
 // NOTE: need to converge on these global OpenGL settings
 int main()
 {
-    MyGL mygl = MyGL();
-
     // Initialize OpenGL global settings
     // ---------------------------------
     mygl.initializeGL();
+    GLFWwindow* m_window = mygl.getWindow();
+    glfwMakeContextCurrent(m_window);
+    glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(m_window, mouse_callback);
+    glfwSetScrollCallback(m_window, scroll_callback);
+    glfwSetKeyCallback(m_window, key_callback);
 
     // Setup Dear ImGui context
     // ------------------------
@@ -44,13 +59,11 @@ int main()
     CoreFiber coreFiber = CoreFiber(&mygl, fiberType);
     coreFiber.initializeGL();
     coreFiber.initFrameBuffer();
-    coreFiber.initShaders();
 
     coreFiber.render(); // render off-screen
 
     OrdinaryFiber fiber = OrdinaryFiber(&mygl, fiberType);
     fiber.initializeGL();
-    fiber.initShaders();
     fiber.setHeightTexture(coreFiber.getHeightTexture());
     fiber.setNormalTexture(coreFiber.getNormalTexture());
     fiber.setAlphaTexture(coreFiber.getAlphaTexture());
@@ -71,7 +84,7 @@ int main()
         ImGui::NewFrame();
         fiber.createGUIWindow();
 
-        MyGL::updateTime();
+        mygl.updateTime();
 
         // input
         // ----- 
@@ -257,4 +270,26 @@ void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber)
         }
         break;
     }
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    mygl.framebuffer_size_callback(width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    mygl.mouse_callback(xpos, ypos);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    mygl.scroll_callback(xoffset, yoffset);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    mygl.key_callback(key, scancode, action, mods);
 }

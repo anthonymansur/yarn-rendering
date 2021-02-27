@@ -17,17 +17,13 @@ CoreFiber::~CoreFiber()
 void CoreFiber::initializeGL()
 {
 	Fiber::initializeGL();
+	shader = mygl->getCoreShader();
 	glGenFramebuffers(1, &m_interFramebuffer);
 	glGenFramebuffers(1, &m_frameBuffer);
 	glGenRenderbuffers(1, &depthrenderbuffer);
 	glGenTextures(1, &heightTexture);
 	glGenTextures(1, &normalTexture);
 	glGenTextures(1, &alphaTexture);
-}
-
-void CoreFiber::initShaders()
-{
-	shader = mygl->getCoreShader();
 }
 
 void CoreFiber::initFrameBuffer()

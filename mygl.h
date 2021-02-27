@@ -21,32 +21,32 @@ public:
 	void paintRender();
 
 	void processInput();
-	static void updateTime();
+	void updateTime();
 	void swapAndPoll();
 
 	GLFWwindow* getWindow() const;
+
 	Shader* getCoreShader();
 	Shader* getFiberShader();
 
-	static Camera& getCamera();
+	Camera& getCamera();
+
+	void framebuffer_size_callback(int width, int height);
+	void mouse_callback(double xpos, double ypos);
+	void scroll_callback(double xoffset, double yoffset);
+	void key_callback(int key, int scancode, int action, int mods);
 	 
 private:
-	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	Camera m_camera;
 
-	static Camera m_camera;
 	Shader m_coreShader;
 	Shader m_fiberShader;
 
 	GLFWwindow* m_window;
-
-	static float lastX;
-	static float lastY;
-
-	static float deltaTime; // Time between current frame and last frame
-	static float lastFrame; // Time of last frame
-	static bool firstMouse; 
-	static bool moveCamera; 
+	float deltaTime = 0.f; // Time between current frame and last frame
+	float lastFrame; // Time of last frame
+	float lastX;
+	float lastY;
+	bool firstMouse;
+	bool moveCamera;
 };

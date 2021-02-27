@@ -11,10 +11,6 @@ OrdinaryFiber::~OrdinaryFiber()
 void OrdinaryFiber::initializeGL()
 {
 	Fiber::initializeGL();
-}
-
-void OrdinaryFiber::initShaders()
-{
 	shader = mygl->getFiberShader();
 }
 
