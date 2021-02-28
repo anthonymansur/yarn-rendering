@@ -57,6 +57,10 @@ public:
 
     void createGUIWindow();
 
+    unsigned int SCR_WIDTH;
+    unsigned int SCR_HEIGHT;
+    unsigned int CORE_HEIGHT;
+
 protected:
     // OpenGL variables
     std::vector<float> m_points;
@@ -70,11 +74,6 @@ protected:
     GLuint alphaTexture;
 
     Shader* m_shader;
-
-    unsigned int SCR_WIDTH;
-    unsigned int SCR_HEIGHT;
-    unsigned int CORE_HEIGHT;
-
 
     // Fiber-specific parameters
     FIBER_TYPE fiberType;

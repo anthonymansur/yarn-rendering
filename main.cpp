@@ -125,7 +125,8 @@ int main()
 
     addCoreControlPoints(coreFiber);
 
-    // TODO: resize GL
+    glfwSetWindowSize(window, coreFiber.SCR_WIDTH, coreFiber.CORE_HEIGHT);
+    glViewport(0, 0, coreFiber.SCR_WIDTH, coreFiber.CORE_HEIGHT);
     coreFiber.render(); // render off-screen
 
     OrdinaryFiber fiber = OrdinaryFiber(&fiberShader, fiberType);
@@ -135,7 +136,6 @@ int main()
     fiber.setAlphaTexture(coreFiber.getAlphaTexture());
     
     addFiberControlPoints(fiber);
-    // TODO: resize GL
 
     // render loop
     // -----------
@@ -169,6 +169,8 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
             (float)2400 / (float)2400, 0.01f, 10.0f);
 
+        // Update uniform variables defining the camera properties
+        // -------------------------------------------------------
         fiberShader.use();
         fiberShader.setMat4("model", model);
         fiberShader.setMat4("view", view);
@@ -176,6 +178,13 @@ int main()
         fiberShader.setVec3("camera_pos", camera.Position);
         fiberShader.setVec3("view_dir", camera.Front);
 
+        // resize GL
+        // ---------
+        glfwSetWindowSize(window, 3000, 3000);
+        glViewport(0, 0, 3000, 3000);
+
+        // render Fiber
+        // ------------
         fiber.render();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -203,8 +212,8 @@ void addCoreControlPoints(CoreFiber &coreFiber)
     std::vector<ControlPoint> points;
     points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
     points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-    points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-    points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+    points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+    points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
     //points.push_back(ControlPoint{ glm::vec3((coreFiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
     //points.push_back(ControlPoint{ glm::vec3(coreFiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
     for (const ControlPoint& point : points) {
