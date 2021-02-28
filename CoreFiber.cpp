@@ -19,6 +19,7 @@ CoreFiber::~CoreFiber()
 void CoreFiber::initializeGL()
 {
 	Fiber::initializeGL();
+	/* Main impl. does not gen inter frame buf here */
 	glGenFramebuffers(1, &m_interFramebuffer);
 	glGenFramebuffers(1, &m_frameBuffer);
 	glGenRenderbuffers(1, &depthrenderbuffer);

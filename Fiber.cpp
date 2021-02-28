@@ -159,6 +159,9 @@ void Fiber::initializeGL()
 	glGenVertexArrays(1, &m_vao);
 	glGenBuffers(1, &m_vbo);
 	glGenBuffers(1, &m_ebo);
+
+	/* Missing load points from main impl. */
+	// TODO: check if necessary
  
 	glVertexAttribPointer(POS_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(POS_VAO_ID);
@@ -169,7 +172,6 @@ void Fiber::initializeGL()
 	glBindVertexArray(0);
 
 	glBindVertexArray(m_vao);
-	loadPoints();
 
 	// Determine max vertices in a patch
 	GLint maxPatchVertices = 0;

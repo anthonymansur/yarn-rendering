@@ -38,7 +38,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void processInput();
 
-void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber, std::vector<ControlPoint> &pointsToAdd);
+void addCoreControlPoints(CoreFiber &coreFiber);
+void addFiberControlPoints(OrdinaryFiber &fiber);
 
 int main()
 {
@@ -79,11 +80,6 @@ int main()
         return -1;
     }
 
-    // Initialize Shaders
-    // ------------------
-    Shader coreShader = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
-    Shader fiberShader = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
-
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
@@ -108,15 +104,26 @@ int main()
     io.Fonts->AddFontDefault();
     io.FontGlobalScale = 1.25f;
 
+    // Initialize Camera
+    // -----------------
+    camera = Camera(glm::vec3(0.0f, 0.f, 2.f));
+
+    // Initialize Shaders
+    // ------------------
+    Shader coreShader = Shader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
+    Shader fiberShader = Shader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+
     // Fiber
     // -----
     FIBER_TYPE fiberType = COTTON1;
-    std::vector<ControlPoint> pointsToAdd;
+    std::vector<ControlPoint> points;
     float timeValue = glfwGetTime();
 
     CoreFiber coreFiber = CoreFiber(&coreShader, fiberType);
     coreFiber.initializeGL();
     coreFiber.initFrameBuffer();
+
+    addCoreControlPoints(coreFiber);
 
     // TODO: resize GL
     coreFiber.render(); // render off-screen
@@ -126,11 +133,9 @@ int main()
     fiber.setHeightTexture(coreFiber.getHeightTexture());
     fiber.setNormalTexture(coreFiber.getNormalTexture());
     fiber.setAlphaTexture(coreFiber.getAlphaTexture());
+    
+    addFiberControlPoints(fiber);
     // TODO: resize GL
-
-    addControlPoints(coreFiber, fiber, pointsToAdd);
-
-    camera = Camera(glm::vec3(0.0f, 0.f, 2.f));
 
     // render loop
     // -----------
@@ -192,26 +197,26 @@ int main()
     return 0;
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber, std::vector<ControlPoint> &pointsToAdd)
+void addCoreControlPoints(CoreFiber &coreFiber)
 {
-    // NOTE: control points must be added in the following order: [a b c d] [b c d e] [c d e f] 
-    // to draw the curves from b-c-d-e, where a and f are the end points.
-    // TODO: verify CORE vs COMPLETE inconsistency
-
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3((coreFiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-    pointsToAdd.push_back(ControlPoint{ glm::vec3(coreFiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
-    for (const ControlPoint& point : pointsToAdd) {
+    // TODO: verify proper core texture mapping
+    std::vector<ControlPoint> points;
+    points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+    points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+    points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+    points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+    //points.push_back(ControlPoint{ glm::vec3((coreFiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+    //points.push_back(ControlPoint{ glm::vec3(coreFiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+    for (const ControlPoint& point : points) {
         coreFiber.addPoint(point, true);
     }
     coreFiber.loadPoints();
-    pointsToAdd.clear();
+}
 
-    enum RENDER{
-        TEST0, 
+void addFiberControlPoints(OrdinaryFiber &fiber)
+{
+    enum RENDER {
+        TEST0,
         TEST1,
         TEST2,
         TEST3,
@@ -224,114 +229,113 @@ void addControlPoints(CoreFiber coreFiber, OrdinaryFiber fiber, std::vector<Cont
 
     RENDER render = TEST0;
     std::vector<Strand> strands;
-
-    // TODO: implement hair fibers
+    std::vector<ControlPoint> points;
 
     switch (render)
     {
-        case TEST0:
-            // Basic yarn along the X-axis
-            // STATUS: passed
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0 });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1, 0.01f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2, 0.99f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 1.f });
-            strands.push_back(Strand{ pointsToAdd });
+    case TEST0:
+        // Basic yarn along the X-axis
+        // STATUS: passed
+        points.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0 });
+        points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1, 0.01f });
+        points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2, 0.99f });
+        points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 1.f });
+        strands.push_back(Strand{ points });
 
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-            break;
-        case TEST1:
-            // Additional control point. Should render basic yarn from previous test.
-            // STATUS: passed
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0 });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1, 0.01f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.25f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2, 0.25f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 0.5f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.75f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4, 0.75f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5, 0.99f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6, 1.f });
-            strands.push_back(Strand{ pointsToAdd });
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-            break;
-        case TEST2:
-            // Additional strand on top of basic yarn.
-            // STATUS: passed
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0 });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1, 0.01f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2, 0.99f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 1.f });
-            strands.push_back(Strand{ pointsToAdd });
-
-            pointsToAdd.clear();
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.0f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4, 0 });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.01f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5, 0.01f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.99f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6, 0.99f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(1.f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 7, 1.f });
-            strands.push_back(Strand{ pointsToAdd });
-
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-            break;
-        case TEST3:
-            // Basic yarn along the Y-axis
-            // STATUS: passed
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 0, 0.f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.01f, 0.f), glm::vec3(1.f, 0.f, 0.f), 1, 0.01f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 0.99f, 0.f), glm::vec3(1.f, 0.f, 0.f), 3, 0.99f });
-            pointsToAdd.push_back(ControlPoint{ glm::vec3(0.f, 1.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 4, 1.f });
-            strands.push_back(Strand{ pointsToAdd });
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-            break;
-        case TEST4:
-        {
-            // Basic weave pattern - horizontal
-            // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
-            // TODO: remove texture effect from fiber_fragment.glsl
-            // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
-            // STATUS: passed
-            Pattern pattern = Pattern(&fiber);
-            strands = pattern._getHorizontalStrand();
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-        }
-            break;
-        case TEST5:
-        {
-            // Basic weave pattern - vertical
-            // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
-            // TODO: remove texture effect from fiber_fragment.glsl
-            // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
-            // STATUS: passed
-            Pattern pattern = Pattern(&fiber);
-            strands = pattern._getVerticalStrand();
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-        }
+        fiber.addStrands(strands);
+        fiber.loadPoints();
         break;
-        case TEST6:
-        {
-            // Basic weave pattern
-            // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
-            // TODO: remove texture effect from fiber_fragment.glsl
-            // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
-            // STATUS: passed
-            Pattern pattern = Pattern(&fiber);
-            strands = pattern.getBasicWeave(10);
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-        }
-            break;
-        case TEST7:
-        {
-            Pattern pattern = Pattern(&fiber);
-            strands = pattern.getBasicWeave(50);
-            fiber.addStrands(strands);
-            fiber.loadPoints();
-        }
+    case TEST1:
+        // Additional control point. Should render basic yarn from previous test.
+        // STATUS: passed
+        points.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0 });
+        points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1, 0.01f });
+        points.push_back(ControlPoint{ glm::vec3(0.25f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2, 0.25f });
+        points.push_back(ControlPoint{ glm::vec3(0.5f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 0.5f });
+        points.push_back(ControlPoint{ glm::vec3(0.75f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4, 0.75f });
+        points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5, 0.99f });
+        points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6, 1.f });
+        strands.push_back(Strand{ points });
+        fiber.addStrands(strands);
+        fiber.loadPoints();
         break;
+    case TEST2:
+        // Additional strand on top of basic yarn.
+        // STATUS: passed
+        points.push_back(ControlPoint{ glm::vec3(0.0f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0, 0 });
+        points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1, 0.01f });
+        points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2, 0.99f });
+        points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3, 1.f });
+        strands.push_back(Strand{ points });
+
+        points.clear();
+        points.push_back(ControlPoint{ glm::vec3(0.0f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 4, 0 });
+        points.push_back(ControlPoint{ glm::vec3(0.01f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 5, 0.01f });
+        points.push_back(ControlPoint{ glm::vec3(0.99f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6, 0.99f });
+        points.push_back(ControlPoint{ glm::vec3(1.f, 0.2f, 0.f), glm::vec3(0.f, 1.f, 0.f), 7, 1.f });
+        strands.push_back(Strand{ points });
+
+        fiber.addStrands(strands);
+        fiber.loadPoints();
+        break;
+    case TEST3:
+        // Basic yarn along the Y-axis
+        // STATUS: passed
+        points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 0, 0.f });
+        points.push_back(ControlPoint{ glm::vec3(0.f, 0.01f, 0.f), glm::vec3(1.f, 0.f, 0.f), 1, 0.01f });
+        points.push_back(ControlPoint{ glm::vec3(0.f, 0.99f, 0.f), glm::vec3(1.f, 0.f, 0.f), 3, 0.99f });
+        points.push_back(ControlPoint{ glm::vec3(0.f, 1.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 4, 1.f });
+        strands.push_back(Strand{ points });
+        fiber.addStrands(strands);
+        fiber.loadPoints();
+        break;
+    case TEST4:
+    {
+        // Basic weave pattern - horizontal
+        // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
+        // TODO: remove texture effect from fiber_fragment.glsl
+        // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
+        // STATUS: passed
+        Pattern pattern = Pattern(&fiber);
+        strands = pattern._getHorizontalStrand();
+        fiber.addStrands(strands);
+        fiber.loadPoints();
+    }
+    break;
+    case TEST5:
+    {
+        // Basic weave pattern - vertical
+        // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
+        // TODO: remove texture effect from fiber_fragment.glsl
+        // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
+        // STATUS: passed
+        Pattern pattern = Pattern(&fiber);
+        strands = pattern._getVerticalStrand();
+        fiber.addStrands(strands);
+        fiber.loadPoints();
+    }
+    break;
+    case TEST6:
+    {
+        // Basic weave pattern
+        // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
+        // TODO: remove texture effect from fiber_fragment.glsl
+        // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
+        // STATUS: passed
+        Pattern pattern = Pattern(&fiber);
+        strands = pattern.getBasicWeave(10);
+        fiber.addStrands(strands);
+        fiber.loadPoints();
+    }
+    break;
+    case TEST7:
+    {
+        Pattern pattern = Pattern(&fiber);
+        strands = pattern.getBasicWeave(50);
+        fiber.addStrands(strands);
+        fiber.loadPoints();
+    }
+    break;
     }
 }
 

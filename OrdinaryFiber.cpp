@@ -37,7 +37,7 @@ void OrdinaryFiber::render()
 	glBindTexture(GL_TEXTURE_2D, alphaTexture);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	setFiberParameters();
+	setFiberParameters(); // TODO: check if needs to be called for every render
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_INT, 0);
 }
