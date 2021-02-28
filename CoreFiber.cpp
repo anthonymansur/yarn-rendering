@@ -121,6 +121,7 @@ void CoreFiber::initFrameBuffer()
 		std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
 		throw std::runtime_error("Framebuffer has not been properly configured.");
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void CoreFiber::render()

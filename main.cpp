@@ -164,7 +164,8 @@ int main()
 
         // update the mvp matrices
         // TODO: change model so that world coordinate system is standardized.
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
+        //glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.366114f / 4.f, 0, 0));
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
             (float)2400 / (float)2400, 0.01f, 10.0f);
@@ -178,13 +179,21 @@ int main()
         fiberShader.setVec3("camera_pos", camera.Position);
         fiberShader.setVec3("view_dir", camera.Front);
 
+        //coreShader.use();
+        //coreShader.setMat4("model", model);
+        //coreShader.setMat4("view", view);
+        //coreShader.setMat4("projection", projection);
+        //coreShader.setVec3("camera_pos", camera.Position);
+        //coreShader.setVec3("view_dir", camera.Front);
+
         // resize GL
         // ---------
-        glfwSetWindowSize(window, 3000, 3000);
-        glViewport(0, 0, 3000, 3000);
+        //glfwSetWindowSize(window, 3000, 3000);
+        //glViewport(0, 0, 3000, 3000);
 
         // render Fiber
         // ------------
+        //coreFiber.draw();
         fiber.render();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -212,10 +221,10 @@ void addCoreControlPoints(CoreFiber &coreFiber)
     std::vector<ControlPoint> points;
     points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
     points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-    points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-    points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
-    //points.push_back(ControlPoint{ glm::vec3((coreFiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-    //points.push_back(ControlPoint{ glm::vec3(coreFiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+    //points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+    //points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+    points.push_back(ControlPoint{ glm::vec3((coreFiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+    points.push_back(ControlPoint{ glm::vec3(coreFiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
     for (const ControlPoint& point : points) {
         coreFiber.addPoint(point, true);
     }
