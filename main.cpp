@@ -122,12 +122,7 @@ int main()
     CoreFiber coreFiber = CoreFiber(&coreShader, fiberType);
     coreFiber.initializeGL();
     coreFiber.initFrameBuffer();
-
     addCoreControlPoints(coreFiber);
-
-    glfwSetWindowSize(window, coreFiber.SCR_WIDTH, coreFiber.CORE_HEIGHT);
-    glViewport(0, 0, coreFiber.SCR_WIDTH, coreFiber.CORE_HEIGHT);
-    coreFiber.render(); // render off-screen
 
     OrdinaryFiber fiber = OrdinaryFiber(&fiberShader, fiberType);
     fiber.initializeGL();
@@ -136,6 +131,8 @@ int main()
     fiber.setAlphaTexture(coreFiber.getAlphaTexture());
     
     addFiberControlPoints(fiber);
+
+    glfwSetWindowSize(window, 2400, 2400);
 
     // render loop
     // -----------
@@ -172,19 +169,18 @@ int main()
 
         // Update uniform variables defining the camera properties
         // -------------------------------------------------------
+        coreShader.use();
+        coreShader.setMat4("model", model);
+        coreShader.setMat4("view", view);
+        coreShader.setMat4("projection", projection);
+        coreShader.setVec3("camera_pos", camera.Position);
+        coreShader.setVec3("view_dir", camera.Front);
         fiberShader.use();
         fiberShader.setMat4("model", model);
         fiberShader.setMat4("view", view);
         fiberShader.setMat4("projection", projection);
         fiberShader.setVec3("camera_pos", camera.Position);
         fiberShader.setVec3("view_dir", camera.Front);
-
-        //coreShader.use();
-        //coreShader.setMat4("model", model);
-        //coreShader.setMat4("view", view);
-        //coreShader.setMat4("projection", projection);
-        //coreShader.setVec3("camera_pos", camera.Position);
-        //coreShader.setVec3("view_dir", camera.Front);
 
         // resize GL
         // ---------
@@ -193,7 +189,9 @@ int main()
 
         // render Fiber
         // ------------
-        //coreFiber.draw();
+        glViewport(0, 0, coreFiber.SCR_WIDTH, coreFiber.CORE_HEIGHT);
+        coreFiber.render();
+        glViewport(0, 0, fiber.SCR_WIDTH, fiber.SCR_HEIGHT);
         fiber.render();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
