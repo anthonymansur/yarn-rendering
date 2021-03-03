@@ -7,7 +7,7 @@
 class Pattern
 {
 public:
-	Pattern(Fiber* type);
+	Pattern(const Fiber& type);
 	
 	std::vector<Strand> getBasicWeave(uint8_t size) const;
 
@@ -15,6 +15,6 @@ public:
 	std::vector<Strand> _getHorizontalStrand() const;
 	std::vector<Strand> _getVerticalStrand(int offset = 0) const;
 private:
-	Fiber* type;
+	const Fiber& type;
 	float yarnRadius;
 };

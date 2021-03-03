@@ -1,58 +1,51 @@
 #include "OrdinaryFiber.h"
+#include <stdexcept>
 
-OrdinaryFiber::OrdinaryFiber(Shader* shader, FIBER_TYPE type) : Fiber::Fiber(type)
-{
-	m_shader = shader;
-}
+OrdinaryFiber::OrdinaryFiber(const Fiber& fiber) : FiberDrawable::FiberDrawable(fiber)
+{}
 
 OrdinaryFiber::~OrdinaryFiber()
 {
-	Fiber::~Fiber();
-}
-
-void OrdinaryFiber::initializeGL()
-{
-	Fiber::initializeGL();
-}
-
-void OrdinaryFiber::render()
-{
-	// render yarn to screen
-	glBindVertexArray(m_vao);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// draw yarn
-	m_shader->use();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, heightTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, alphaTexture);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	setFiberParameters(); // TODO: check if needs to be called for every render
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
-	glDrawElements(GL_PATCHES, m_indices.size(), GL_UNSIGNED_INT, 0);
+	FiberDrawable::~FiberDrawable();
 }
 
 void OrdinaryFiber::setHeightTexture(GLuint i)
 {
+	heightTexBound = true;
 	heightTexture = i;
 }
 
 void OrdinaryFiber::setNormalTexture(GLuint i)
 {
+	normalTexBound = true;
 	normalTexture = i;
 }
 
 void OrdinaryFiber::setAlphaTexture(GLuint i)
 {
+	alphaTexBound = true;
 	alphaTexture = i;
 }
+
+void OrdinaryFiber::bindHeightTexture()
+{
+	if (heightTexBound)
+		glBindTexture(GL_TEXTURE_2D, heightTexture);
+	else
+		throw std::runtime_error("No height texture to bind to.");
+}
+void OrdinaryFiber::bindNormalTexture()
+{
+	if (normalTexBound)
+		glBindTexture(GL_TEXTURE_2D, normalTexture);
+	else
+		throw std::runtime_error("No normal texture to bind to.");
+}
+void OrdinaryFiber::bindAlphaTexture()
+{
+	if (alphaTexBound)
+		glBindTexture(GL_TEXTURE_2D, alphaTexture);
+	else
+		throw std::runtime_error("No alpha texture to bind to.");
+}
+

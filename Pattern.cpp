@@ -2,7 +2,7 @@
 #define pi 3.14159265358979323846f
 
 
-Pattern::Pattern(Fiber* type) : type(type), yarnRadius(type->getYarnRadius())
+Pattern::Pattern(const Fiber& type) : type(type), yarnRadius(type.getYarnRadius())
 {}
 
 std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const

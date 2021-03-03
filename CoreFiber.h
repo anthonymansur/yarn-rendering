@@ -1,22 +1,30 @@
 #pragma once
-#include "Fiber.h"
+#include "FiberDrawable.h"
 
-class CoreFiber : public Fiber
+class CoreFiber : public FiberDrawable
 {
 public:
-	CoreFiber(Shader* shader, FIBER_TYPE type);
+	CoreFiber(const Fiber& fiber);
 	~CoreFiber();
 
-	void initializeGL();
-	void initShaders();
-	void initFrameBuffer();
-	void render();
-	void draw(); // Render to screen instead of off-screen framebuffer
+	void generateFrameBuffers();
+	void initFrameBuffers();
+
+	bool bindInterFrameBuffer();
+	bool bindFrameBuffer();
+
+	bool bindReadFrameBuffer();
+	bool bindDrawFrameBuffer();
 
 	GLuint getHeightTexture() const;
 	GLuint getNormalTexture() const;
 	GLuint getAlphaTexture() const;
+
 private:
 	GLuint m_interFramebuffer;
 	GLuint m_frameBuffer;
+	GLuint depthrenderbuffer;
+
+	bool fbBound;
+	bool interFbBound;
 };

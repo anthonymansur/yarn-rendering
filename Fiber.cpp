@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 #include "Fiber.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -19,11 +20,10 @@ namespace
 
 // Helper Functions
 // ----------------
-unsigned int loadTexture(const char* path);
 static std::vector<std::string>& split(const std::string& s, char delim, std::vector<std::string>& elems);
 static std::vector<std::string> split(const std::string& s, char delim);
 
-Fiber::Fiber(FIBER_TYPE type) : fiberType(type), m_shader(nullptr) // TODO: change
+Fiber::Fiber(FIBER_TYPE type) : fiberType(type) // TODO: change
 {
 	readFiberParameters(type);
 }
@@ -154,36 +154,7 @@ void Fiber::readFiberParameters(FIBER_TYPE type)
 	CORE_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
 }
 
-void Fiber::initializeGL()
-{
-	glGenVertexArrays(1, &m_vao);
-	glGenBuffers(1, &m_vbo);
-	glGenBuffers(1, &m_ebo);
 
-	glBindVertexArray(m_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
- 
-	glVertexAttribPointer(POS_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(POS_VAO_ID);
-	glVertexAttribPointer(NORM_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(NORM_VAO_ID);
-	glVertexAttribPointer(DIST_VAO_ID, 1, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(DIST_VAO_ID);
-	glBindVertexArray(0);
-
-	// Determine max vertices in a patch
-	GLint maxPatchVertices = 0;
-	glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
-	std::cout << "Max supported patch vertices " << maxPatchVertices << std::endl;
-}
-
-Fiber::~Fiber() 
-{
-	glDeleteVertexArrays(1, &m_vao);
-	glDeleteBuffers(1, &m_vbo);
-	glDeleteBuffers(1, &m_ebo);
-}
 
 FIBER_TYPE Fiber::getFiberType() const
 {
@@ -198,117 +169,6 @@ float Fiber::getFiberAlpha() const
 float Fiber::getYarnRadius() const
 {
 	return yarn_radius;
-}
-
-// Passes to vertex shader in the form of [a, b, c, d], [b, c, d, e], [c, d, e, f] ...
-void Fiber::addPoint(ControlPoint cp, bool isCore) {
-	glm::vec3 pos = cp.pos;
-	glm::vec3 norm = cp.norm;
-	float distance = cp.distanceFromStart;
-	int inx = cp.inx;
-
-	if (std::find(m_indices.begin(), m_indices.end(), inx) == m_indices.end())
-	{
-		m_points.push_back(pos.x);
-		m_points.push_back(pos.y);
-		m_points.push_back(pos.z);
-		m_points.push_back(norm.x);
-		m_points.push_back(norm.y);
-		m_points.push_back(norm.z);
-		m_points.push_back(distance);
-	}
-
-	m_indices.push_back(inx);
-}
-
-void Fiber::loadPoints() {
-	glBindVertexArray(m_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-	glBufferData(GL_ARRAY_BUFFER, m_points.size() * sizeof(float),
-		m_points.size() > 0 ? &m_points.front() : nullptr, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLuint),
-		m_indices.size() > 0 ? &m_indices.front() : nullptr, GL_STATIC_DRAW);
-}
-
-// Should only be called once
-void Fiber::addStrands(const std::vector<Strand>& strands)
-{
-	for (const Strand& strand : strands)
-	{
-		// add patches of the bezier curve
-		for (unsigned int i = 0; i < strand.points.size(); i++)
-		{
-			if ((i + 3) < strand.points.size())
-			{
-				for (int j = i; j < i + 4; j++)
-					addPoint(strand.points.at(j), false);
-			}
-		}
-	}
-}
-
-void Fiber::setFiberParameters()
-{
-	m_shader->setInt("u_heightTexture", 0);
-	m_shader->setInt("u_normalTexture", 1);
-	m_shader->setInt("u_alphaTexture", 2);
-
-	if (fiberType == COTTON1 || fiberType == COTTON2)
-	{
-		m_shader->setVec3("objectColor", 217 / 255.f, 109 / 255.f, 2 / 255.f);
-	}
-	else if (fiberType == SILK1 || fiberType == SILK2)
-	{
-		m_shader->setVec3("objectColor", 178 / 255.f, 168 / 255.f, 200 / 255.f);
-	}
-	else if (fiberType == POLYESTER1)
-	{
-		m_shader->setVec3("objectColor", 171 / 255.f, 201 / 255.f, 228 / 255.f);
-	}
-	else if (fiberType == RAYON1 || fiberType == RAYON2 || fiberType == RAYON3 || fiberType == RAYON4)
-	{
-		m_shader->setVec3("objectColor", 98 / 255.f, 142 / 255.f, 56 / 255.f);
-	}
-
-	// TODO: replace w/ file implementation
-	m_shader->setInt("u_ply_num", ply_num);
-	m_shader->setInt("u_fiber_num", fiber_num);
-
-	m_shader->setVec3("u_bounding_min", bounding_min[0], bounding_min[1], bounding_min[2]);
-	m_shader->setVec3("u_bounding_max", bounding_max[0], bounding_max[1], bounding_max[2]);
-
-	m_shader->setFloat("u_z_step_size", z_step_size);
-	m_shader->setInt("u_z_step_num", z_step_num);
-	m_shader->setInt("u_fly_step_size", fly_step_size);
-
-	m_shader->setInt("u_yarn_clock_wise", yarn_clock_wise);
-	m_shader->setInt("u_fiber_clock_wise", fiber_clock_wise);
-	m_shader->setFloat("u_yarn_alpha", yarn_alpha);
-	m_shader->setFloat("u_alpha", alpha);
-	
-	m_shader->setFloat("u_yarn_radius", yarn_radius);
-	m_shader->setFloat("u_ellipse_long", ellipse_long);
-	m_shader->setFloat("u_ellipse_short", ellipse_short);
-	
-	m_shader->setInt("u_epsilon", epsilon);
-	m_shader->setFloat("u_beta", beta);
-	m_shader->setFloat("u_r_max", r_max);
-	
-	m_shader->setInt("u_use_migration", use_migration);
-	m_shader->setFloat("u_s_i", s_i);
-	m_shader->setFloat("u_rho_min", rho_min);
-	m_shader->setFloat("u_rho_max", rho_max);
-	
-	m_shader->setInt("u_use_flyaways", use_flyaways);
-	m_shader->setFloat("u_flyaway_hair_density", flyaway_hair_density);
-	m_shader->setVec2("u_flyaway_hair_ze", flyaway_hair_ze[0], flyaway_hair_ze[1]);
-	m_shader->setVec2("u_flyaway_hair_r0", flyaway_hair_r0[0], flyaway_hair_r0[1]);
-	m_shader->setVec2("u_flyaway_hair_re", flyaway_hair_re[0], flyaway_hair_re[1]);
-	m_shader->setVec2("u_flyaway_hair_pe", flyaway_hair_pe[0], flyaway_hair_pe[1]);
-	m_shader->setFloat("u_flyaway_loop_density", flyaway_loop_density);
-	m_shader->setVec2("u_flyaway_loop_r1", flyaway_loop_r1[0], flyaway_loop_r1[1]);
 }
 
 void Fiber::createGUIWindow()
@@ -372,7 +232,6 @@ std::vector<std::string>& split(const std::string& s, char delim, std::vector<st
 	}
 	return elems;
 }
-
 
 static std::vector<std::string> split(const std::string& s, char delim) {
 	std::vector<std::string> elems;

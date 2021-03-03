@@ -4,8 +4,6 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include "Shader.h"
-
 typedef glm::vec3 Point3f, Normal3f;
 
 enum FIBER_TYPE {
@@ -33,23 +31,11 @@ struct Strand
     std::vector<ControlPoint> points;
 };
 
-class Fiber
+struct Fiber
 {
-public:
     Fiber(FIBER_TYPE type);
-    virtual ~Fiber();
-    
-    virtual void initializeGL();
-
-    void setFiberParameters();
 
     void readFiberParameters(FIBER_TYPE);
-
-    void addPoint(ControlPoint, bool);
-    void loadPoints();
-    void addStrands(const std::vector<Strand>& strands);
-
-    virtual void render() = 0;
 
     FIBER_TYPE getFiberType() const;
     float getFiberAlpha() const;
@@ -60,20 +46,6 @@ public:
     unsigned int SCR_WIDTH;
     unsigned int SCR_HEIGHT;
     unsigned int CORE_HEIGHT;
-
-protected:
-    // OpenGL variables
-    std::vector<float> m_points;
-    std::vector<GLuint> m_indices;
-    GLuint m_vao;
-    GLuint m_vbo;
-    GLuint m_ebo;
-    GLuint depthrenderbuffer;
-    GLuint heightTexture;
-    GLuint normalTexture;
-    GLuint alphaTexture;
-
-    Shader* m_shader;
 
     // Fiber-specific parameters
     FIBER_TYPE fiberType;

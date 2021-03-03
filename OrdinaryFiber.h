@@ -1,17 +1,18 @@
 #pragma once
-#include "Fiber.h"
+#include "FiberDrawable.h"
 
-class OrdinaryFiber : public Fiber
+class OrdinaryFiber : public FiberDrawable
 {
 public:
-	OrdinaryFiber(Shader* shader, FIBER_TYPE type);
+	OrdinaryFiber(const Fiber& fiber);
 	~OrdinaryFiber();
-
-	void initializeGL();
-	void initShaders();
-	void render();
 
 	void setHeightTexture(GLuint);
 	void setNormalTexture(GLuint);
 	void setAlphaTexture(GLuint);
+
+	void bindHeightTexture();
+	void bindNormalTexture();
+	void bindAlphaTexture();
+
 };

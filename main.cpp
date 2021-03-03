@@ -118,19 +118,23 @@ int main()
     FIBER_TYPE fiberType = COTTON1;
     std::vector<ControlPoint> points;
     float timeValue = glfwGetTime();
+    Fiber fiber = Fiber(fiberType);
 
-    CoreFiber coreFiber = CoreFiber(&coreShader, fiberType);
-    coreFiber.initializeGL();
-    coreFiber.initFrameBuffer();
+    CoreFiber coreFiber = CoreFiber(fiber);
+    coreFiber.generateVBO();
+    coreFiber.generateIdx();
+    coreFiber.generateFrameBuffers();
+    coreFiber.initFrameBuffers();
     addCoreControlPoints(coreFiber);
 
-    OrdinaryFiber fiber = OrdinaryFiber(&fiberShader, fiberType);
-    fiber.initializeGL();
-    fiber.setHeightTexture(coreFiber.getHeightTexture());
-    fiber.setNormalTexture(coreFiber.getNormalTexture());
-    fiber.setAlphaTexture(coreFiber.getAlphaTexture());
+    OrdinaryFiber ordinaryFiber = OrdinaryFiber(fiber);
+    ordinaryFiber.generateVBO();
+    ordinaryFiber.generateIdx();
+    ordinaryFiber.setHeightTexture(coreFiber.getHeightTexture());
+    ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
+    ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
     
-    addFiberControlPoints(fiber);
+    addFiberControlPoints(ordinaryFiber);
 
     glfwSetWindowSize(window, 2400, 2400);
 
@@ -189,10 +193,10 @@ int main()
 
         // render Fiber
         // ------------
-        glViewport(0, 0, coreFiber.SCR_WIDTH, coreFiber.CORE_HEIGHT);
-        coreFiber.render();
+        glViewport(0, 0, fiber.SCR_WIDTH, fiber.CORE_HEIGHT);
+        coreShader.draw(&coreFiber, -1);
         glViewport(0, 0, fiber.SCR_WIDTH, fiber.SCR_HEIGHT);
-        fiber.render();
+        fiberShader.draw(&ordinaryFiber, -1);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -215,18 +219,19 @@ int main()
 
 void addCoreControlPoints(CoreFiber &coreFiber)
 {
+    const Fiber& fiberType = coreFiber.getFiberType();
     // TODO: verify proper core texture mapping
     std::vector<ControlPoint> points;
     points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
     points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
     //points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
     //points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
-    points.push_back(ControlPoint{ glm::vec3((coreFiber.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-    points.push_back(ControlPoint{ glm::vec3(coreFiber.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+    points.push_back(ControlPoint{ glm::vec3((fiberType.getFiberAlpha() - 0.01f) / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+    points.push_back(ControlPoint{ glm::vec3(fiberType.getFiberAlpha() / 2.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
     for (const ControlPoint& point : points) {
         coreFiber.addPoint(point, true);
     }
-    coreFiber.loadPoints();
+    coreFiber.create();
 }
 
 void addFiberControlPoints(OrdinaryFiber &fiber)
@@ -246,6 +251,7 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
     RENDER render = TEST0;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
+    const Fiber& fiberType = fiber.getFiberType();
 
     switch (render)
     {
@@ -259,7 +265,7 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
         strands.push_back(Strand{ points });
 
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
         break;
     case TEST1:
         // Additional control point. Should render basic yarn from previous test.
@@ -273,7 +279,7 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
         points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 6, 1.f });
         strands.push_back(Strand{ points });
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
         break;
     case TEST2:
         // Additional strand on top of basic yarn.
@@ -292,7 +298,7 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
         strands.push_back(Strand{ points });
 
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
         break;
     case TEST3:
         // Basic yarn along the Y-axis
@@ -303,7 +309,7 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
         points.push_back(ControlPoint{ glm::vec3(0.f, 1.f, 0.f), glm::vec3(1.f, 0.f, 0.f), 4, 1.f });
         strands.push_back(Strand{ points });
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
         break;
     case TEST4:
     {
@@ -312,10 +318,10 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
         // TODO: remove texture effect from fiber_fragment.glsl
         // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
         // STATUS: passed
-        Pattern pattern = Pattern(&fiber);
+        Pattern pattern = Pattern(fiberType);
         strands = pattern._getHorizontalStrand();
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
     }
     break;
     case TEST5:
@@ -325,10 +331,10 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
         // TODO: remove texture effect from fiber_fragment.glsl
         // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
         // STATUS: passed
-        Pattern pattern = Pattern(&fiber);
+        Pattern pattern = Pattern(fiberType);
         strands = pattern._getVerticalStrand();
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
     }
     break;
     case TEST6:
@@ -338,18 +344,18 @@ void addFiberControlPoints(OrdinaryFiber &fiber)
         // TODO: remove texture effect from fiber_fragment.glsl
         // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
         // STATUS: passed
-        Pattern pattern = Pattern(&fiber);
+        Pattern pattern = Pattern(fiberType);
         strands = pattern.getBasicWeave(10);
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
     }
     break;
     case TEST7:
     {
-        Pattern pattern = Pattern(&fiber);
+        Pattern pattern = Pattern(fiberType);
         strands = pattern.getBasicWeave(50);
         fiber.addStrands(strands);
-        fiber.loadPoints();
+        fiber.create();
     }
     break;
     }
