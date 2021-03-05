@@ -9,17 +9,3 @@ InterleavedDrawable::~InterleavedDrawable()
 	Drawable::destroy();
 	glDeleteBuffers(1, &bufVBO);
 }
-
-void InterleavedDrawable::generateVBO()
-{
-	vboBound = true;
-	glGenBuffers(1, &bufVBO);
-}
-
-bool InterleavedDrawable::bindVBO()
-{
-	if (vboBound)
-		glBindBuffer(GL_ARRAY_BUFFER, bufPos);
-	return vboBound;
-
-}

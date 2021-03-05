@@ -1,4 +1,5 @@
 #include "FiberDrawable.h"
+#include <stdexcept>
 
 FiberDrawable::FiberDrawable(const Fiber& fiber) : m_fiber(fiber)
 {
@@ -50,24 +51,29 @@ void FiberDrawable::addStrands(const std::vector<Strand>& strands)
 
 void FiberDrawable::create()
 {
-	count = m_indices.size(); // TODO: verify
+	count = m_indices.size(); 
 
+	generateVAO();
 	generateVBO();
-	glBindBuffer(GL_ARRAY_BUFFER, bufVBO);
+	generateIdx();
+
+	if (!bindVAO())
+		throw std::runtime_error("Cannot bind to VAO that doesn't exist.");
+	if (!bindVBO())
+		throw std::runtime_error("Cannot bind to VBO that doesn't exist.");
+	if (!bindIdx())
+		throw std::runtime_error("Cannot bind to idx that doesn't exist.");
 	glBufferData(GL_ARRAY_BUFFER, m_points.size() * sizeof(float),
 		m_points.size() > 0 ? &m_points.front() : nullptr, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufIdx);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLuint),
 		m_indices.size() > 0 ? &m_indices.front() : nullptr, GL_STATIC_DRAW);
-}
 
-const Fiber& FiberDrawable::getFiberType() const
-{
-	return m_fiber;
-}
+	glVertexAttribPointer(POS_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(POS_VAO_ID);
+	glVertexAttribPointer(NORM_VAO_ID, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(NORM_VAO_ID);
+	glVertexAttribPointer(DIST_VAO_ID, 1, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(DIST_VAO_ID);
 
-GLenum FiberDrawable::drawMode()
-{
-	return GL_PATCHES;
+	glBindVertexArray(0);
 }

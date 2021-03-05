@@ -7,6 +7,8 @@ public:
 	CoreFiber(const Fiber& fiber);
 	~CoreFiber();
 
+	void create();
+
 	void generateFrameBuffers();
 	void initFrameBuffers();
 

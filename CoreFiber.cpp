@@ -15,6 +15,31 @@ CoreFiber::~CoreFiber()
 	glDeleteTextures(1, &alphaTexture);
 }
 
+void CoreFiber::create()
+{
+	// Create the Control Points
+	const Fiber& fiberType = getFiberType();
+	// TODO: verify proper core texture mapping
+	std::vector<ControlPoint> points;
+	points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+	points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+	points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+	points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+	for (const ControlPoint& point : points) {
+		addPoint(point, true);
+	}
+
+	// Store the control points in Vertex Buffer Object
+	FiberDrawable::create();
+
+	// Clear std::vectors no longer needed
+	m_points.clear();
+	m_indices.clear();
+
+	generateFrameBuffers();
+	initFrameBuffers();
+}
+
 void CoreFiber::generateFrameBuffers()
 {
 	interFbBound = true;

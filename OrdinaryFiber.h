@@ -7,6 +7,8 @@ public:
 	OrdinaryFiber(const Fiber& fiber);
 	~OrdinaryFiber();
 
+	void create();
+
 	void setHeightTexture(GLuint);
 	void setNormalTexture(GLuint);
 	void setAlphaTexture(GLuint);

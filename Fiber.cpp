@@ -9,14 +9,14 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-
-namespace
-{
-	const GLuint POS_VAO_ID = 0;
-	const GLuint NORM_VAO_ID = 1;
-	const GLuint DIST_VAO_ID = 2;
-	const GLuint STRIDE = 7;
-}
+//
+//namespace
+//{
+//	const GLuint POS_VAO_ID = 0;
+//	const GLuint NORM_VAO_ID = 1;
+//	const GLuint DIST_VAO_ID = 2;
+//	const GLuint STRIDE = 7;
+//}
 
 // Helper Functions
 // ----------------
