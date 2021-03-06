@@ -128,6 +128,11 @@ int main()
     // -----------------
     camera = Camera(glm::vec3(0.0f, 0.f, 2.f));
 
+    // Initialize Shaders
+    // ------------------
+    FiberShader coreShader = FiberShader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
+    FiberShader fiberShader = FiberShader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
+
     // Fiber
     // -----
     // Set Fiber-specific variables
@@ -136,24 +141,19 @@ int main()
     float timeValue = glfwGetTime();
 
     // Create Core Fiber
-    CoreFiber coreFiber = CoreFiber(fiber);
-    coreFiber.create();
+    //CoreFiber coreFiber = CoreFiber(fiber);
+    //coreFiber.create();
 
     // Create Ordinary Fiber
     OrdinaryFiber ordinaryFiber = OrdinaryFiber(fiber);
     ordinaryFiber.create();
 
     // Set the textures of CoreFiber into OrdinaryFiber
-    ordinaryFiber.setHeightTexture(coreFiber.getHeightTexture());
-    ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
-    ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
+    //ordinaryFiber.setHeightTexture(coreFiber.getHeightTexture());
+    //ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
+    //ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
 
     glfwSetWindowSize(window, 2400, 2400);
-
-    // Initialize Shaders
-    // ------------------
-    FiberShader coreShader = FiberShader(fiber, "fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
-    FiberShader fiberShader = FiberShader(fiber, "fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
 
     // render loop
     // -----------
@@ -190,13 +190,14 @@ int main()
 
         // Update uniform variables defining the camera properties
         // -------------------------------------------------------
-        coreShader.use();
-        coreShader.setMat4("model", model);
-        coreShader.setMat4("view", view);
-        coreShader.setMat4("projection", projection);
-        coreShader.setVec3("camera_pos", camera.Position);
-        coreShader.setVec3("view_dir", camera.Front);
+        //coreShader.use();
+        //coreShader.setMat4("model", model);
+        //coreShader.setMat4("view", view);
+        //coreShader.setMat4("projection", projection);
+        //coreShader.setVec3("camera_pos", camera.Position);
+        //coreShader.setVec3("view_dir", camera.Front);
         fiberShader.use();
+
         fiberShader.setMat4("model", model);
         fiberShader.setMat4("view", view);
         fiberShader.setMat4("projection", projection);
@@ -210,7 +211,7 @@ int main()
 
         // render Fiber
         // ------------
-        coreShader.draw(&coreFiber, -1);
+        //coreShader.draw(&coreFiber, -1);
         fiberShader.draw(&ordinaryFiber, -1);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

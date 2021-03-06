@@ -1,5 +1,6 @@
 #include "FiberDrawable.h"
 #include <stdexcept>
+#include <iostream>
 
 FiberDrawable::FiberDrawable(const Fiber& fiber) : m_fiber(fiber)
 {
@@ -51,11 +52,16 @@ void FiberDrawable::addStrands(const std::vector<Strand>& strands)
 
 void FiberDrawable::create()
 {
+	std::cout << "Finished adding control points" << std::endl;
+
 	count = m_indices.size(); 
 
 	generateVAO();
+	std::cout << "Generating VAO: " + m_vao << std::endl;
 	generateVBO();
+	std::cout << "Generating VBO: " + bufVBO << std::endl;
 	generateIdx();
+	std::cout << "Generating Idx: " + bufIdx << std::endl;
 
 	if (!bindVAO())
 		throw std::runtime_error("Cannot bind to VAO that doesn't exist.");
@@ -74,6 +80,8 @@ void FiberDrawable::create()
 	glEnableVertexAttribArray(NORM_VAO_ID);
 	glVertexAttribPointer(DIST_VAO_ID, 1, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(DIST_VAO_ID);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 }

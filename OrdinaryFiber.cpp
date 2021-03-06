@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "OrdinaryFiber.h"
 #include "Pattern.h"
@@ -25,12 +26,12 @@ OrdinaryFiber::~OrdinaryFiber()
 
 void OrdinaryFiber::create()
 {
+    std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
 
     RENDER render = TEST6;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
-    const Fiber& fiberType = getFiberType();
 
     switch (render)
     {
@@ -93,7 +94,7 @@ void OrdinaryFiber::create()
         // TODO: remove texture effect from fiber_fragment.glsl
         // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
         // STATUS: passed
-        Pattern pattern = Pattern(fiberType);
+        Pattern pattern = Pattern(m_fiber);
         strands = pattern._getHorizontalStrand();
         addStrands(strands);
     }
@@ -105,7 +106,7 @@ void OrdinaryFiber::create()
         // TODO: remove texture effect from fiber_fragment.glsl
         // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
         // STATUS: passed
-        Pattern pattern = Pattern(fiberType);
+        Pattern pattern = Pattern(m_fiber);
         strands = pattern._getVerticalStrand();
         addStrands(strands);
     }
@@ -117,14 +118,14 @@ void OrdinaryFiber::create()
         // TODO: remove texture effect from fiber_fragment.glsl
         // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
         // STATUS: passed
-        Pattern pattern = Pattern(fiberType);
+        Pattern pattern = Pattern(m_fiber);
         strands = pattern.getBasicWeave(10);
         addStrands(strands);
     }
     break;
     case TEST7:
     {
-        Pattern pattern = Pattern(fiberType);
+        Pattern pattern = Pattern(m_fiber);
         strands = pattern.getBasicWeave(50);
         addStrands(strands);
     }

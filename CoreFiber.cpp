@@ -1,7 +1,7 @@
 #include "CoreFiber.h"
 #include <iostream>
 
-CoreFiber::CoreFiber(const Fiber& fiber) : FiberDrawable(fiber)
+CoreFiber::CoreFiber(const Fiber& fiber) : depthrenderbuffer(-1), fbBound(-1), interFbBound(-1), m_frameBuffer(-1), m_interFramebuffer(-1), FiberDrawable(fiber)
 {}
 
 CoreFiber::~CoreFiber()
@@ -18,7 +18,6 @@ CoreFiber::~CoreFiber()
 void CoreFiber::create()
 {
 	// Create the Control Points
-	const Fiber& fiberType = getFiberType();
 	// TODO: verify proper core texture mapping
 	std::vector<ControlPoint> points;
 	points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });

@@ -3,13 +3,11 @@
 #include "OrdinaryFiber.h"
 
 FiberShader::FiberShader(
-    const Fiber& fiberType,
     const char* vertexPath,
     const char* fragmentPath,
     const char* geometryPath,
     const char* tessellationControlPath,
     const char* tessellationEvalPath)
-    : m_fiberType(fiberType)
 {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
@@ -136,9 +134,6 @@ FiberShader::FiberShader(
     glDeleteShader(fragment);
     if (geometryPath != nullptr)
         glDeleteShader(geometry);
-
-    // Set fiber-specific uniforms
-    setFiberParameters(m_fiberType);
 }
 
 void FiberShader::draw(Drawable *d, int texSlot)
@@ -150,18 +145,20 @@ void FiberShader::draw(Drawable *d, int texSlot)
 
     if (cd != nullptr)
     {
+        const Fiber& fiberType = cd->getFiberType();
+        // set uniform variables
+        setFiberParameters(fiberType);
+
         // http://wangchuan.github.io/coding/2016/05/26/multisampling-fbo.html explains this concept
         // Set the Vertex Attrib Pointers
         cd->bindVAO();
-        cd->bindVBO();
-        cd->bindIdx();
 
         // Configure Intermediate FrameBuffer for multisampling
         cd->bindInterFrameBuffer();
         glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        glViewport(0, 0, m_fiberType.SCR_WIDTH, m_fiberType.CORE_HEIGHT);
+        glViewport(0, 0, fiberType.SCR_WIDTH, fiberType.CORE_HEIGHT);
         GLenum buffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
         glDrawBuffers(3, buffers);
 
@@ -172,53 +169,61 @@ void FiberShader::draw(Drawable *d, int texSlot)
         // Blit multisampled buffer(s) from Intermediate FrameBuffer to Off-Rendered FrameBuffer
         cd->bindReadFrameBuffer();
         cd->bindDrawFrameBuffer();
-        glBlitFramebuffer(0, 0, m_fiberType.SCR_WIDTH, m_fiberType.CORE_HEIGHT, 0, 0, m_fiberType.SCR_WIDTH, m_fiberType.CORE_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+        glBlitFramebuffer(0, 0, fiberType.SCR_WIDTH, fiberType.CORE_HEIGHT, 0, 0, fiberType.SCR_WIDTH, fiberType.CORE_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
 
         for (int i = 0; i < 3; i++) {
             glReadBuffer(buffers[i]);
             glDrawBuffer(buffers[i]);
 
             glBlitFramebuffer(0, 0,
-                m_fiberType.SCR_WIDTH,
-                m_fiberType.CORE_HEIGHT,
+                fiberType.SCR_WIDTH,
+                fiberType.CORE_HEIGHT,
                 0, 0,
-                m_fiberType.SCR_WIDTH,
-                m_fiberType.CORE_HEIGHT,
+                fiberType.SCR_WIDTH,
+                fiberType.CORE_HEIGHT,
                 GL_COLOR_BUFFER_BIT, GL_LINEAR);
         }
+        glDisableVertexAttribArray(POS_VAO_ID);
+        glDisableVertexAttribArray(NORM_VAO_ID);
+        glDisableVertexAttribArray(DIST_VAO_ID);
     }
     else if (od != nullptr)
     {
+        const Fiber& fiberType = od->getFiberType();
+
+        // set uniform variables
+        setFiberParameters(fiberType);
+
         // Set the Vertex Attrib Pointers
         if (!od->bindVAO())
             std::runtime_error("Error binding VAO.");
-        if (!od->bindVBO())
-            std::runtime_error("Error binding VBO.");
-        if (!od->bindIdx())
-            std::runtime_error("Error binding Idx.");
 
         // Configure the Framebuffer and viewport
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, m_fiberType.SCR_WIDTH, m_fiberType.SCR_HEIGHT);
+        glViewport(0, 0, fiberType.SCR_WIDTH, fiberType.SCR_HEIGHT);
 
-        // Activate the textures
-        glActiveTexture(GL_TEXTURE0);
-        od->bindHeightTexture();
-        glGenerateMipmap(GL_TEXTURE_2D);
+        //// Activate the textures
+        //glActiveTexture(GL_TEXTURE0);
+        //od->bindHeightTexture();
+        //glGenerateMipmap(GL_TEXTURE_2D);
 
-        glActiveTexture(GL_TEXTURE1);
-        od->bindNormalTexture();
-        glGenerateMipmap(GL_TEXTURE_2D);
+        //glActiveTexture(GL_TEXTURE1);
+        //od->bindNormalTexture();
+        //glGenerateMipmap(GL_TEXTURE_2D);
 
-        glActiveTexture(GL_TEXTURE2);
-        od->bindAlphaTexture();
-        glGenerateMipmap(GL_TEXTURE_2D);
+        //glActiveTexture(GL_TEXTURE2);
+        //od->bindAlphaTexture();
+        //glGenerateMipmap(GL_TEXTURE_2D);
 
         // Draw the fiber
         glPatchParameteri(GL_PATCH_VERTICES, 4);
         glDrawElements(d->drawMode(), od->elemCount(), GL_UNSIGNED_INT, 0);
+
+        //glDisableVertexAttribArray(POS_VAO_ID);
+        //glDisableVertexAttribArray(NORM_VAO_ID);
+        //glDisableVertexAttribArray(DIST_VAO_ID);
     }
     else
     {

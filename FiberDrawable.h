@@ -39,7 +39,7 @@ protected:
 
     // NOTE: may not need to store these in the class. Will be kept in the buffer.
     std::vector<float> m_points;
-    std::vector<int> m_indices;
+    std::vector<GLuint> m_indices;
 
     const Fiber& m_fiber;
 
