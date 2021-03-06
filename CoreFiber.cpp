@@ -36,7 +36,15 @@ void CoreFiber::create()
 	m_indices.clear();
 
 	generateFrameBuffers();
+	generateTextures();
 	initFrameBuffers();
+}
+
+void CoreFiber::generateTextures()
+{
+	glGenTextures(1, &heightTexture);
+	glGenTextures(1, &normalTexture);
+	glGenTextures(1, &alphaTexture);
 }
 
 void CoreFiber::generateFrameBuffers()

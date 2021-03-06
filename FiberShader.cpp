@@ -1,6 +1,8 @@
 #include "FiberShader.h"
 #include "CoreFiber.h"
-#include "OrdinaryFiber.h"
+#include "OrdinaryFiber.h"+
+
+#include <stdexcept>
 
 FiberShader::FiberShader(
     const char* vertexPath,
@@ -183,9 +185,6 @@ void FiberShader::draw(Drawable *d, int texSlot)
                 fiberType.CORE_HEIGHT,
                 GL_COLOR_BUFFER_BIT, GL_LINEAR);
         }
-        glDisableVertexAttribArray(POS_VAO_ID);
-        glDisableVertexAttribArray(NORM_VAO_ID);
-        glDisableVertexAttribArray(DIST_VAO_ID);
     }
     else if (od != nullptr)
     {
@@ -196,7 +195,7 @@ void FiberShader::draw(Drawable *d, int texSlot)
 
         // Set the Vertex Attrib Pointers
         if (!od->bindVAO())
-            std::runtime_error("Error binding VAO.");
+            throw std::runtime_error("Error binding VAO.");
 
         // Configure the Framebuffer and viewport
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -204,26 +203,22 @@ void FiberShader::draw(Drawable *d, int texSlot)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glViewport(0, 0, fiberType.SCR_WIDTH, fiberType.SCR_HEIGHT);
 
-        //// Activate the textures
-        //glActiveTexture(GL_TEXTURE0);
-        //od->bindHeightTexture();
-        //glGenerateMipmap(GL_TEXTURE_2D);
+        // Activate the textures
+        glActiveTexture(GL_TEXTURE0);
+        od->bindHeightTexture();
+        glGenerateMipmap(GL_TEXTURE_2D);
 
-        //glActiveTexture(GL_TEXTURE1);
-        //od->bindNormalTexture();
-        //glGenerateMipmap(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE1);
+        od->bindNormalTexture();
+        glGenerateMipmap(GL_TEXTURE_2D);
 
-        //glActiveTexture(GL_TEXTURE2);
-        //od->bindAlphaTexture();
-        //glGenerateMipmap(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE2);
+        od->bindAlphaTexture();
+        glGenerateMipmap(GL_TEXTURE_2D);
 
         // Draw the fiber
         glPatchParameteri(GL_PATCH_VERTICES, 4);
         glDrawElements(d->drawMode(), od->elemCount(), GL_UNSIGNED_INT, 0);
-
-        //glDisableVertexAttribArray(POS_VAO_ID);
-        //glDisableVertexAttribArray(NORM_VAO_ID);
-        //glDisableVertexAttribArray(DIST_VAO_ID);
     }
     else
     {

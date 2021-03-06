@@ -9,7 +9,9 @@ public:
 
 	void create();
 
+	void generateTextures();
 	void generateFrameBuffers();
+
 	void initFrameBuffers();
 
 	bool bindInterFrameBuffer();

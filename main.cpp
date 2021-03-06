@@ -141,17 +141,17 @@ int main()
     float timeValue = glfwGetTime();
 
     // Create Core Fiber
-    //CoreFiber coreFiber = CoreFiber(fiber);
-    //coreFiber.create();
+    CoreFiber coreFiber = CoreFiber(fiber);
+    coreFiber.create();
 
     // Create Ordinary Fiber
     OrdinaryFiber ordinaryFiber = OrdinaryFiber(fiber);
     ordinaryFiber.create();
 
     // Set the textures of CoreFiber into OrdinaryFiber
-    //ordinaryFiber.setHeightTexture(coreFiber.getHeightTexture());
-    //ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
-    //ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
+    ordinaryFiber.setHeightTexture(coreFiber.getHeightTexture());
+    ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
+    ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
 
     glfwSetWindowSize(window, 2400, 2400);
 
@@ -190,14 +190,14 @@ int main()
 
         // Update uniform variables defining the camera properties
         // -------------------------------------------------------
-        //coreShader.use();
-        //coreShader.setMat4("model", model);
-        //coreShader.setMat4("view", view);
-        //coreShader.setMat4("projection", projection);
-        //coreShader.setVec3("camera_pos", camera.Position);
-        //coreShader.setVec3("view_dir", camera.Front);
-        fiberShader.use();
+        coreShader.use();
+        coreShader.setMat4("model", model);
+        coreShader.setMat4("view", view);
+        coreShader.setMat4("projection", projection);
+        coreShader.setVec3("camera_pos", camera.Position);
+        coreShader.setVec3("view_dir", camera.Front);
 
+        fiberShader.use();
         fiberShader.setMat4("model", model);
         fiberShader.setMat4("view", view);
         fiberShader.setMat4("projection", projection);
@@ -211,7 +211,7 @@ int main()
 
         // render Fiber
         // ------------
-        //coreShader.draw(&coreFiber, -1);
+        coreShader.draw(&coreFiber, -1);
         fiberShader.draw(&ordinaryFiber, -1);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
