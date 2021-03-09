@@ -4,10 +4,13 @@ Shader::Shader()
 {}
 
 Shader::Shader(const char* vertexPath,
-               const char* fragmentPath,
-               const char* geometryPath,
-               const char* tessellationControlPath,
-               const char* tessellationEvalPath)
+    const char* fragmentPath,
+    const char* geometryPath,
+    const char* tessellationControlPath,
+    const char* tessellationEvalPath)
+    : ID(0), unifSampler2D(-1), unifTime(-1), unifModel(-1),
+    unifModelInvTr(-1), unifViewProj(-1), unifCam(-1), attrPos(-1),
+    attrNor(-1), attrUV(-1), attrCol(-1)
 {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
@@ -138,6 +141,7 @@ Shader::Shader(const char* vertexPath,
     attrPos = glGetAttribLocation(ID, "vs_Pos");
     attrNor = glGetAttribLocation(ID, "vs_Nor");
     attrUV = glGetAttribLocation(ID, "vs_UV");
+    attrCol = glGetAttribLocation(ID, "vs_Col");
 
     unifSampler2D = glGetUniformLocation(ID, "u_Texture");
     unifTime = glGetUniformLocation(ID, "u_Time");
@@ -236,12 +240,18 @@ void Shader::draw(Drawable* d, int texSlot)
         glVertexAttribPointer(attrUV, 2, GL_FLOAT, false, 0, NULL);
     }
 
+    if (attrCol != -1 && d->bindCol()) {
+        glEnableVertexAttribArray(attrCol);
+        glVertexAttribPointer(attrCol, 3, GL_FLOAT, false, 0, NULL);
+    }
+
     d->bindIdx();
     glDrawElements(d->drawMode(), d->elemCount(), GL_UNSIGNED_INT, 0);
 
     if (attrPos != -1) glDisableVertexAttribArray(attrPos);
     if (attrNor != -1) glDisableVertexAttribArray(attrNor);
     if (attrUV != -1) glDisableVertexAttribArray(attrUV);
+    if (attrCol != -1) glDisableVertexAttribArray(attrCol);
 }
 
 void Shader::setTime(int t)

@@ -11,6 +11,7 @@ protected:
     GLuint bufPos;
     GLuint bufNor;
     GLuint bufUV;
+    GLuint bufCol;
 
     GLenum currDrawMode;
 
@@ -18,6 +19,7 @@ protected:
     bool posBound;
     bool norBound;
     bool uvBound;
+    bool colBound;
 
 public:
     Drawable();
@@ -33,9 +35,11 @@ public:
     void generatePos();
     void generateNor();
     void generateUV();
+    void generateCol();
 
     bool bindIdx();
     bool bindPos();
     bool bindNor();
     bool bindUV();
+    bool bindCol();
 };

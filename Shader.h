@@ -18,9 +18,9 @@ public:
     Shader();
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
-    Shader(const char* vertexPath, 
-        const char* fragmentPath, 
-        const char* geometryPath = nullptr, 
+    Shader(const char* vertexPath,
+        const char* fragmentPath,
+        const char* geometryPath = nullptr,
         const char* tessellationControlPath = nullptr,
         const char* tessellationEvalPath = nullptr);
     // activate the shader
@@ -49,7 +49,7 @@ public:
     // ------------------------------------------------------------------------
     void setMat4(const std::string& name, const glm::mat4& mat) const;
 
-    virtual void draw(Drawable* d, int texSlot);
+    virtual void draw(Drawable* d, int texSlot = 0);
 
     void setTime(int t);
 
