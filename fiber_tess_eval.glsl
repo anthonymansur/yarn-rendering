@@ -3,6 +3,8 @@
 #define e 2.718281746F
 #define EPSILON 0.0001F
 
+// TODO: change hardcoded 64
+
 layout (isolines) in; // patch type: isolines
 
 // input to and output of shader

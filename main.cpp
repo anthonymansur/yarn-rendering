@@ -14,6 +14,7 @@
 #include "Shader.h"
 #include "FiberShader.h"
 #include "Camera.h"
+#include "SphericalCamera.h"
 #include "Fiber.h"
 #include "CoreFiber.h"
 #include "OrdinaryFiber.h"
@@ -29,9 +30,14 @@ bool firstMouse;
 bool moveCamera;
 GLFWwindow* window;
 Camera camera;
+SphericalCamera scam;
 
 // glfw callbacks
 // --------------
+void mouseClicked(GLFWwindow* window, int button, int action, int mods);
+void mouseMoved(GLFWwindow* window, double xpos, double ypos);
+void mouseScrolled(GLFWwindow* window, double xoffset, double yoffset);
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -79,8 +85,9 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+	glfwSetMouseButtonCallback(window, mouseClicked);
+	glfwSetCursorPosCallback(window, mouseMoved);
+	glfwSetScrollCallback(window, mouseScrolled);
     glfwSetKeyCallback(window, key_callback);
 
     glfwSetErrorCallback(onGLError);
@@ -127,6 +134,15 @@ int main()
     // Initialize Camera
     // -----------------
     camera = Camera(glm::vec3(0.0f, 0.f, 2.f));
+    scam = SphericalCamera(
+        2400, 
+        2400, 
+        glm::vec4(0, 0, 1, 1), 
+        glm::vec4(0, 0, 0, 1), 
+        glm::vec4(0, 1, 0, 0)
+    ); // It's a scam!
+    scam.near_clip = 0.001f;
+//    scam.zoom = 1.f;
 
     // Initialize Shaders
     // ------------------
@@ -184,9 +200,8 @@ int main()
         // TODO: change model so that world coordinate system is standardized.
         //glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.366114f / 4.f, 0, 0));
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom),
-            (float)2400 / (float)2400, 0.01f, 10.0f);
+        glm::mat4 view = scam.getView();
+        glm::mat4 projection = scam.getProj();
 
         // Update uniform variables defining the camera properties
         // -------------------------------------------------------
@@ -194,15 +209,15 @@ int main()
         coreShader.setMat4("model", model);
         coreShader.setMat4("view", view);
         coreShader.setMat4("projection", projection);
-        coreShader.setVec3("camera_pos", camera.Position);
-        coreShader.setVec3("view_dir", camera.Front);
+        coreShader.setVec3("camera_pos", scam.eye);
+        coreShader.setVec3("view_dir", scam.ref);
 
         fiberShader.use();
-        fiberShader.setMat4("model", model);
+        fiberShader.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0.f, 0.f)));
         fiberShader.setMat4("view", view);
         fiberShader.setMat4("projection", projection);
-        fiberShader.setVec3("camera_pos", camera.Position);
-        fiberShader.setVec3("view_dir", camera.Front);
+        fiberShader.setVec3("camera_pos", scam.eye);
+        fiberShader.setVec3("view_dir", scam.ref);
 
         // resize GL
         // ---------
@@ -300,4 +315,63 @@ void processInput()
         camera.ProcessKeyboard(DOWN, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         camera.ProcessKeyboard(UP, deltaTime);
+}
+
+// Control camera by mouse click
+glm::vec2 left_mouse_last_drag;
+glm::vec2 curr_mouse_pos;
+bool dragging = false;
+void mouseClicked(GLFWwindow* window, int button, int action, int mods)
+{
+    double xpos, ypos;
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        glfwGetCursorPos(window, &xpos, &ypos);
+        dragging = true;
+        left_mouse_last_drag = glm::vec2(xpos, ypos);
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+    {
+        glfwGetCursorPos(window, &xpos, &ypos);
+        dragging = false;
+    }
+}
+void mouseMoved(GLFWwindow* window, double xpos, double ypos)
+{
+    curr_mouse_pos = glm::vec2(xpos, ypos);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    if (dragging)
+    {
+        glm::vec2 curr(xpos, ypos);
+        glm::vec2 dragged = left_mouse_last_drag - curr;
+        left_mouse_last_drag = curr;
+        SphericalCamera* targetCam = nullptr;
+        // Main panel drag
+        if (left_mouse_last_drag.x <= 2400)
+        {
+            targetCam = &scam;
+        }
+
+        // Camera has been selected, rotate it
+        if (targetCam != nullptr)
+        {
+            dragged /= glm::vec2(2400, 2400);
+            targetCam->RotateYAboutPoint(dragged.x * 5);
+            targetCam->RotateXAboutPoint(dragged.y * 5);
+        }
+    }
+}
+void mouseScrolled(GLFWwindow* window, double xoffset, double yoffset)
+{
+    SphericalCamera* targetCam = nullptr;
+    // Main panel
+    if (curr_mouse_pos.x <= 2400)
+    {
+        targetCam = &scam;
+    }
+    // Zoom
+    if (targetCam != nullptr)
+    {
+        targetCam->ZoomToPoint(-yoffset / 2.f);
+    }
 }

@@ -162,6 +162,7 @@
     <ClCompile Include="OrdinaryFiber.cpp" />
     <ClCompile Include="Pattern.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="SphericalCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -182,6 +183,7 @@
     <ClInclude Include="OrdinaryFiber.h" />
     <ClInclude Include="Pattern.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="SphericalCamera.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
