@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Resource Files\glsl">
-      <UniqueIdentifier>{49434a5e-6dbb-48f6-9597-0ba9d55a57e8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\images">
       <UniqueIdentifier>{fdfe594f-d978-4a11-93dd-4dc81bcb3950}</UniqueIdentifier>
     </Filter>
@@ -36,6 +33,9 @@
     </Filter>
     <Filter Include="Header Files\Simulation">
       <UniqueIdentifier>{39c718fa-82e0-4048-b23d-2224d66a3a48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\glsl">
+      <UniqueIdentifier>{49434a5e-6dbb-48f6-9597-0ba9d55a57e8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +100,9 @@
       <Filter>Source Files\Simulation</Filter>
     </ClCompile>
     <ClCompile Include="DepthShader.cpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
@@ -173,6 +176,9 @@
     <ClInclude Include="DepthShader.h">
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="core_fragment.glsl">
@@ -212,6 +218,12 @@
       <Filter>Resource Files\glsl</Filter>
     </None>
     <None Include="depth_fragment.glsl">
+      <Filter>Resource Files\glsl</Filter>
+    </None>
+    <None Include="lightcube_vertex.glsl">
+      <Filter>Resource Files\glsl</Filter>
+    </None>
+    <None Include="lightcube_fragment.glsl">
       <Filter>Resource Files\glsl</Filter>
     </None>
   </ItemGroup>

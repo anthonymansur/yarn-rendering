@@ -254,6 +254,25 @@ void Shader::draw(Drawable* d, int texSlot)
     if (attrCol != -1) glDisableVertexAttribArray(attrCol);
 }
 
+void Shader::draw(InterleavedDrawable* d, int texSlot)
+{
+    use();
+
+    if (unifSampler2D != -1)
+    {
+        glUniform1i(unifSampler2D, texSlot);
+    }
+
+    if (d->bindVAO())
+    {
+        glDrawArrays(d->drawMode(), 0, d->elemCount());
+    }
+    else
+    {
+        throw std::runtime_error("Could not bind to VAO.");
+    }
+}
+
 void Shader::setTime(int t)
 {
     use();

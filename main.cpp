@@ -779,6 +779,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 #include "CoreFiber.h"
 #include "OrdinaryFiber.h"
 #include "Pattern.h"
+#include "Light.h"
 
 // global variables
 // ----------------
@@ -904,16 +905,21 @@ int main()
     scam.near_clip = 0.001f;
 //    scam.zoom = 1.f;
 
-	// Initialize Light
-	// ----------------
-	glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
 
     // Initialize Shaders
     // ------------------
     FiberShader coreShader = FiberShader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
     FiberShader fiberShader = FiberShader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
 	DepthShader depthShader = DepthShader("fiber_vertex.glsl", "depth_fragment.glsl", "depth_geometry.glsl", "fiber_tess_control.glsl", "depth_tess_eval.glsl");
-    // Fiber
+	Shader lightCubeShader = Shader("lightcube_vertex.glsl", "lightcube_fragment.glsl");
+
+	// Initialize Light
+	// ----------------
+	glm::vec3 lightPos(1.0f, 2.0f, 2.0f);
+	Light light(lightPos);
+	light.create();
+
+	// Fiber
     // -----
     // Set Fiber-specific variables
     FIBER_TYPE fiberType = COTTON1;
@@ -976,6 +982,14 @@ int main()
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f)); // TODO: change values
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+		// update uniform variables
+		lightCubeShader.use();
+		glm::mat4 lightModel = glm::mat4(1.0f);
+		lightModel = glm::translate(lightModel, lightPos);
+		lightModel = glm::scale(lightModel, glm::vec3(0.2f));
+		lightCubeShader.setMat4("model", lightModel);
+		lightCubeShader.setMat4("view", view);
+		lightCubeShader.setMat4("projection", projection);
 		
         // Update uniform variables defining the camera properties
         // -------------------------------------------------------
@@ -1008,6 +1022,17 @@ int main()
         coreShader.draw(&coreFiber, -1);
 		depthShader.draw(&ordinaryFiber, -1);
         fiberShader.draw(&ordinaryFiber, -1);
+
+		// render Light
+		// ------------
+		//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glBindVertexArray(1);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		lightCubeShader.draw(&light, -1);
+
+		// render ImGui
+		// ------------
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

@@ -17,7 +17,7 @@ void Drawable::destroy()
 
 GLenum Drawable::drawMode()
 {
-    return currDrawMode; //GL_LINES;
+    return currDrawMode;
 }
 
 int Drawable::elemCount()

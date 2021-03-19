@@ -160,6 +160,7 @@
     <ClCompile Include="imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="OrdinaryFiber.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="OrdinaryFiber.h" />
     <ClInclude Include="Pattern.h" />
@@ -205,6 +207,8 @@
     <None Include="fiber_tess_control.glsl" />
     <None Include="fiber_tess_eval.glsl" />
     <None Include="fiber_vertex.glsl" />
+    <None Include="lightcube_fragment.glsl" />
+    <None Include="lightcube_vertex.glsl" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>

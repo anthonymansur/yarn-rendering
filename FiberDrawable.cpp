@@ -52,16 +52,11 @@ void FiberDrawable::addStrands(const std::vector<Strand>& strands)
 
 void FiberDrawable::create()
 {
-	std::cout << "Finished adding control points" << std::endl;
-
 	count = m_indices.size(); 
 
 	generateVAO();
-	std::cout << "Generating VAO: " + m_vao << std::endl;
 	generateVBO();
-	std::cout << "Generating VBO: " + bufVBO << std::endl;
 	generateIdx();
-	std::cout << "Generating Idx: " + bufIdx << std::endl;
 
 	if (!bindVAO())
 		throw std::runtime_error("Cannot bind to VAO that doesn't exist.");
