@@ -16,7 +16,12 @@ enum RENDER {
     LIVE
 };
 
-OrdinaryFiber::OrdinaryFiber(const Fiber& fiber) : FiberDrawable::FiberDrawable(fiber)
+OrdinaryFiber::OrdinaryFiber(const Fiber& fiber) : 
+    SHADOW_WIDTH(1024),
+    SHADOW_HEIGHT(1024),
+    fbBound(-1),
+    depthTextureBound(-1),
+    FiberDrawable::FiberDrawable(fiber)
 {}
 
 OrdinaryFiber::~OrdinaryFiber()
@@ -29,7 +34,7 @@ void OrdinaryFiber::create()
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
 
-    RENDER render = TEST0;
+    RENDER render = TEST6;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
 
@@ -140,6 +145,33 @@ void OrdinaryFiber::create()
     m_indices.clear();
 }
 
+void OrdinaryFiber::generateDepthMap()
+{
+    // Create framebuffer object for rendering the depth map
+    glGenFramebuffers(1, &depthMapFBO);
+
+    // create 2D texture for framebuffer's depth buffer
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+        SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    depthTextureBound = true;
+
+    // attach generated depth texture to framebuffer's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE); // No color buffer needed
+    glReadBuffer(GL_NONE); // No color buffer needed
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    fbBound = true;
+}
+
 void OrdinaryFiber::setHeightTexture(GLuint i)
 {
 	heightTexBound = true;
@@ -156,6 +188,13 @@ void OrdinaryFiber::setAlphaTexture(GLuint i)
 {
 	alphaTexBound = true;
 	alphaTexture = i;
+}
+
+bool OrdinaryFiber::bindDepthMap()
+{
+    if (fbBound && depthTextureBound)
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    return fbBound && depthTextureBound;
 }
 
 void OrdinaryFiber::bindHeightTexture()

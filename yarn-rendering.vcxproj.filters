@@ -99,6 +99,9 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Source Files\Simulation</Filter>
     </ClCompile>
+    <ClCompile Include="DepthShader.cpp">
+      <Filter>Source Files\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -167,6 +170,9 @@
     <ClInclude Include="Mesh.h">
       <Filter>Header Files\Simulation</Filter>
     </ClInclude>
+    <ClInclude Include="DepthShader.h">
+      <Filter>Header Files\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="core_fragment.glsl">
@@ -198,6 +204,15 @@
     </None>
     <None Include="README.md">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="depth_tess_eval.glsl">
+      <Filter>Resource Files\glsl</Filter>
+    </None>
+    <None Include="depth_geometry.glsl">
+      <Filter>Resource Files\glsl</Filter>
+    </None>
+    <None Include="depth_fragment.glsl">
+      <Filter>Resource Files\glsl</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

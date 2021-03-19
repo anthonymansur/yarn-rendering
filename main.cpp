@@ -772,6 +772,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 #include "Shader.h"
 #include "FiberShader.h"
+#include "DepthShader.h"
 #include "Camera.h"
 #include "SphericalCamera.h"
 #include "Fiber.h"
@@ -903,11 +904,15 @@ int main()
     scam.near_clip = 0.001f;
 //    scam.zoom = 1.f;
 
+	// Initialize Light
+	// ----------------
+	glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+
     // Initialize Shaders
     // ------------------
     FiberShader coreShader = FiberShader("fiber_vertex.glsl", "core_fragment.glsl", "core_geometry.glsl", "core_tess_control.glsl", "core_tess_eval.glsl");
     FiberShader fiberShader = FiberShader("fiber_vertex.glsl", "fiber_fragment.glsl", "fiber_geometry.glsl", "fiber_tess_control.glsl", "fiber_tess_eval.glsl");
-
+	DepthShader depthShader = DepthShader("fiber_vertex.glsl", "depth_fragment.glsl", "depth_geometry.glsl", "fiber_tess_control.glsl", "depth_tess_eval.glsl");
     // Fiber
     // -----
     // Set Fiber-specific variables
@@ -962,6 +967,16 @@ int main()
         glm::mat4 view = scam.getView();
         glm::mat4 projection = scam.getProj();
 
+		// Light
+		// -----
+		// get light space transform
+		float near_plane = 1.0f, far_plane = 7.5f; // TODO: change values
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane); // TODO: change values
+		glm::mat4 lightView = glm::lookAt(lightPos,
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)); // TODO: change values
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+		
         // Update uniform variables defining the camera properties
         // -------------------------------------------------------
         coreShader.use();
@@ -969,14 +984,19 @@ int main()
         coreShader.setMat4("view", view);
         coreShader.setMat4("projection", projection);
         coreShader.setVec3("camera_pos", scam.eye);
-        coreShader.setVec3("view_dir", scam.ref);
+        coreShader.setVec3("view_dir", scam.look);
 
         fiberShader.use();
         fiberShader.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0.f, 0.f)));
         fiberShader.setMat4("view", view);
         fiberShader.setMat4("projection", projection);
         fiberShader.setVec3("camera_pos", scam.eye);
-        fiberShader.setVec3("view_dir", scam.ref);
+        fiberShader.setVec3("view_dir", scam.look);
+		fiberShader.setVec3("light_pos", lightPos);
+
+		depthShader.use();
+		depthShader.setMat4("light_transform", lightSpaceMatrix);
+		depthShader.setVec3("light_pos", lightPos);
 
         // resize GL
         // ---------
@@ -986,6 +1006,7 @@ int main()
         // render Fiber
         // ------------
         coreShader.draw(&coreFiber, -1);
+		depthShader.draw(&ordinaryFiber, -1);
         fiberShader.draw(&ordinaryFiber, -1);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

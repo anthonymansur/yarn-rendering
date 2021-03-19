@@ -9,12 +9,21 @@ public:
 
 	void create();
 
+	void generateDepthMap();
+
 	void setHeightTexture(GLuint);
 	void setNormalTexture(GLuint);
 	void setAlphaTexture(GLuint);
 
+	bool bindDepthMap();
 	void bindHeightTexture();
 	void bindNormalTexture();
 	void bindAlphaTexture();
 
+	const unsigned int SHADOW_WIDTH, SHADOW_HEIGHT;
+
+private:
+	GLuint depthMapFBO;
+	GLuint depthMap;
+	bool fbBound, depthTextureBound;
 };

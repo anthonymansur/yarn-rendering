@@ -25,7 +25,6 @@ out vec2 geo_texCoords;
 out float disable;
 out float tes_scaleFactor;
 
-uniform vec3 view_dir;
 uniform float u_time;
 
 // Fiber pre-defined parameters
@@ -264,7 +263,7 @@ void main()
 			disable = 0.f;
 			geo_normal = normalize(fiber_center - yarn_center).xyz;
 			//geo_normal = isHair ? position >= theta_min && position < (theta_min + theta_span) ? vec3(1, 1, 0) : vec3(1, 0, 0) : isLoop ? vec3(0, 1, 0) : vec3(0, 0, 1); // DEBUG
-			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha) + acos(dot(view_dir, normal.xyz)) / 2.f); // u coord
+			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha)  / 2.f); // u coord
 			geo_texCoords[1] = 0; // will be set by geometry shader
 		}
 		if (i == 2)

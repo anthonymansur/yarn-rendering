@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClCompile Include="..\opengl-imports\glad.c" />
     <ClCompile Include="CoreFiber.cpp" />
+    <ClCompile Include="DepthShader.cpp" />
     <ClCompile Include="drawable.cpp" />
     <ClCompile Include="Fabric.cpp" />
     <ClCompile Include="Fiber.cpp" />
@@ -169,6 +170,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CoreFiber.h" />
+    <ClInclude Include="DepthShader.h" />
     <ClInclude Include="drawable.h" />
     <ClInclude Include="Fabric.h" />
     <ClInclude Include="Fiber.h" />
@@ -195,6 +197,9 @@
     <None Include="core_geometry.glsl" />
     <None Include="core_tess_control.glsl" />
     <None Include="core_tess_eval.glsl" />
+    <None Include="depth_fragment.glsl" />
+    <None Include="depth_geometry.glsl" />
+    <None Include="depth_tess_eval.glsl" />
     <None Include="fiber_fragment.glsl" />
     <None Include="fiber_geometry.glsl" />
     <None Include="fiber_tess_control.glsl" />

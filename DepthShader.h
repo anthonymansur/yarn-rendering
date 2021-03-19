@@ -1,18 +1,17 @@
 #pragma once
-#include "Shader.h"
-#include "Fiber.h"
+#include "FiberShader.h"
 
-class FiberShader : public Shader
+// TODO: make fiberShader an abstract class where DepthShader can inherit from
+
+class DepthShader : public FiberShader
 {
 public:
-    FiberShader(
+    DepthShader(
         const char* vertexPath,
         const char* fragmentPath,
         const char* geometryPath = nullptr,
         const char* tessellationControlPath = nullptr,
         const char* tessellationEvalPath = nullptr);
 
-    virtual void draw(Drawable* d, int texSlot = 0);
-
-    void setFiberParameters(const Fiber& fiberType);
+    void draw(Drawable* d, int texSlot = 0);
 };
