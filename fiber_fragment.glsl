@@ -83,7 +83,7 @@ void main()
     vec3 lighting = (ambient + (1.f - shadow) * (diffuse + specular)) * color;
 
     out_color = vec4(lighting, length(lighting) < .1 ? 0 : fs_disable > 0.5 ? 0 : alpha);  
-    // out_color = vec4(shadow, shadow, shadow, 1.f); // debug
+    //out_color = vec4(shadow, shadow, shadow, 1.f); // debug
 
     //out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
 

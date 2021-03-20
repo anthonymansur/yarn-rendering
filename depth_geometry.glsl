@@ -10,9 +10,7 @@ uniform float u_r_max;
 
 // other uniforms
 uniform vec3 light_pos;
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 light_transform;
 
 in float[] isCore;
 in float[] disable;
@@ -49,7 +47,7 @@ vec3 slerp(vec3 p0, vec3 p1, float t); // DISABLED DUE TO FADING BUG
 // thickens the isolines
 void main()
 {
-    mat4 MVP = projection * view * model;
+    mat4 MVP = light_transform;
     float zoomFactor = .125f;
     float yarn_radius = u_yarn_radius / 2.f;
     float lineHeight = u_yarn_radius;
