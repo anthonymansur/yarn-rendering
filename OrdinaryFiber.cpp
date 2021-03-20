@@ -13,14 +13,15 @@ enum RENDER {
     TEST5,
     TEST6,
     TEST7,
+    TEST8,
     LIVE
 };
 
 OrdinaryFiber::OrdinaryFiber(const Fiber& fiber) : 
     SHADOW_WIDTH(1024),
     SHADOW_HEIGHT(1024),
-    fbBound(-1),
-    depthTextureBound(-1),
+    fbBound(false),
+    depthTextureBound(false),
     FiberDrawable::FiberDrawable(fiber)
 {}
 
@@ -34,7 +35,7 @@ void OrdinaryFiber::create()
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
 
-    RENDER render = TEST6;
+    RENDER render = TEST8;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
 
@@ -135,10 +136,28 @@ void OrdinaryFiber::create()
         addStrands(strands);
     }
     break;
+    case TEST8:
+    {
+        // Basic weave pattern
+        // TODO: make fiber_center = yarn_center in fiber_tess_eval.glsl
+        // TODO: remove texture effect from fiber_fragment.glsl
+        // TODO: make line height equal to yarn_radius * 2 in fiber_gemoetry.glsl
+        // STATUS: passed
+        Pattern pattern = Pattern(m_fiber);
+        strands = pattern.getBasicWeave(10);
+        addStrands(strands);
+
+        pattern.updatePosition(glm::vec3(-0.1, -0.5, -0.5));
+        strands = pattern.getBasicWeave(10);
+        addStrands(strands);
+    }
     }
 
     // Store the control points in Vertex Buffer Object
     FiberDrawable::create();
+
+    // Depth Map
+    generateDepthMap();
 
     // Clear std::vectors no longer needed
     m_points.clear();
@@ -219,3 +238,10 @@ void OrdinaryFiber::bindAlphaTexture()
 		throw std::runtime_error("No alpha texture to bind to.");
 }
 
+void OrdinaryFiber::bindDepthTexture()
+{
+    if (depthTextureBound)
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+    else
+        throw std::runtime_error("No depth texture to bind to.");
+}

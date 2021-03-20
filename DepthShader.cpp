@@ -33,7 +33,8 @@ void DepthShader::draw(Drawable* d, int texSlot)
     // Render to depth map
     // -------------------
     glViewport(0, 0, od->SHADOW_WIDTH, od->SHADOW_HEIGHT);
-    od->bindDepthMap();
+    if (!od->bindDepthMap())
+        throw std::runtime_error("Error binding Depth map.");
     glClear(GL_DEPTH_BUFFER_BIT);
     // Draw the fiber
     glPatchParameteri(GL_PATCH_VERTICES, 4);

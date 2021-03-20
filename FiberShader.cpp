@@ -216,6 +216,10 @@ void FiberShader::draw(Drawable *d, int texSlot)
         od->bindAlphaTexture();
         glGenerateMipmap(GL_TEXTURE_2D);
 
+        glActiveTexture(GL_TEXTURE3);
+        od->bindDepthTexture();
+        glGenerateMipmap(GL_TEXTURE_2D);
+
         // Draw the fiber
         glPatchParameteri(GL_PATCH_VERTICES, 4);
         glDrawElements(d->drawMode(), od->elemCount(), GL_UNSIGNED_INT, 0);
@@ -231,6 +235,7 @@ void FiberShader::setFiberParameters(const Fiber& m_fiberType)
     setInt("u_heightTexture", 0);
     setInt("u_normalTexture", 1);
     setInt("u_alphaTexture", 2);
+    setInt("u_shadowMap", 3);
 
     if (m_fiberType.fiberType == COTTON1 || m_fiberType.fiberType == COTTON2)
     {

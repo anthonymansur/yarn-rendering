@@ -1007,6 +1007,7 @@ int main()
         fiberShader.setVec3("camera_pos", scam.eye);
         fiberShader.setVec3("view_dir", scam.look);
 		fiberShader.setVec3("light_pos", lightPos);
+		fiberShader.setMat4("light_transform", lightSpaceMatrix);
 
 		depthShader.use();
 		depthShader.setMat4("light_transform", lightSpaceMatrix);

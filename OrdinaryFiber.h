@@ -19,6 +19,7 @@ public:
 	void bindHeightTexture();
 	void bindNormalTexture();
 	void bindAlphaTexture();
+	void bindDepthTexture();
 
 	const unsigned int SHADOW_WIDTH, SHADOW_HEIGHT;
 
@@ -26,4 +27,5 @@ private:
 	GLuint depthMapFBO;
 	GLuint depthMap;
 	bool fbBound, depthTextureBound;
+	GLuint depthTexture;
 };

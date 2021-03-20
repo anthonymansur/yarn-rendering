@@ -7,9 +7,11 @@
 class Pattern
 {
 public:
-	Pattern(const Fiber& type);
+	Pattern(const Fiber& type, glm::vec3 posOffset = glm::vec3(0.f));
 	
 	std::vector<Strand> getBasicWeave(uint8_t size) const;
+
+	void updatePosition(glm::vec3 posOffset);
 
 	// for debugging purposes
 	std::vector<Strand> _getHorizontalStrand() const;
@@ -17,4 +19,6 @@ public:
 private:
 	const Fiber& type;
 	float yarnRadius;
+	mutable int indexOffset;
+	glm::vec3 posOffset;
 };

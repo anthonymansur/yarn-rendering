@@ -100,6 +100,8 @@ void main()
     float maxDistance = (u_yarn_radius / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
     float maxTransparency = 0.7f; 
 
+    //MVP = light_transform; // DEBUG
+
     gl_Position = MVP * vec4(start+startHeightDir, 1);
     fs_fragPos = model * vec4(start+startHeightDir, 1);
     fs_depthPos = light_transform * vec4(start+startHeightDir, 1);
