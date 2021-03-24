@@ -8,7 +8,7 @@ Pattern::Pattern(const Fiber& type, glm::vec3 posOffset) : type(type), yarnRadiu
 std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 {
 
-	float r = this->yarnRadius;
+	float r = this->yarnRadius * 2.f;
 	std::vector<Strand> strands;
 	int inx = indexOffset;
 	// horizontal control points

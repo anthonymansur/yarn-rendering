@@ -49,8 +49,8 @@ void main()
 {
     mat4 MVP = light_transform;
     float zoomFactor = .125f;
-    float yarn_radius = u_yarn_radius / 2.f;
-    float lineHeight = u_yarn_radius;
+    float yarn_diameter = u_yarn_radius * 2.f;
+    float lineHeight = yarn_diameter;
 
     // four control points
     vec3 prev = prevPosition[0];
@@ -86,7 +86,7 @@ void main()
     endHeightDir = 0.5f * lineHeight * normalize(endHeightDir) * sign(dot(endHeightDir, heightDir));
 
     // determine position, height, normal, and uv coordinates for each vertex
-    float maxDistance = (u_yarn_radius / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
+    float maxDistance = (yarn_diameter / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
     float maxTransparency = 0.7f; 
 
     gl_Position = MVP * vec4(start+startHeightDir, 1);

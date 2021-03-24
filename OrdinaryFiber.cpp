@@ -147,7 +147,7 @@ void OrdinaryFiber::create()
         strands = pattern.getBasicWeave(10);
         addStrands(strands);
 
-        pattern.updatePosition(glm::vec3(-0.1, -0.5, -0.5));
+        pattern.updatePosition(glm::vec3(-0.2, -1, -1));
         strands = pattern.getBasicWeave(10);
         addStrands(strands);
     }

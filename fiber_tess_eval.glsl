@@ -137,14 +137,14 @@ void main()
 		// Calculate the ply center and orientation given the yarn center
 		// --------------------------------------------------------------
 		// Calculate ply displacement
-		float ply_radius = u_yarn_radius / 2.f; 
+		float ply_diameter = u_yarn_radius; 
 		float ply_theta = (2*pi*(mod(v, u_ply_num))) / (u_ply_num * 1.0); // initial polar angle of i-th ply
 		vec4 ply_displacement = 
-			ply_radius * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); 
+			ply_diameter * (cos(ply_theta + theta) * normal + sin(ply_theta + theta) * bitangent); 
 
 		// Calculate ply orientation
 		// derivatives w.r.t. theta
-		vec3 deriv_ply_displacement = ply_radius * (-sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent).xyz;		
+		vec3 deriv_ply_displacement = ply_diameter * (-sin(ply_theta + theta) * normal + cos(ply_theta + theta) * bitangent).xyz;		
 		float uToTheta = ((theta * u_yarn_alpha) / (2 * pi) - tcs_dist[1]) / (tcs_dist[2] - tcs_dist[1]);
 		vec3 deriv_yarn_center = computeBezierDerivative(uToTheta, p_1, p0, p1, p2).xyz * (u_yarn_alpha / (2 * pi * (tcs_dist[2] - tcs_dist[1])));
 
