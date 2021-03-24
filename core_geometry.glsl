@@ -43,8 +43,8 @@ vec3 slerp(vec3 p0, vec3 p1, float t); // DISABLED DUE TO FADING BUG
 // thickens the isolines
 void main()
 {
-    float zoomFactor = .090f;
-    float yarn_radius = u_yarn_radius / 2.f;
+    float zoomFactor = 1.f;
+    float yarn_radius = u_yarn_radius;
     float lineHeight = 0.001;
 
     // four control points

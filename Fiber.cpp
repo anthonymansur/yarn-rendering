@@ -147,12 +147,12 @@ void Fiber::readFiberParameters(FIBER_TYPE type)
 	}
 
 	// TODO: you have to fix these values.
-	float fiberWidth = 2.f * (alpha / 2.f);
-	float fiberHeight = 2.f * ellipse_short * (2 / 3.f);
+	float fiberWidth = yarn_alpha;
+	float fiberHeight = ellipse_short;
 
 	SCR_WIDTH = 2400;
 	SCR_HEIGHT = 2400;// SCR_WIDTH* (fiberHeight / fiberWidth) * 4.f;
-	CORE_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth) * 4.f;
+	CORE_HEIGHT = SCR_WIDTH * (fiberHeight / fiberWidth);
 }
 
 

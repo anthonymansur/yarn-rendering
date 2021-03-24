@@ -896,8 +896,8 @@ int main()
     // -----------------
     camera = Camera(glm::vec3(0.0f, 0.f, 2.f));
     scam = SphericalCamera(
-        2400, 
-        2400, 
+        600, 
+        600, 
         glm::vec4(0, 0, 1, 1), 
         glm::vec4(0, 0, 0, 1), 
         glm::vec4(0, 1, 0, 0)
@@ -922,7 +922,7 @@ int main()
 	// Fiber
     // -----
     // Set Fiber-specific variables
-    FIBER_TYPE fiberType = COTTON1;
+    FIBER_TYPE fiberType = RAYON1;
     Fiber fiber = Fiber(fiberType);
     float timeValue = glfwGetTime();
 
@@ -939,7 +939,7 @@ int main()
     ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
     ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
 
-    glfwSetWindowSize(window, 2400, 2400);
+    glfwSetWindowSize(window, 600, 600);
 
     // render loop
     // -----------
@@ -969,7 +969,7 @@ int main()
         // update the mvp matrices
         // TODO: change model so that world coordinate system is standardized.
         //glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0, 0));
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.366114f / 4.f, 0, 0));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
         glm::mat4 view = scam.getView();
         glm::mat4 projection = scam.getProj();
 
@@ -1021,8 +1021,8 @@ int main()
         // render Fiber
         // ------------
         coreShader.draw(&coreFiber, -1);
-		depthShader.draw(&ordinaryFiber, -1);
-        fiberShader.draw(&ordinaryFiber, -1);
+		//depthShader.draw(&ordinaryFiber, -1);
+        //fiberShader.draw(&ordinaryFiber, -1);
 
 		// render Light
 		// ------------
@@ -1030,7 +1030,7 @@ int main()
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//glBindVertexArray(1);
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		lightCubeShader.draw(&light, -1);
+		//lightCubeShader.draw(&light, -1);
 
 		// render ImGui
 		// ------------

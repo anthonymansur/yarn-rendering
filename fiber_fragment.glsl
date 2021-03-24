@@ -39,7 +39,8 @@ void main()
     // Textures 
     // --------
     // map 0 to 1 to 0.388 to 0.611
-    vec2 texCoords = vec2(fs_texCoords[0], lerp(0.388f, 0.611f, fs_texCoords[1]));
+    //vec2 texCoords = vec2(fs_texCoords[0], lerp(0.388f, 0.611f, fs_texCoords[1]));
+    vec2 texCoords = vec2(fs_texCoords[0], fs_texCoords[1]);
     vec4 heightTex = texture(u_heightTexture, texCoords);
     vec4 normalTex = texture(u_normalTexture, texCoords);
     vec4 alphaTex = texture(u_alphaTexture, texCoords);

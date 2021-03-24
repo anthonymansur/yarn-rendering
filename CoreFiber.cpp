@@ -20,10 +20,10 @@ void CoreFiber::create()
 	// Create the Control Points
 	// TODO: verify proper core texture mapping
 	std::vector<ControlPoint> points;
-	points.push_back(ControlPoint{ glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
-	points.push_back(ControlPoint{ glm::vec3(0.01f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
-	points.push_back(ControlPoint{ glm::vec3(0.99f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
-	points.push_back(ControlPoint{ glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
+	points.push_back(ControlPoint{ glm::vec3(-1.f - 0.01f, -1.f + m_fiber.ellipse_short, 0.f), glm::vec3(0.f, 1.f, 0.f), 0 });
+	points.push_back(ControlPoint{ glm::vec3(-1.f, -1.f + m_fiber.ellipse_short, 0.f), glm::vec3(0.f, 1.f, 0.f), 1 });
+	points.push_back(ControlPoint{ glm::vec3(-1.f + m_fiber.yarn_alpha, -1.f + m_fiber.ellipse_short, 0.f), glm::vec3(0.f, 1.f, 0.f), 2 });
+	points.push_back(ControlPoint{ glm::vec3(-1.f + m_fiber.yarn_alpha + 0.01f, -1.f + m_fiber.ellipse_short, 0.f), glm::vec3(0.f, 1.f, 0.f), 3 });
 	for (const ControlPoint& point : points) {
 		addPoint(point, true);
 	}
@@ -127,9 +127,9 @@ void CoreFiber::initFrameBuffers()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	/*glActiveTexture(GL_TEXTURE3);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_3D, selfShadowTexture);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, m_fiber.getYarnRadius() * 2.f, m_fiber.getYarnRadius() * 2.f, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);*/
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, m_fiber.getYarnRadius() * 2.f, m_fiber.getYarnRadius() * 2.f, m_fiber.SCR_WIDTH, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	// attach it to currently bound framebuffer object
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightTexture, 0);

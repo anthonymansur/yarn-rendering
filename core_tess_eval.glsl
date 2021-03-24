@@ -95,7 +95,7 @@ void main()
 
 		// TODO: convert parametrization to cubic
 		float position = (1.f - u) * p0[0] + u * p1[0];
-		float theta = (4 * pi * position / u_yarn_alpha); // WARNING: currently linear
+		float theta = (2 * pi * position / u_yarn_alpha);
 
 		// Calculate the fiber center given the yarn center
 		// ------------------------------------------
@@ -116,7 +116,7 @@ void main()
 		float eb = u_ellipse_short;
 
 		// TODO: see why we have to multiply by 4 in order to look more visually appealing
-		theta = (4 * pi * position) / u_alpha; // update theta with ply pitch
+		theta = (2 * pi * position) / u_alpha; // update theta with ply pitch
 
 		if (u_use_migration == 1)
 		{
