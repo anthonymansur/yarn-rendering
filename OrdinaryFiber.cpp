@@ -35,7 +35,7 @@ void OrdinaryFiber::create()
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
 
-    RENDER render = TEST0;
+    RENDER render = TEST8;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
 

@@ -156,40 +156,39 @@ void FiberShader::draw(Drawable *d, int texSlot)
         cd->bindVAO();
 
         // Configure Intermediate FrameBuffer for multisampling
-        //cd->bindInterFrameBuffer();
-        float w = 600 * 4.f / (2.f * fiberType.yarn_alpha); // IDK why we need to multiply by 4 as opposed to 2.
-        double h = 600 * 2.f / (2 * fiberType.ellipse_short);
+        cd->bindInterFrameBuffer();
+        float w = 800 * 4.f / (2.f * fiberType.yarn_alpha); // IDK why we need to multiply by 4 as opposed to 2.
+        double h = 800 * 2.f / (2 * fiberType.ellipse_long);
         glViewport(0, 0, w, h);
         glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glPatchParameteri(GL_PATCH_VERTICES, 4);
-        glDrawElements(GL_PATCHES, cd->elemCount(), GL_UNSIGNED_INT, 0);
-        //glEnable(GL_DEPTH_TEST);
-        //glViewport(0, 0, fiberType.SCR_WIDTH, fiberType.CORE_HEIGHT);
-        //GLenum buffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-        //glDrawBuffers(3, buffers);
-
-        //// Draw Core Fiber render to Intermediate FrameBuffer
         //glPatchParameteri(GL_PATCH_VERTICES, 4);
-        //glDrawElements(d->drawMode(), cd->elemCount(), GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_PATCHES, cd->elemCount(), GL_UNSIGNED_INT, 0);
+        glEnable(GL_DEPTH_TEST);
+        GLenum buffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+        glDrawBuffers(3, buffers);
 
-        //// Blit multisampled buffer(s) from Intermediate FrameBuffer to Off-Rendered FrameBuffer
-        //cd->bindReadFrameBuffer();
-        //cd->bindDrawFrameBuffer();
-        //glBlitFramebuffer(0, 0, fiberType.SCR_WIDTH, fiberType.CORE_HEIGHT, 0, 0, fiberType.SCR_WIDTH, fiberType.CORE_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+        // Draw Core Fiber render to Intermediate FrameBuffer
+        glPatchParameteri(GL_PATCH_VERTICES, 4);
+        glDrawElements(d->drawMode(), cd->elemCount(), GL_UNSIGNED_INT, 0);
 
-        //for (int i = 0; i < 3; i++) {
-        //    glReadBuffer(buffers[i]);
-        //    glDrawBuffer(buffers[i]);
+        // Blit multisampled buffer(s) from Intermediate FrameBuffer to Off-Rendered FrameBuffer
+        cd->bindReadFrameBuffer();
+        cd->bindDrawFrameBuffer();
+        glBlitFramebuffer(0, 0, 800, 800, 0, 0, 800, 800, GL_DEPTH_BUFFER_BIT, GL_LINEAR);
 
-        //    glBlitFramebuffer(0, 0,
-        //        fiberType.SCR_WIDTH,
-        //        fiberType.CORE_HEIGHT,
-        //        0, 0,
-        //        fiberType.SCR_WIDTH,
-        //        fiberType.CORE_HEIGHT,
-        //        GL_COLOR_BUFFER_BIT, GL_LINEAR);
-        //}        
+        for (int i = 0; i < 3; i++) {
+            glReadBuffer(buffers[i]);
+            glDrawBuffer(buffers[i]);
+
+            glBlitFramebuffer(0, 0,
+                800,
+                800,
+                0, 0,
+                800,
+                800,
+                GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        }        
     }
     else if (od != nullptr)
     {
@@ -206,7 +205,7 @@ void FiberShader::draw(Drawable *d, int texSlot)
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, fiberType.SCR_WIDTH, fiberType.SCR_HEIGHT);
+        glViewport(0, 0, 2400, 2400);
 
         // Activate the textures
         glActiveTexture(GL_TEXTURE0);

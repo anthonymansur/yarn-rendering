@@ -896,8 +896,8 @@ int main()
     // -----------------
     camera = Camera(glm::vec3(0.0f, 0.f, 2.f));
     scam = SphericalCamera(
-        600, 
-        600, 
+        1200, 
+        1200, 
         glm::vec4(0, 0, 1, 1), 
         glm::vec4(0, 0, 0, 1), 
         glm::vec4(0, 1, 0, 0)
@@ -922,7 +922,7 @@ int main()
 	// Fiber
     // -----
     // Set Fiber-specific variables
-    FIBER_TYPE fiberType = RAYON1;
+    FIBER_TYPE fiberType = COTTON1;
     Fiber fiber = Fiber(fiberType);
     float timeValue = glfwGetTime();
 
@@ -939,7 +939,7 @@ int main()
     ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
     ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
 
-    glfwSetWindowSize(window, 600, 600);
+    glfwSetWindowSize(window, 2400, 2400);
 
     // render loop
     // -----------
@@ -1021,8 +1021,8 @@ int main()
         // render Fiber
         // ------------
         coreShader.draw(&coreFiber, -1);
-		//depthShader.draw(&ordinaryFiber, -1);
-        //fiberShader.draw(&ordinaryFiber, -1);
+		depthShader.draw(&ordinaryFiber, -1);
+        fiberShader.draw(&ordinaryFiber, -1);
 
 		// render Light
 		// ------------
@@ -1030,7 +1030,7 @@ int main()
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//glBindVertexArray(1);
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		//lightCubeShader.draw(&light, -1);
+		lightCubeShader.draw(&light, -1);
 
 		// render ImGui
 		// ------------

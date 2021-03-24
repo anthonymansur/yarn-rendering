@@ -53,8 +53,7 @@ void main()
 
     // Normal map
     // ----------
-    vec3 normal = isCore ? normalTex.rgb : fs_normal;
-    normal = vec3(MVP * vec4((normal - 0.5f) * 2.f, 1.f));
+    vec3 normal = isCore ? vec3(vec4((normalTex.rgb - 0.5f) * 2.f, 1.f)) : fs_normal;
 
     // Alpha channel
     // -------------
@@ -80,15 +79,15 @@ void main()
     specular = vec3(0.f); // disable spec
     // calculate shadow
     float shadow = ShadowCalculation(fs_depthPos);
-    //shadow = 0.f;
+    shadow = 0.f;
     vec3 lighting = (ambient + (1.f - shadow) * (diffuse + specular)) * color;
 
-    out_color = vec4(lighting, length(lighting) < .1 ? 0 : fs_disable > 0.5 ? 0 : alpha);  
+    //out_color = vec4(lighting, length(lighting) < .1 ? 0 : fs_disable > 0.5 ? 0 : alpha);  
     //out_color = vec4(shadow, shadow, shadow, 1.f); // debug
 
-    //out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
+    out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
 
-    //out_color = vec4(fs_normal, 1);  // debug
+    //out_color = vec4(normal, 1);  // debug
 
     // debug
 //    vec3 projCoords = fs_depthPos.xyz / fs_depthPos.w;
