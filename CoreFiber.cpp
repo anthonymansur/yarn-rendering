@@ -127,9 +127,9 @@ void CoreFiber::initFrameBuffers()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	//glActiveTexture(GL_TEXTURE3);
-	//glBindTexture(GL_TEXTURE_3D, selfShadowTexture);
-	//glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, m_fiber.getYarnRadius(), )
+	/*glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_3D, selfShadowTexture);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, m_fiber.getYarnRadius() * 2.f, m_fiber.getYarnRadius() * 2.f, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);*/
 
 	// attach it to currently bound framebuffer object
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightTexture, 0);

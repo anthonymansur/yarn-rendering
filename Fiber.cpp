@@ -146,8 +146,9 @@ void Fiber::readFiberParameters(FIBER_TYPE type)
 		throw std::runtime_error("Unable to open fiber parameters file.");
 	}
 
-	float fiberWidth = (alpha / 2.f);
-	float fiberHeight = ellipse_short * (2 / 3.f);
+	// TODO: you have to fix these values.
+	float fiberWidth = 2.f * (alpha / 2.f);
+	float fiberHeight = 2.f * ellipse_short * (2 / 3.f);
 
 	SCR_WIDTH = 2400;
 	SCR_HEIGHT = 2400;// SCR_WIDTH* (fiberHeight / fiberWidth) * 4.f;

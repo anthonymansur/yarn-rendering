@@ -36,7 +36,7 @@ protected:
     GLuint heightTexture;
     GLuint normalTexture;
     GLuint alphaTexture;
-    //GLuint selfShadowTexture;
+    GLuint selfShadowTexture;
 
     // NOTE: may not need to store these in the class. Will be kept in the buffer.
     std::vector<float> m_points;
@@ -47,5 +47,5 @@ protected:
     bool heightTexBound;
     bool normalTexBound;
     bool alphaTexBound;
-    //bool selfShadowTexture;
+    bool selfShadowTexBound;
 };
