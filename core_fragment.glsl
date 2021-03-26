@@ -17,7 +17,8 @@ float clamp(float x)
 
 void main()
 {
-    float height = 1 - clamp(fs_height);
+    float height = clamp(fs_height / u_yarn_radius);
+    //float height = 1 - clamp(fs_height);
     heightColor = vec4(height, height, height, 1.f);
     normalColor = vec4(fs_normal.r, fs_normal.g, fs_normal.b, 1.f);
     alphaColor = vec4(fs_alpha, fs_alpha, fs_alpha, 1.f);  

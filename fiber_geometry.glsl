@@ -20,6 +20,7 @@ in float[] disable;
 in vec3[] prevPosition;
 in vec3[] nextPosition;
 in vec3[] geo_normal;
+in float[] geo_height;
 in vec2[] geo_texCoords;
 in float[] tes_scaleFactor;
 
@@ -105,7 +106,8 @@ void main()
     gl_Position = MVP * vec4(start+startHeightDir, 1);
     fs_fragPos = model * vec4(start+startHeightDir, 1);
     fs_depthPos = light_transform * vec4(start+startHeightDir, 1);
-    fs_height = start.z / (2 * maxDistance) + 0.5;
+    //fs_height = start.z / (2 * maxDistance) + 0.5;
+    fs_height = geo_height[0];
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_disable = disable[0];
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
@@ -116,7 +118,8 @@ void main()
     gl_Position = MVP *  vec4(start-startHeightDir, 1);
     fs_fragPos = model * vec4(start-startHeightDir, 1);
     fs_depthPos = light_transform * vec4(start-startHeightDir, 1);
-    fs_height = start.z / (2 * maxDistance) + 0.5;
+    //fs_height = start.z / (2 * maxDistance) + 0.5;
+    fs_height = geo_height[0];
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_disable = disable[0];
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
@@ -127,7 +130,8 @@ void main()
     gl_Position = MVP * vec4(end+endHeightDir, 1);
     fs_fragPos = model * vec4(end+endHeightDir, 1);
     fs_depthPos = light_transform * vec4(end+endHeightDir, 1);
-    fs_height = end.z / (2 * maxDistance) + 0.5;
+    //fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_height = geo_height[1];
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_disable = disable[1];
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
@@ -138,7 +142,8 @@ void main()
     gl_Position = MVP * vec4(end-endHeightDir, 1);
     fs_fragPos = model * vec4(end-endHeightDir, 1);
     fs_depthPos = light_transform * vec4(end-endHeightDir, 1);
-    fs_height = end.z / (2 * maxDistance) + 0.5;
+    //fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_height = geo_height[1];
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_disable = disable[1];
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);

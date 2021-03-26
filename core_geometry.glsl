@@ -14,6 +14,7 @@ uniform mat4 model;
 in vec3[] prevPosition;
 in vec3[] nextPosition;
 in vec3[] geo_normal;
+in float[] geo_height;
 
 out float fs_height; // height map
 out vec3 fs_normal; // 2D surface normal
@@ -85,25 +86,29 @@ void main()
     float maxTransparency = 0.7f;
 
     gl_Position = vec4((model * vec4(start+startHeightDir, 1)).xyz, zoomFactor);
-    fs_height = start.z / (2 * maxDistance) + 0.5;
+    //fs_height = start.z / (2 * maxDistance) + 0.5; // TODO: what is this doing?
+    fs_height = geo_height[0];
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
     gl_Position = vec4((model * vec4(start-startHeightDir, 1)).xyz, zoomFactor);
-    fs_height = start.z / (2 * maxDistance) + 0.5;
+    //fs_height = start.z / (2 * maxDistance) + 0.5;
+    fs_height = geo_height[0];
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
     gl_Position = vec4((model * vec4(end+endHeightDir, 1)).xyz, zoomFactor);
-    fs_height = end.z / (2 * maxDistance) + 0.5;
+    //fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_height = geo_height[1];
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();
 
     gl_Position = vec4((model * vec4(end-endHeightDir, 1)).xyz, zoomFactor);
-    fs_height = end.z / (2 * maxDistance) + 0.5;
+    //fs_height = end.z / (2 * maxDistance) + 0.5;
+    fs_height = geo_height[1];
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
     EmitVertex();

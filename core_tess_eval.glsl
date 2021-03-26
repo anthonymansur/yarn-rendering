@@ -14,6 +14,7 @@ patch in int num_of_isolines;
 out vec3 prevPosition;
 out vec3 nextPosition;
 out vec3 geo_normal;
+out float geo_height;
 
 // Fiber pre-defined parameters
 // ----------------------------
@@ -138,6 +139,7 @@ void main()
 		if (i == 1)
 			gl_Position = fiber_center;
 			geo_normal = normalize(fiber_center - yarn_center).xyz;
+			geo_height = length(fiber_center - yarn_center);
 		if (i == 2)
 			nextPosition = fiber_center.xyz;
 	}

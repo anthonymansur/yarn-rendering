@@ -14,6 +14,8 @@ uniform sampler2D u_alphaTexture;
 
 uniform sampler2D u_shadowMap;
 
+uniform float u_yarn_radius;
+
 in vec4 fs_depthPos;
 in vec4 fs_fragPos;
 in float fs_height;
@@ -26,8 +28,9 @@ out vec4 out_color;
 
 float lerp(float p0, float p1, float t);
 float clamp(float x);
+vec3 clamp(vec3 v);
 
-float ShadowCalculation(vec4 fragPosLightSpace);
+float ShadowCalculation(vec4 fragPosLightSpace, float ambient);
 
 void main()
 {
@@ -47,29 +50,35 @@ void main()
 
     //isCore = false; // debug
 
+    bool disable = false;
+
     // Height map
     // ----------
-    float height = isCore ? heightTex[0] : clamp(fs_height);
+    float height = isCore ? heightTex[0] : clamp(fs_height / u_yarn_radius);
 
     // Normal map
     // ----------
     vec3 normal = isCore ? vec3(vec4(normalTex.rgb, 1.f)) : fs_normal;
+    if (normal.x < 0.01f && normal.y < 0.01f && normal.z < 0.01f)
+        disable = true; // TODO: doesn't work
 
     // Alpha channel
     // -------------
     float alpha = isCore ? alphaTex[0] : clamp(fs_alpha);
     alpha = 1.f; // TODO: not ready
 
+    // ambient occlusion
+    float ambient = lerp(0.01f, 0.4f, height);
+    //ambient = 0.3f;
+
     // Lambertian lighting
     // -------------------
     vec3 color = objectColor.rgb;
     vec3 lightColor = vec3(1.f);
-    // ambient
-    vec3 ambient = 0.3f * color;
     // diffuse
     vec3 lightDir = normalize(light_pos - fs_fragPos.xyz);
-    float diff = max(dot(lightDir, normal), 0.f);
-    vec3 diffuse = diff * lightColor;
+    float diff = max(dot(lightDir, normal), ambient);
+    vec3 diffuse = (diff - 0.3f) * lightColor;
     // specular
     vec3 viewDir = normalize(view_pos - fs_fragPos.xyz);
     float spec = 0.f;
@@ -78,10 +87,12 @@ void main()
     vec3 specular = spec * lightColor;
     specular = vec3(0.f); // disable spec
     // calculate shadow
-    float shadow = ShadowCalculation(fs_depthPos);
-    vec3 lighting = (ambient + (1.f - shadow) * (diffuse + specular)) * color;
+    float shadow = ShadowCalculation(fs_depthPos, 0.3f);
+    //shadow = 0.f;
+    vec3 lighting = clamp((1.f - shadow) * (ambient + diffuse + specular) * color);
 
-    out_color = vec4(lighting, length(lighting) < .1 ? 0 : fs_disable > 0.5 ? 0 : alpha);  
+    out_color = length(height) > 0.1f ? vec4(lighting, 1) : vec4(0, 0, 0, 0);
+    //out_color = vec4(1 - height, 1 - height, 1 - height, 1);
 }
 
 float lerp(float p0, float p1, float t)
@@ -94,7 +105,12 @@ float clamp(float x)
     return x > 1 ? 1 : x < 0 ? 0 : x;
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+vec3 clamp(vec3 v)
+{
+    return vec3(clamp(v.x), clamp(v.y), clamp(v.z));
+}
+
+float ShadowCalculation(vec4 fragPosLightSpace, float ambient)
 {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -105,8 +121,19 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
-    float bias = 0.005;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
-    return shadow; // debug
+    float shadow = 0.0;
+    float bias = u_yarn_radius * 2.f;
+    vec2 texelSize = 1.0 / textureSize(u_shadowMap, 0);
+
+    // percentage-closer filtering (PCF)
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(u_shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    return shadow / 9.0;
 }

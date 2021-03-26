@@ -21,6 +21,7 @@ out vec4 _pos;
 out vec3 prevPosition;
 out vec3 nextPosition;
 out vec3 geo_normal;
+out float geo_height;
 out vec2 geo_texCoords;
 out float disable;
 out float tes_scaleFactor;
@@ -262,6 +263,7 @@ void main()
 			gl_Position = fiber_center;
 			disable = 0.f;
 			geo_normal = normalize(fiber_center - yarn_center).xyz;
+			geo_height = length(fiber_center - yarn_center);
 			//geo_normal = isHair ? position >= theta_min && position < (theta_min + theta_span) ? vec3(1, 1, 0) : vec3(1, 0, 0) : isLoop ? vec3(0, 1, 0) : vec3(0, 0, 1); // DEBUG
 			geo_texCoords[0] = (1 / (2 * pi)) * ((theta * pow(u_yarn_alpha, 2.f) * u_alpha)/abs(u_yarn_alpha - u_alpha)  / 2.f); // u coord
 			geo_texCoords[1] = 0; // will be set by geometry shader
