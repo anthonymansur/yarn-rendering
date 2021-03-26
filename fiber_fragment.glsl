@@ -68,7 +68,7 @@ void main()
     alpha = 1.f; // TODO: not ready
 
     // ambient occlusion
-    float ambient = lerp(0.01f, 0.4f, height);
+    float ambient = lerp(0.1f, 0.4f, height);
     //ambient = 0.3f;
 
     // Lambertian lighting
@@ -91,7 +91,7 @@ void main()
     //shadow = 0.f;
     vec3 lighting = clamp((1.f - shadow) * (ambient + diffuse + specular) * color);
 
-    out_color = length(height) > 0.1f ? vec4(lighting, 1) : vec4(0, 0, 0, 0);
+    out_color = length(height) > 0.05f ? vec4(lighting, 1) : vec4(0, 0, 0, 0);
     //out_color = vec4(1 - height, 1 - height, 1 - height, 1);
 }
 

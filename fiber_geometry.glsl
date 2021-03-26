@@ -5,7 +5,7 @@ layout (triangle_strip, max_vertices = 4) out;
 
 // fiber parameters
 uniform float u_yarn_radius; 
-uniform float u_ellipse_short;
+uniform float u_ellipse_long;
 uniform float u_r_max;
 
 // other uniforms
@@ -59,8 +59,8 @@ void main()
 {
     mat4 MVP = projection * view * model;
     float zoomFactor = .125f;
-    float ply_diameter = u_yarn_radius;
-    float lineHeight = isCore[0] > 0.5f ? lerp(ply_diameter, (2/3.f) * ply_diameter, tes_scaleFactor[0]) : 0.001;
+    float ply_diameter = u_ellipse_long;
+    float lineHeight = isCore[0] > 0.5f ? lerp(1.5f * ply_diameter, ply_diameter, tes_scaleFactor[0]) : 0.001;
 
     //lineHeight = 0.001; // debug
 
@@ -98,7 +98,7 @@ void main()
     endHeightDir = 0.5f * lineHeight * normalize(endHeightDir) * sign(dot(endHeightDir, heightDir));
 
     // determine position, height, normal, and uv coordinates for each vertex
-    float maxDistance = (ply_diameter / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
+    //float maxDistance = (ply_diameter / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
     float maxTransparency = 0.7f; 
 
     //MVP = light_transform; // DEBUG
@@ -110,7 +110,8 @@ void main()
     fs_height = geo_height[0];
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_disable = disable[0];
-    fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
+    //fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
+    fs_alpha = -1;
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[0][0] : -1;
     fs_texCoords[1] = isCore[0] > 0.5f ? 0 : -1;
     EmitVertex();
@@ -122,7 +123,8 @@ void main()
     fs_height = geo_height[0];
     fs_normal = geo_normal[0] / 2.f + 0.5f;
     fs_disable = disable[0];
-    fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
+    //fs_alpha = 1 - (abs(start.z)/maxDistance) * (1 - maxTransparency);
+    fs_alpha = 1;
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[0][0] : -1;
     fs_texCoords[1] = isCore[0] > 0.5f ? 1 : -1;
     EmitVertex();
@@ -134,7 +136,8 @@ void main()
     fs_height = geo_height[1];
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_disable = disable[1];
-    fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
+    //fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
+    fs_alpha = 1;
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[1][0] : -1;
     fs_texCoords[1] = isCore[1] > 0.5f ? 0 : -1;
     EmitVertex();
@@ -146,7 +149,8 @@ void main()
     fs_height = geo_height[1];
     fs_normal = geo_normal[1] / 2.f + 0.5f;
     fs_disable = disable[1];
-    fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
+    //fs_alpha = 1 - (abs(end.z)/maxDistance) * (1 - maxTransparency);
+    fs_alpha = 1;
     fs_texCoords[0] = isCore[0] > 0.5f ? geo_texCoords[1][0] : -1;
     fs_texCoords[1] = isCore[1] > 0.5f ? 1 : -1;
     EmitVertex();
