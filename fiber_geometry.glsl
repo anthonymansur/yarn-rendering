@@ -58,8 +58,8 @@ void main()
 {
     mat4 MVP = projection * view * model;
     float zoomFactor = .125f;
-    float yarn_diameter = u_yarn_radius * 2.f;
-    float lineHeight = isCore[0] > 0.5f ? lerp(yarn_diameter, (2/3.f) * yarn_diameter, tes_scaleFactor[0]) : 0.001;
+    float ply_diameter = u_yarn_radius;
+    float lineHeight = isCore[0] > 0.5f ? lerp(ply_diameter, (2/3.f) * ply_diameter, tes_scaleFactor[0]) : 0.001;
 
     //lineHeight = 0.001; // debug
 
@@ -97,7 +97,7 @@ void main()
     endHeightDir = 0.5f * lineHeight * normalize(endHeightDir) * sign(dot(endHeightDir, heightDir));
 
     // determine position, height, normal, and uv coordinates for each vertex
-    float maxDistance = (yarn_diameter / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
+    float maxDistance = (ply_diameter / 2.f) + u_ellipse_short * u_r_max * (2/3.f);
     float maxTransparency = 0.7f; 
 
     //MVP = light_transform; // DEBUG

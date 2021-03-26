@@ -845,7 +845,6 @@ int main()
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetMouseButtonCallback(window, mouseClicked);
 	glfwSetCursorPosCallback(window, mouseMoved);
 	glfwSetScrollCallback(window, mouseScrolled);
@@ -922,7 +921,7 @@ int main()
 	// Fiber
     // -----
     // Set Fiber-specific variables
-    FIBER_TYPE fiberType = COTTON1;
+    FIBER_TYPE fiberType = SILK1;
     Fiber fiber = Fiber(fiberType);
     float timeValue = glfwGetTime();
 
@@ -1013,23 +1012,16 @@ int main()
 		depthShader.setMat4("light_transform", lightSpaceMatrix);
 		depthShader.setVec3("light_pos", lightPos);
 
-        // resize GL
-        // ---------
-        //glfwSetWindowSize(window, 3000, 3000);
-        //glViewport(0, 0, 3000, 3000);
-
         // render Fiber
         // ------------
         coreShader.draw(&coreFiber, -1);
+#ifndef CORE_RENDER
 		depthShader.draw(&ordinaryFiber, -1);
         fiberShader.draw(&ordinaryFiber, -1);
+#endif
 
 		// render Light
 		// ------------
-		//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//glBindVertexArray(1);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		lightCubeShader.draw(&light, -1);
 
 		// render ImGui
@@ -1095,13 +1087,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
     {
         moveCamera = !moveCamera;
-        if (!moveCamera)
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        else
-        {
-            glfwSetCursorPos(window, lastX, lastY);
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        }
+        if (moveCamera)
+			glfwSetCursorPos(window, lastX, lastY);
     }
 }
 

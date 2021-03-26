@@ -155,15 +155,20 @@ void FiberShader::draw(Drawable *d, int texSlot)
         // Set the Vertex Attrib Pointers
         cd->bindVAO();
 
+#ifdef CORE_RENDER
+        //float w = 800 * 4.f / (2.f * fiberType.yarn_alpha); // IDK why we need to multiply by 4 as opposed to 2.
+        //double h = 800 * 2.f / (2 * fiberType.ellipse_long);
+        //glViewport(0, 0, w, h);
+        //glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glPatchParameteri(GL_PATCH_VERTICES, 4);
+        //glDrawElements(GL_PATCHES, cd->elemCount(), GL_UNSIGNED_INT, 0);
+#else
         // Configure Intermediate FrameBuffer for multisampling
         cd->bindInterFrameBuffer();
         float w = 800 * 4.f / (2.f * fiberType.yarn_alpha); // IDK why we need to multiply by 4 as opposed to 2.
         double h = 800 * 2.f / (2 * fiberType.ellipse_long);
         glViewport(0, 0, w, h);
-        glClearColor(0.f, 0.f, 0.f, 1.f); // temporary
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //glPatchParameteri(GL_PATCH_VERTICES, 4);
-        //glDrawElements(GL_PATCHES, cd->elemCount(), GL_UNSIGNED_INT, 0);
         glEnable(GL_DEPTH_TEST);
         GLenum buffers[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
         glDrawBuffers(3, buffers);
@@ -188,7 +193,8 @@ void FiberShader::draw(Drawable *d, int texSlot)
                 800,
                 800,
                 GL_COLOR_BUFFER_BIT, GL_LINEAR);
-        }        
+        }     
+#endif
     }
     else if (od != nullptr)
     {

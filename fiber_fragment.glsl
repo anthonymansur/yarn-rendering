@@ -39,8 +39,8 @@ void main()
     // Textures 
     // --------
     // map 0 to 1 to 0.388 to 0.611
-    //vec2 texCoords = vec2(fs_texCoords[0], lerp(0.388f, 0.611f, fs_texCoords[1]));
-    vec2 texCoords = vec2(fs_texCoords[0], fs_texCoords[1]);
+    vec2 texCoords = vec2(fs_texCoords[0], lerp(0.05f, 0.95f, fs_texCoords[1]));
+    //vec2 texCoords = vec2(fs_texCoords[0], fs_texCoords[1]);
     vec4 heightTex = texture(u_heightTexture, texCoords);
     vec4 normalTex = texture(u_normalTexture, texCoords);
     vec4 alphaTex = texture(u_alphaTexture, texCoords);
@@ -53,7 +53,7 @@ void main()
 
     // Normal map
     // ----------
-    vec3 normal = isCore ? vec3(vec4((normalTex.rgb - 0.5f) * 2.f, 1.f)) : fs_normal;
+    vec3 normal = isCore ? vec3(vec4(normalTex.rgb, 1.f)) : fs_normal;
 
     // Alpha channel
     // -------------
@@ -65,7 +65,7 @@ void main()
     vec3 color = objectColor.rgb;
     vec3 lightColor = vec3(1.f);
     // ambient
-    vec3 ambient = 0.4f * color;
+    vec3 ambient = 0.3f * color;
     // diffuse
     vec3 lightDir = normalize(light_pos - fs_fragPos.xyz);
     float diff = max(dot(lightDir, normal), 0.f);
@@ -79,23 +79,9 @@ void main()
     specular = vec3(0.f); // disable spec
     // calculate shadow
     float shadow = ShadowCalculation(fs_depthPos);
-    shadow = 0.f;
     vec3 lighting = (ambient + (1.f - shadow) * (diffuse + specular)) * color;
 
-    //out_color = vec4(lighting, length(lighting) < .1 ? 0 : fs_disable > 0.5 ? 0 : alpha);  
-    //out_color = vec4(shadow, shadow, shadow, 1.f); // debug
-
-    out_color = vec4(fract(fs_texCoords[0]), 0, fract(fs_texCoords[1]), 1);
-
-    //out_color = vec4(normal, 1);  // debug
-
-    // debug
-//    vec3 projCoords = fs_depthPos.xyz / fs_depthPos.w;
-//    // transform to [0,1] range
-//    projCoords = projCoords * 0.5 + 0.5;
-//    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-//    float closestDepth = texture(u_shadowMap, projCoords.xy).r; 
-//    out_color = vec4(vec3(closestDepth), 1.0);
+    out_color = vec4(lighting, length(lighting) < .1 ? 0 : fs_disable > 0.5 ? 0 : alpha);  
 }
 
 float lerp(float p0, float p1, float t)
