@@ -1,4 +1,5 @@
 #include "Pattern.h"
+#include <tuple>
 #define pi 3.14159265358979323846f
 
 
@@ -140,6 +141,154 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 	indexOffset = inx + 1;
 
 	return strands;
+}
+
+template <class T>
+T lerp(T &start, T &end, float k)
+{
+	return (1 - k) * start + k * end;
+}
+
+bool isNull(Point& p)
+{
+	return p[0] == -1 || p[1] == -1 || p[2] == -1;
+}
+
+float fract(float x)
+{
+	return x - floor(x);
+}
+
+template <size_t rows, size_t cols>
+Point f(float u, float v, Point(&points)[rows][cols])
+{
+	// Perform bilinear interpolation
+	Point bottomLeft = points[floor(u)][floor(v)];
+	Point bottomRight = points[ceil(u)][floor(v)];
+	Point topLeft = points[floor(u)][ceil(v)];
+	Point topRight = points[ceil(u)][ceil(v)];
+
+	Point bottomPoint = lerp(bottomLeft, bottomRight, fract(u));
+	Point topPoint = lerp(topLeft, topRight, fract(u));
+	return lerp(bottomPoint, topPoint, fract(v))
+}
+
+template <size_t rows, size_t cols>
+std::vector<Strand> Pattern::generatePattern(Point(&points)[rows][cols], float edgeLength) const
+{
+	// Define the density factor
+	float d = yarnRadius / edgeLength;
+
+	// assign the endpoints of each strand
+	std::vector<float> weftStartPoints;
+	std::vector<float> weftEndPoints;
+	for (unsigned long i = 0; i < (cols * edgeLength) / d; i++)
+	{
+		float u = i * d;
+
+		bool startFound = false, endFound = false;
+		float v = 0;
+		
+		// find the starting position
+		while (!startFound)
+		{
+			if (isNull(points[floor(u)][floor(v)]))
+				v += d;
+			else
+			{
+				// located the first cell with vertex data to perform bilinear interpolation 
+				weftStartPoints.push_back(v);
+				startFound = true;
+			}
+		}
+		// find the end position
+		while (!endFound)
+		{
+			if (!isNull(points[ceil(u)][ceil(v + d)]))
+				v += d;
+			else
+			{
+				// located the last cell with vertex data to perform bilinear interpolation 
+				weftEndPoints.push_back(v);
+				endFound = true;
+			}
+		}
+	}
+	std::vector<float> warpStartPoints;
+	std::vector<float> warpEndPoints;
+	for (unsigned long i = 0; i < (rows * edgeLength) / d; i++)
+	{
+		float v = i * d;
+
+		bool startFound = false, endFound = false;
+		float u = 0;
+
+		// find the starting position
+		while (!startFound)
+		{
+			if (isNull(points[floor(u)][floor(v)]))
+				u += d;
+			else
+			{
+				// located the first cell with vertex data to perform bilinear interpolation
+				warpStartPoints.push_back(u);
+			}
+		}
+
+		while (!endFound)
+		{
+			if (!isNull(points[ceil(u + d)][ceil(v)]))
+				u += d;
+			else
+			{
+				// located the last cell with vertex data to perform bilinear interpolation
+				warpEndPoints.push_back(u);
+			}
+		}
+	}
+
+	// iterate through each strand and fill in the center points
+	std::vector<std::vector<Point>> weftStrands;
+	for (unsigned long i = 0; i < (cols * edgeLength) / d; i = i++)
+	{
+		float startPos = weftStartPoints.at(i);
+		float endPos = weftEndPoints.at(i);
+
+		std::vector<Point> strand;
+
+		float u = i * d;
+		float v = startPos;
+		while (v <= endPos)
+		{
+			strand.push_back(f(u, v, points));
+			v += d;
+		}
+		
+		weftStrands.push_back(strand);
+	}
+
+	std::vector<std::vector<Point>> warpStrands;
+	for (unsigned long i = 0; i < (rows * edgeLength) / d; i = i++)
+	{
+		float startPos = warpStartPoints.at(i);
+		float endPos = warpEndPoints.at(i);
+
+		std::vector<Point> strand;
+
+		float u = startPos;
+		float v = i * d;
+		while (u <= endPos)
+		{
+			strand.push_back(f(u, v, points));
+			u += d;
+		}
+
+		warpStrands.push_back(strand);
+	}
+
+	// given the center points of each strand of yarn, construct the control points
+	// 1. Convert the center points of each strand into a spline 
+	// 2. Edit the weave pattern generation to have a position offset of this spline
 }
 
 std::vector<Strand> Pattern::_getHorizontalStrand() const

@@ -757,6 +757,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	}
 }
 #else
+//#define CORE_RENDER
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <memory>
@@ -938,7 +939,11 @@ int main()
     ordinaryFiber.setNormalTexture(coreFiber.getNormalTexture());
     ordinaryFiber.setAlphaTexture(coreFiber.getAlphaTexture());
 
-    glfwSetWindowSize(window, 2400, 2400);
+#ifdef CORE_RENDER
+    glfwSetWindowSize(window, 800, 800);
+#else
+	glfwSetWindowSize(window, 2400, 2400);
+#endif
 
     // render loop
     // -----------
