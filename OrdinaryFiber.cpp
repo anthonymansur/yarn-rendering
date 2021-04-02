@@ -3,6 +3,7 @@
 
 #include "OrdinaryFiber.h"
 #include "Pattern.h"
+#include "Pattern2.h"
 
 enum RENDER {
     TEST0,
@@ -14,6 +15,7 @@ enum RENDER {
     TEST6,
     TEST7,
     TEST8,
+    TEST9,
     LIVE
 };
 
@@ -151,6 +153,19 @@ void OrdinaryFiber::create()
         strands = pattern.getBasicWeave(10);
         addStrands(strands);
     }
+    break;
+    case TEST9:
+    {
+        Pattern2 pattern = Pattern2(10.f); // 10 strands per cm
+        std::vector<glm::vec3> points;
+        points.push_back(glm::vec3(0, 0, 0));
+        points.push_back(glm::vec3(10.f * 4.f * m_fiber.yarn_radius, 0, 0));
+        points.push_back(glm::vec3(10.f * 4.f * m_fiber.yarn_radius, 10.f * 4.f * m_fiber.yarn_radius, 0));
+        points.push_back(glm::vec3(0, 10.f * 4.f * m_fiber.yarn_radius, 0));
+        strands = pattern.getUnitPattern(points, 1.f); // 1 cm per edge
+        addStrands(strands);
+    }
+    break;
     }
 
     // Store the control points in Vertex Buffer Object
