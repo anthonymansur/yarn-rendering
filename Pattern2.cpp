@@ -10,6 +10,7 @@ T lerp(T& start, T& end, float k)
 	return (1 - k) * start + k * end;
 }
 
+// TODO: modify algorithm to include a 2D bezier surface as opposed lerping through each point.
 std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, std::vector<EndPoints> endpoints, float edgeLength)
 {
 	// points 
@@ -18,11 +19,11 @@ std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, std::vec
 	Point &p3 = points.at(2), h3 = endpoints.at(2).hPoint, v3 = endpoints.at(2).vPoint;
 	Point &p4 = points.at(3), h4 = endpoints.at(3).hPoint, v4 = endpoints.at(3).vPoint;
 
-	// norms
-	Normal h_n1 = glm::normalize(p1 - h1), v_n1 = glm::normalize(p1 - v1);
-	Normal h_n2 = glm::normalize(h2 - p2), v_n2 = glm::normalize(p2 - v2);
-	Normal h_n3 = glm::normalize(h3 - p3), v_n3 = glm::normalize(v3 - p3);
-	Normal h_n4 = glm::normalize(p4 - h4), v_n4 = glm::normalize(v4 - p4);
+	// normals
+	Normal h_n1 = glm::normalize(p2 - h1), v_n1 = glm::normalize(p4 - v1);
+	Normal h_n2 = glm::normalize(h2 - p1), v_n2 = glm::normalize(p3 - v2);
+	Normal h_n3 = glm::normalize(h3 - p4), v_n3 = glm::normalize(v3 - p2);
+	Normal h_n4 = glm::normalize(p3 - h4), v_n4 = glm::normalize(v4 - p1);
 
 	int numOfStrands = edgeLength * density; // Make sure this gives an integer
 
@@ -42,6 +43,9 @@ std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, std::vec
 		Point startPoint = lerp(p1, p4, i*u);
 		Point endPoint = lerp(p2, p3, i*u);
 
+		/*Point startEndPoint = lerp(h1, h4, i * u);
+		Point endEndPoint = lerp(h2, h3, i * u);*/
+
 		Normal h_startNorm = lerp(h_n1, h_n4, i*u), v_startNorm = lerp(v_n1, v_n4, i*u);
 		Normal h_endNorm = lerp(h_n2, h_n3, i*u), v_endNorm = lerp(v_n2, v_n3, i*u);
 
@@ -50,10 +54,16 @@ std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, std::vec
 		// left control point
 		// TODO: insert here 
 
-		for (float j = 0; j < numOfStrands / 2; j++)
+		for (float j = -1; j <= numOfStrands / 2; j++)
 		{
+			if (j == -1)
+			{
+				// TODO: insert left control point
+				continue;
+			}
+
 			Point leftPoint = lerp(startPoint, endPoint, 2 * j * u);
-			Point rightPoint = lerp(startPoint, endPoint, (2 * j + 1) * u);
+			Point rightPoint = lerp(startPoint, endPoint, (2 * j + 0.5) * u);
 
 			Normal h_leftNorm = lerp(h_startNorm, h_endNorm, 2 * j * u);
 			Normal v_leftNorm = lerp(v_startNorm, v_endNorm, 2 * j * u);
@@ -63,7 +73,7 @@ std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, std::vec
 			// center control points
 			Point point = lerp(leftPoint, rightPoint, 0);
 			Normal h_normal = lerp(h_leftNorm, h_rightNorm, 0);
-			Normal v_normal = lerp(h_leftNorm, h_rightNorm, 0);
+			Normal v_normal = lerp(v_leftNorm, v_rightNorm, 0);
 			Normal z_normal = glm::cross(h_normal, v_normal);
 			points.push_back(
 				ControlPoint{
@@ -74,11 +84,50 @@ std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, std::vec
 				}
 			);
 
-			// TODO: add point 2
+			if (j == numOfStrands / 2)
+			{
+				// TODO: insert right control point
+				break;
+			}
 
-			// TODO: add point 3
+			point = lerp(leftPoint, rightPoint, .3334);
+			h_normal = lerp(h_leftNorm, h_rightNorm, .3334);
+			v_normal = lerp(h_leftNorm, h_rightNorm, .3334);
+			z_normal = glm::cross(h_normal, v_normal);
+			points.push_back(
+				ControlPoint{
+					point + z_normal * 0.f,
+					h_normal,
+					inx++,
+					((pi * r) / 2.f) * inx
+				}
+			);
 
-			// TODO: add point 4
+			point = lerp(leftPoint, rightPoint, .6667);
+			h_normal = lerp(h_leftNorm, h_rightNorm, .6667);
+			v_normal = lerp(h_leftNorm, h_rightNorm, .6667);
+			z_normal = glm::cross(h_normal, v_normal);
+			points.push_back(
+				ControlPoint{
+					point + z_normal * -r,
+					z_normal,
+					inx++,
+					((pi * r) / 2.f) * inx
+				}
+			);
+
+			point = lerp(leftPoint, rightPoint, 1);
+			h_normal = lerp(h_leftNorm, h_rightNorm, 1);
+			v_normal = lerp(h_leftNorm, h_rightNorm, 1);
+			z_normal = glm::cross(h_normal, v_normal);
+			points.push_back(
+				ControlPoint{
+					point + z_normal * 0.f,
+					-h_normal,
+					inx++,
+					((pi * r) / 2.f) * inx
+				}
+			);
 
 		}
 

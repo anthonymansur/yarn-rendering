@@ -15,7 +15,13 @@ struct EndPoints
 	Point vPoint; // the vertical endpoint
 };
 
-// TODO: add weave type
+/**
+ * TODO checklist:
+ * 0. Finish basic
+ * 1. Finish the getUnitPattern with linear interpolation (12 points), and then render basic case and verify
+ *    it outputs the same. Then change the orientation around and see how it looks
+ * 2. Create the 2D bezier curve case with 16 points
+ */
 
 class Pattern2
 {
