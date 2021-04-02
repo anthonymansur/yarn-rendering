@@ -922,7 +922,7 @@ int main()
 	// Fiber
     // -----
     // Set Fiber-specific variables
-    FIBER_TYPE fiberType = RAYON1;
+    FIBER_TYPE fiberType = COTTON1;
     Fiber fiber = Fiber(fiberType);
     float timeValue = glfwGetTime();
 

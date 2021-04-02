@@ -38,7 +38,7 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			);
 			points.push_back(
 				ControlPoint{
-					posOffset + Point3f((j * 4 + 1) * r, 2 * r * i, r),
+					posOffset + Point3f((j * 4 + 1) * r, 2 * r * i, 0),
 					Normal3f(1, 0, 0),
 					inx++,
 					((pi * r) / 2.f)* inx
@@ -54,7 +54,7 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			);
 			points.push_back(
 				ControlPoint{
-					posOffset + Point3f((j * 4 + 3) * r, 2 * r * i, -r),
+					posOffset + Point3f((j * 4 + 3) * r, 2 * r * i, 0),
 					Normal3f(-1, 0, 0),
 					inx++,
 					((pi * r) / 2.f)* inx
@@ -62,10 +62,20 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			);
 		}
 
+		// additional point due to offset
+		points.push_back(
+			ControlPoint{
+				posOffset + Point3f((size / 2) * 4 * r, 2 * r * i, r),
+				Normal3f(0, 0, 1),
+				inx++,
+				((pi * r) / 2.f) * inx
+			}
+		);
+
 		// right endpoint
 		points.push_back(
 			ControlPoint{
-				posOffset + Point3f(((size / 2 - 1) * 4 + 3) * r, 2 * r * i, 0),
+				posOffset + Point3f(((size / 2) * 4 + 1) * r, 2 * r * i, 0),
 				Normal3f(1, 0, 0),
 				inx++,
 				((pi * r) / 2.f)* inx
@@ -76,14 +86,14 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 	}
 
 	// vertical control points
-	for (uint8_t i = 0; i < size; i++)
+	for (uint8_t i = 0; i < size - 1; i++)
 	{
 		std::vector<ControlPoint> points;
 
 		// left endpoint
 		points.push_back(
 			ControlPoint{
-				posOffset + Point3f(2 * r * i + r/2.f, -r, 0 - r),
+				posOffset + Point3f(2 * r * i + 2 * r, -r, -r),
 				Normal3f(0, -1, 0),
 				inx++,
 				((pi * r) / 2.f)* inx
@@ -93,7 +103,7 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 		{
 			points.push_back(
 				ControlPoint{
-					posOffset + Point3f(2 * r * i + r / 2.f, j * 4 * r, -r - r),
+					posOffset + Point3f(2 * r * i + 2 * r, j * 4 * r, -r + r),
 					Normal3f(0, 0, 1),
 					inx++,
 					((pi * r) / 2.f)* inx
@@ -101,7 +111,7 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			);
 			points.push_back(
 				ControlPoint{
-					posOffset + Point3f(2 * r * i + r / 2.f, (j * 4 + 1) * r, -r - r),
+					posOffset + Point3f(2 * r * i + 2 * r, (j * 4 + 1) * r, -r),
 					Normal3f(0, 1, 0),
 					inx++,
 					((pi * r) / 2.f)* inx
@@ -109,7 +119,7 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			);
 			points.push_back(
 				ControlPoint{
-					posOffset + Point3f(2 * r * i + r / 2.f, (j * 4 + 2) * r, r - r),
+					posOffset + Point3f(2 * r * i + 2 * r, (j * 4 + 2) * r, -r - r),
 					Normal3f(0, 0, 1),
 					inx++,
 					((pi * r) / 2.f)* inx
@@ -117,7 +127,7 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 			);
 			points.push_back(
 				ControlPoint{
-					posOffset + Point3f(2 * r * i + r / 2.f, (j * 4 + 3) * r, r - r),
+					posOffset + Point3f(2 * r * i + 2 * r, (j * 4 + 3) * r, -r),
 					Normal3f(0, -1, 0),
 					inx++,
 					((pi * r) / 2.f)* inx
@@ -128,7 +138,7 @@ std::vector<Strand> Pattern::getBasicWeave(uint8_t size) const
 		// right endpoint
 		points.push_back(
 			ControlPoint{
-				posOffset + Point3f(2 * r * i + r / 2.f, ((size / 2 - 1) * 4 + 3) * r, 0 - r),
+				posOffset + Point3f(2 * r * i + 2 * r, ((size / 2 - 1) * 4 + 3) * r, -r),
 				Normal3f(0, 1, 0),
 				inx++,
 				((pi* r) / 2.f)* inx
@@ -170,7 +180,7 @@ Point f(float u, float v, Point(&points)[rows][cols])
 
 	Point bottomPoint = lerp(bottomLeft, bottomRight, fract(u));
 	Point topPoint = lerp(topLeft, topRight, fract(u));
-	return lerp(bottomPoint, topPoint, fract(v))
+	return lerp(bottomPoint, topPoint, fract(v));
 }
 
 template <size_t rows, size_t cols>

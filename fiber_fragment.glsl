@@ -123,7 +123,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, float ambient)
     // check whether current frag pos is in shadow
 
     float shadow = 0.0;
-    float bias = u_yarn_radius * 2.f;
+    float bias = u_yarn_radius;
     vec2 texelSize = 1.0 / textureSize(u_shadowMap, 0);
 
     // percentage-closer filtering (PCF)
