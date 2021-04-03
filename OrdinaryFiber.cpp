@@ -37,7 +37,7 @@ void OrdinaryFiber::create()
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
 
-    RENDER render = TEST6;
+    RENDER render = TEST9;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
 
@@ -156,13 +156,14 @@ void OrdinaryFiber::create()
     break;
     case TEST9:
     {
-        Pattern2 pattern = Pattern2(10.f); // 10 strands per cm
+        float length = 10 * 4 * m_fiber.yarn_radius;
+        Pattern2 pattern = Pattern2(m_fiber); 
         std::vector<glm::vec3> points;
         points.push_back(glm::vec3(0, 0, 0));
-        points.push_back(glm::vec3(10.f * 4.f * m_fiber.yarn_radius, 0, 0));
-        points.push_back(glm::vec3(10.f * 4.f * m_fiber.yarn_radius, 10.f * 4.f * m_fiber.yarn_radius, 0));
-        points.push_back(glm::vec3(0, 10.f * 4.f * m_fiber.yarn_radius, 0));
-        strands = pattern.getUnitPattern(points, 1.f); // 1 cm per edge
+        points.push_back(glm::vec3(length, 0, 0));
+        points.push_back(glm::vec3(length, length, 0));
+        points.push_back(glm::vec3(0, length, 0));
+        strands = pattern.getUnitPattern(points, length); // 1 cm per edge
         addStrands(strands);
     }
     break;

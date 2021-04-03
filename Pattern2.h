@@ -26,10 +26,11 @@ struct EndPoints
 class Pattern2
 {
 public:
-	Pattern2(float density);
+	Pattern2(const Fiber& type);
 	std::vector<Strand> getUnitPattern(std::vector<Point> points, float edgeLength);
 	std::vector<Strand> getUnitPattern(std::vector<Point> points, std::vector<EndPoints> endpoints, float edgeLength);
 private:
 	mutable int indexOffset;
-	float density; // number of strands per centimeter
+	const Fiber& type;
+	float density;
 };
