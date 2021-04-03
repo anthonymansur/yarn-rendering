@@ -49,7 +49,7 @@ void main()
 		float fiber_width = 0.001 * width;
 		float ply_width = u_yarn_radius * width;
 
-		float LOD = 0.0005; // TODO: make uniform
+		float LOD = 0.00025; // TODO: make uniform
 
 		float lambda = LOD <= fiber_width ? 1 :
 					   ply_width <= LOD ? 0 :

@@ -1005,7 +1005,7 @@ int main()
         coreShader.setVec3("view_dir", scam.look);
 
         fiberShader.use();
-        fiberShader.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0.f, 0.f)));
+        fiberShader.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, 0.f)));
         fiberShader.setMat4("view", view);
         fiberShader.setMat4("projection", projection);
         fiberShader.setVec3("camera_pos", scam.eye);

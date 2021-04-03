@@ -1,7 +1,7 @@
 #include "Pattern2.h"
 #define pi 3.14159265358979323846f
 
-Pattern2::Pattern2(const Fiber& type) : indexOffset(0), type(type), density(1 / (4 * type.yarn_radius))
+Pattern2::Pattern2(const Fiber& type) : indexOffset(0), type(type), density(1.5 / (4 * type.yarn_radius))
 {}
 
 template <class T>
@@ -137,15 +137,103 @@ std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, float ed
 		strands.push_back(Strand{ points });
 	}
 
+	// for each vertical strand
 	for (int i = 0; i < numOfStrands; i++)
 	{
-		// for each vertical strand
-		Point startPoint = lerp(p1, p2, i * u);
+		// find the starting and ending point at the vertical boundaries
+		Point startPoint = lerp(p1, p2, i * u); // Warning: i * u doesn't go to 1.f
 		Point endPoint = lerp(p4, p3, i * u);
+
+		float stretchingFactor = glm::length(endPoint - startPoint) / edgeLength;
+
+		Normal verticalNorm = glm::normalize(endPoint - startPoint);
 
 		std::vector<ControlPoint> points;
 
-		// TODO: generate control points for strand 
+		for (float j = -1; j <= numOfStrands / 2; j++)
+		{
+			if (j == -1)
+			{
+				points.push_back(
+					ControlPoint{
+						startPoint - verticalNorm * -r,
+						-verticalNorm,
+						inx++,
+						((pi * r) / 2.f) * stretchingFactor * inx // TODO: verify stretching factor works
+					}
+				);
+				continue;
+			}
+
+			Point leftPoint = lerp(startPoint, endPoint, 2 * j * u);
+			Point rightPoint = lerp(startPoint, endPoint, (2 * j + 1.5f) * u);
+
+			Normal hNormLeft = lerp(n1, n3, 2 * j * u);
+			Normal hNormRight = lerp(n1, n3, (2 * j + 0.5f) * u);
+
+			// center control points
+			Point point = lerp(leftPoint, rightPoint, 0); // linearly interpolated control point 
+			Normal horizontalNorm = lerp(hNormLeft, hNormRight, 0); // linearly interpolated vertical norm
+			Normal z_normal = glm::cross(horizontalNorm, verticalNorm);
+			points.push_back(
+				ControlPoint{
+					point + z_normal * (-r + r),
+					z_normal,
+					inx++,
+					((pi * r) / 2.f) * stretchingFactor * inx
+				}
+			);
+
+			if (j == numOfStrands / 2)
+			{
+				points.push_back(
+					ControlPoint{
+						endPoint + verticalNorm * -r,
+						verticalNorm,
+						inx++,
+						((pi * r) / 2.f) * stretchingFactor * inx
+					}
+				);
+				break;
+			}
+
+			point = lerp(leftPoint, rightPoint, .3334f);
+			horizontalNorm = lerp(hNormLeft, hNormRight, .3334f);
+			z_normal = glm::cross(horizontalNorm, verticalNorm);
+			points.push_back(
+				ControlPoint{
+					point + z_normal * -r,
+					verticalNorm,
+					inx++,
+					((pi * r) / 2.f) * stretchingFactor * inx
+				}
+			);
+
+			point = lerp(leftPoint, rightPoint, .6667f);
+			horizontalNorm = lerp(hNormLeft, hNormRight, .6667f);
+			z_normal = glm::cross(horizontalNorm, verticalNorm);
+			points.push_back(
+				ControlPoint{
+					point + z_normal * (-r - r),
+					z_normal,
+					inx++,
+					((pi * r) / 2.f) * stretchingFactor * inx
+				}
+			);
+
+			point = lerp(leftPoint, rightPoint, 1.f);
+			horizontalNorm = lerp(hNormLeft, hNormRight, 1.f);
+			z_normal = glm::cross(horizontalNorm, verticalNorm);
+			points.push_back(
+				ControlPoint{
+					point + z_normal * -r,
+					-verticalNorm,
+					inx++,
+					((pi * r) / 2.f) * stretchingFactor * inx
+				}
+			);
+
+		}
 
 		strands.push_back(Strand{ points });
 	}

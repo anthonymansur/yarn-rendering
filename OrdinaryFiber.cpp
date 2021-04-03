@@ -157,12 +157,18 @@ void OrdinaryFiber::create()
     case TEST9:
     {
         float length = 10 * 4 * m_fiber.yarn_radius;
+        float horizontalStretch = 1.f; // modify to test
+        float verticalStretch = 1.f; // modify to test
+        float zOffsetP1 = 0;// -0.1f; // modify to test
+        float zOffsetP2 = 0;// 0.5f; // modify to test
+        float zOffsetP3 = 0;// 0.2; // modify to test
+        float zOffsetP4 = 0;// -0.5f; // modify to test
         Pattern2 pattern = Pattern2(m_fiber); 
         std::vector<glm::vec3> points;
-        points.push_back(glm::vec3(0, 0, 0));
-        points.push_back(glm::vec3(length, 0, 0));
-        points.push_back(glm::vec3(length, length, 0));
-        points.push_back(glm::vec3(0, length, 0));
+        points.push_back(glm::vec3(0, 0, zOffsetP1));
+        points.push_back(glm::vec3(length * horizontalStretch, 0, zOffsetP2));
+        points.push_back(glm::vec3(length * horizontalStretch, length * verticalStretch, zOffsetP3));
+        points.push_back(glm::vec3(0, length * verticalStretch, zOffsetP4));
         strands = pattern.getUnitPattern(points, length); // 1 cm per edge
         addStrands(strands);
     }
