@@ -4,6 +4,7 @@
 #include "OrdinaryFiber.h"
 #include "Pattern.h"
 #include "Pattern2.h"
+#include "Fabric.h"
 
 enum RENDER {
     TEST0,
@@ -16,6 +17,7 @@ enum RENDER {
     TEST7,
     TEST8,
     TEST9,
+    TEST10,
     LIVE
 };
 
@@ -37,7 +39,7 @@ void OrdinaryFiber::create()
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
 
-    RENDER render = TEST9;
+    RENDER render = TEST10;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
 
@@ -173,7 +175,20 @@ void OrdinaryFiber::create()
         addStrands(strands);
     }
     break;
+    case TEST10:
+    {
+        Pattern2 pattern = Pattern2(m_fiber);
+        float length = round(10 * 4 * m_fiber.yarn_radius);
+        Fabric *fabric = new SquareFabric(
+            "square", glm::vec3(-.5f, 2.1f, -.5f), glm::vec2(2, 2), glm::vec2(1, 1), .5f);
+        FabricVertex* f = *fabric->begin();
+        std::vector<Strand> strands = pattern.fabricTraversal(f);
+        addStrands(strands);
     }
+    break;
+    }
+
+
 
     // Store the control points in Vertex Buffer Object
     FiberDrawable::create();
