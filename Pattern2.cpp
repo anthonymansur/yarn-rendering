@@ -237,6 +237,97 @@ std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, float ed
 
 		strands.push_back(Strand{ points });
 	}
+	indexOffset = inx; // update index offset for next function call
+	return strands;
+}
+
+uint8_t getSquare(FabricVertex &p1, FabricVertex* p2, FabricVertex* p3, FabricVertex* p4)
+{
+	if (p1.posWeft != nullptr)
+	{
+		p2 = p1.posWeft;
+		if (p2->negWarp != nullptr)
+		{
+			p3 = p2->negWarp;
+			if (p3->negWeft != nullptr)
+			{
+				p4 = p3->negWeft;
+			}
+			else
+				return 3; // p3 has no negWeft
+		}
+		else
+			return 2; // p2 has no negWarp
+	}
+	else
+		return 1; // p1 has no posWeft
+	return 0; // successful square traversal
+}
+
+uint8_t getSquareStatus(FabricVertex* p1)
+{
+	if (p1 == nullptr)
+		return 4;
+	FabricVertex* p2, *p3, *p4;
+	return getSquare(*p1, p2, p3, p4);
+}
+
+std::vector<Strand> Pattern2::fabricTraversal(FabricVertex* node)
+{
+	// initialize current row start node and p1 to p4
+	FabricVertex *p1, *p2, *p3, *p4;
+	FabricVertex *currNode = node;
+	p1 = node;
+
+	// initialize vector of strands
+	std::vector<Strand> strands;
+
+	while (currNode != nullptr)
+	{
+		// make sure currNode is at the leftmost edge
+		while (currNode->negWeft != nullptr)
+		{
+			currNode = currNode->negWeft;
+			p1 = currNode;
+		}
+
+		// iterate row
+		while (p1 != nullptr)
+		{
+			bool incrementCurrNodeTest = true;
+
+			uint8_t error = getSquare(*p1, p2, p3, p4);
+			if (error == 0)
+			{
+				// successful traversal
+				incrementCurrNodeTest = false;
+
+				// generate strands for new square
+				std::vector<Point> points = { p1->localPos, p2->localPos, p3->localPos, p4->localPos };
+				std::vector<Strand> newStrands = getUnitPattern(points, p1->edgeLength[0]);
+
+				// append to strands datastructure
+				strands.insert(strands.end(), newStrands.begin(), newStrands.end());
+
+				// increment p1
+				p1 = p1->posWeft;
+			}
+			else if (error == 1)
+			{
+				// no more nodes to the right
+				p1 = nullptr; 
+			} 
+			else if (error == 2 || error == 3)
+			{
+				// can occur at the leftedge of an upside triangle. may be more squares at the right
+				p1 = p1->posWeft;
+				currNode = incrementCurrNodeTest ? currNode->posWeft : currNode;
+			}
+			else
+				p1 = nullptr; // shouldn't happen
+		}
+		currNode = currNode->negWarp;
+	}
 	return strands;
 }
 

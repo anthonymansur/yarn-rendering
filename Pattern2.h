@@ -1,6 +1,7 @@
 #pragma once
 #include "Fiber.h"
-#include "glm/glm.hpp"
+#include "Fabric.h"
+#include <glm/glm.hpp>
 #include <vector>
 
 // https://www.heddels.com/2017/12/7-weave-patterns-to-know-twill-basketweave-satin-and-more/
@@ -29,6 +30,7 @@ public:
 	Pattern2(const Fiber& type);
 	std::vector<Strand> getUnitPattern(std::vector<Point> points, float edgeLength);
 	std::vector<Strand> getUnitPattern(std::vector<Point> points, std::vector<EndPoints> endpoints, float edgeLength);
+	std::vector<Strand> fabricTraversal(FabricVertex* node);
 private:
 	mutable int indexOffset;
 	const Fiber& type;
