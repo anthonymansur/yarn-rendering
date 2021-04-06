@@ -8,7 +8,7 @@ public:
 	OrdinaryFiber(const Fiber& fiber);
 	~OrdinaryFiber();
 
-	void createTest();
+	void create();
 	void create(std::vector<Fabric*> &fabrics);
 
 	void generateDepthMap();

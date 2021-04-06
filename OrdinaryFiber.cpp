@@ -58,7 +58,7 @@ void OrdinaryFiber::create(std::vector<Fabric*>& fabrics)
     m_indices.clear();
 }
 
-void OrdinaryFiber::createTest()
+void OrdinaryFiber::create()
 {
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points

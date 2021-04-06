@@ -932,7 +932,7 @@ int main()
 
     // Create Ordinary Fiber
     OrdinaryFiber ordinaryFiber = OrdinaryFiber(fiber);
-    ordinaryFiber.createTest();
+    ordinaryFiber.create();
 	// TODO: change to ordinaryFiber.create(std::vector<Fabric*> strands)
 	// NOTE: please see createTest() for current density examples. 
 
