@@ -932,7 +932,9 @@ int main()
 
     // Create Ordinary Fiber
     OrdinaryFiber ordinaryFiber = OrdinaryFiber(fiber);
-    ordinaryFiber.create();
+    ordinaryFiber.createTest();
+	// TODO: change to ordinaryFiber.create(std::vector<Fabric*> strands)
+	// NOTE: please see createTest() for current density examples. 
 
     // Set the textures of CoreFiber into OrdinaryFiber
     ordinaryFiber.setHeightTexture(coreFiber.getHeightTexture());

@@ -1,5 +1,6 @@
 #pragma once
 #include "FiberDrawable.h"
+#include "Fabric.h"
 
 class OrdinaryFiber : public FiberDrawable
 {
@@ -7,7 +8,8 @@ public:
 	OrdinaryFiber(const Fiber& fiber);
 	~OrdinaryFiber();
 
-	void create();
+	void createTest();
+	void create(std::vector<Fabric*> &fabrics);
 
 	void generateDepthMap();
 

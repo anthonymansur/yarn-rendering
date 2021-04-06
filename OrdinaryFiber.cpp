@@ -4,7 +4,6 @@
 #include "OrdinaryFiber.h"
 #include "Pattern.h"
 #include "Pattern2.h"
-#include "Fabric.h"
 
 enum RENDER {
     TEST0,
@@ -34,7 +33,32 @@ OrdinaryFiber::~OrdinaryFiber()
 	FiberDrawable::~FiberDrawable();
 }
 
-void OrdinaryFiber::create()
+void OrdinaryFiber::create(std::vector<Fabric*>& fabrics)
+{
+    std::vector<Strand> strands;
+    std::vector<ControlPoint> points;
+
+    Pattern2 pattern = Pattern2(m_fiber);
+
+    for (Fabric* fabric : fabrics)
+    {
+        FabricVertex* f = *fabric->begin();
+        std::vector<Strand> strands = pattern.fabricTraversal(f, fabric->position);
+        addStrands(strands);
+    }
+
+    // Store the control points in Vertex Buffer Object
+    FiberDrawable::create();
+
+    // Depth Map
+    generateDepthMap();
+
+    // Clear std::vectors no longer needed
+    m_points.clear();
+    m_indices.clear();
+}
+
+void OrdinaryFiber::createTest()
 {
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
@@ -179,11 +203,17 @@ void OrdinaryFiber::create()
     {
         Pattern2 pattern = Pattern2(m_fiber);
         float length = round(10 * 4 * m_fiber.yarn_radius);
-        Fabric *fabric = new SquareFabric(
-            "square", glm::vec3(-.5f, 2.1f, -.5f), glm::vec2(2, 2), glm::vec2(1, 1), .5f);
-        FabricVertex* f = *fabric->begin();
-        std::vector<Strand> strands = pattern.fabricTraversal(f);
-        addStrands(strands);
+        Fabric *fabric1 = new SquareFabric(
+            "square", glm::vec3(0.f, 0.f, 0.f), glm::vec2(2, 2), glm::vec2(1, 1), .5f);
+        Fabric* fabric2 = new SquareFabric(
+            "square", glm::vec3(0.f, 1.f, 0.f), glm::vec2(2, 2), glm::vec2(1, 1), .5f);
+        FabricVertex* f1 = *fabric1->begin();
+        FabricVertex* f2 = *fabric2->begin();
+        std::vector<Strand> strands1 = pattern.fabricTraversal(f1, fabric1->position);
+        std::vector<Strand> strands2 = pattern.fabricTraversal(f2, fabric2->position);
+
+        addStrands(strands1);
+        addStrands(strands2);
     }
     break;
     }

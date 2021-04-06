@@ -28,9 +28,9 @@ class Pattern2
 {
 public:
 	Pattern2(const Fiber& type);
-	std::vector<Strand> getUnitPattern(std::vector<Point> points, float edgeLength);
-	std::vector<Strand> getUnitPattern(std::vector<Point> points, std::vector<EndPoints> endpoints, float edgeLength);
-	std::vector<Strand> fabricTraversal(FabricVertex* node);
+	std::vector<Strand> getUnitPattern(std::vector<Point> &points, float edgeLength);
+	std::vector<Strand> getUnitPattern(std::vector<Point> &points, std::vector<EndPoints> &endpoints, float edgeLength);
+	std::vector<Strand> fabricTraversal(FabricVertex* node, Point &origin);
 private:
 	mutable int indexOffset;
 	const Fiber& type;

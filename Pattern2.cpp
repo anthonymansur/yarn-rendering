@@ -10,7 +10,7 @@ T lerp(T& start, T& end, float k)
 	return (1 - k) * start + k * end;
 }
 
-std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, float edgeLength)
+std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> &points, float edgeLength)
 {
 	// points 
 	Point& p1 = points.at(0);
@@ -264,7 +264,7 @@ uint8_t getSquare(FabricVertex &p1, FabricVertex **p2, FabricVertex **p3, Fabric
 	return 0; // successful square traversal
 }
 
-std::vector<Strand> Pattern2::fabricTraversal(FabricVertex* node)
+std::vector<Strand> Pattern2::fabricTraversal(FabricVertex* node, Point &origin)
 {
 	// initialize current row start node and p1 to p4
 	FabricVertex *p1 = nullptr, *p2 = nullptr, *p3 = nullptr, *p4 = nullptr;
@@ -295,7 +295,7 @@ std::vector<Strand> Pattern2::fabricTraversal(FabricVertex* node)
 				incrementCurrNodeTest = false;
 
 				// generate strands for new square
-				std::vector<Point> points = {p1->localPos, p2->localPos, p3->localPos, p4->localPos};
+				std::vector<Point> points = {origin + p1->localPos, origin + p2->localPos, origin + p3->localPos, origin + p4->localPos};
 				std::vector<Strand> newStrands = getUnitPattern(points, p1->edgeLength[0]);
 
 				// append to strands datastructure
@@ -325,7 +325,7 @@ std::vector<Strand> Pattern2::fabricTraversal(FabricVertex* node)
 }
 
 // TODO: modify algorithm to include a 2D bezier surface as opposed lerping through each point.
-std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> points, std::vector<EndPoints> endpoints, float edgeLength)
+std::vector<Strand> Pattern2::getUnitPattern(std::vector<Point> &points, std::vector<EndPoints> &endpoints, float edgeLength)
 {
 	// points 
 	Point& p1 = points.at(0), h1 = endpoints.at(0).hPoint, v1 = endpoints.at(0).vPoint;
