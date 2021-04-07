@@ -284,7 +284,7 @@ void FiberShader::setFiberParameters(const Fiber& m_fiberType)
     setFloat("u_ellipse_long", m_fiberType.ellipse_long);
     setFloat("u_ellipse_short", m_fiberType.ellipse_short);
 
-    setInt("u_epsilon", m_fiberType.epsilon);
+    setFloat("u_epsilon", m_fiberType.epsilon);
     setFloat("u_beta", m_fiberType.beta);
     setFloat("u_r_max", m_fiberType.r_max);
 
