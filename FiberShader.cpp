@@ -9,7 +9,7 @@ FiberShader::FiberShader(
     const char* fragmentPath,
     const char* geometryPath,
     const char* tessellationControlPath,
-    const char* tessellationEvalPath)
+    const char* tessellationEvalPath) : Shader(vertexPath, fragmentPath, geometryPath, tessellationControlPath, tessellationEvalPath)
 {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
@@ -138,12 +138,12 @@ FiberShader::FiberShader(
         glDeleteShader(geometry);
 }
 
-void FiberShader::draw(Drawable *d, int texSlot)
+void FiberShader::draw(Drawable* d, int texSlot)
 {
     use();
 
-    CoreFiber *cd = dynamic_cast<CoreFiber*>(d);
-    OrdinaryFiber *od = dynamic_cast<OrdinaryFiber*>(d);
+    CoreFiber* cd = dynamic_cast<CoreFiber*>(d);
+    OrdinaryFiber* od = dynamic_cast<OrdinaryFiber*>(d);
 
     if (cd != nullptr)
     {
@@ -193,7 +193,7 @@ void FiberShader::draw(Drawable *d, int texSlot)
                 800,
                 800,
                 GL_COLOR_BUFFER_BIT, GL_LINEAR);
-        }     
+        }
 #endif
     }
     else if (od != nullptr)

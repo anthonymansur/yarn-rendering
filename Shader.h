@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "drawable.h"
+#include "Drawable.h"
 #include "InterleavedDrawable.h"
 
 // NOTE: need to merge Alex's shader with this shader. Perhaps use some inheritance
@@ -16,7 +16,6 @@ class Shader
 {
 public:
     unsigned int ID;
-    Shader();
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     Shader(const char* vertexPath,
@@ -51,7 +50,7 @@ public:
     void setMat4(const std::string& name, const glm::mat4& mat) const;
 
     virtual void draw(Drawable* d, int texSlot = 0);
-    void draw(InterleavedDrawable* d, int textSlot = 0);
+    void draw(InterleavedDrawable* d, int texSlot = 0);
 
     void setTime(int t);
 
