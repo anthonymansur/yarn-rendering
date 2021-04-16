@@ -35,6 +35,7 @@ struct Fiber
 {
     Fiber(FIBER_TYPE type);
 
+    void changeFiberType(FIBER_TYPE);
     void readFiberParameters(FIBER_TYPE);
 
     FIBER_TYPE getFiberType() const;

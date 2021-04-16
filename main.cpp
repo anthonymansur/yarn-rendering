@@ -274,7 +274,8 @@ int main()
 
         if (fiber.getFiberType() != fiberType)
         {
-            // TODO: implement
+            FIBER_TYPE newType = fiber.fiberType;
+            fiber.changeFiberType(newType);
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

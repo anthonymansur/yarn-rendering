@@ -22,8 +22,6 @@ FabricVertex*& iterator::operator*() const
     return this->fab->next(this->idx);
 }
 
-
-
 FabricVertex::FabricVertex(glm::vec3 p, glm::vec2 l)
     : debugColor(glm::vec3(1.f, 1.f, 1.f)), origPos(p), localPos(p), tmpPos(p), edgeLength(l), negWarp(nullptr), posWarp(nullptr), negWeft(nullptr), posWeft(nullptr), other(nullptr), id(0), velocity(glm::vec3(0, 0, 0))
 {

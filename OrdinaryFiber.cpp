@@ -63,7 +63,7 @@ void OrdinaryFiber::create()
     std::cout << "Creating ordinary fiber drawable" << std::endl;
     // Create control points
 
-    RENDER render = TEST10;
+    RENDER render = TEST8;
     std::vector<Strand> strands;
     std::vector<ControlPoint> points;
 
@@ -175,9 +175,9 @@ void OrdinaryFiber::create()
         strands = pattern.getBasicWeave(10);
         addStrands(strands);
 
-        pattern.updatePosition(glm::vec3(-0.2, -1, -1));
-        strands = pattern.getBasicWeave(10);
-        addStrands(strands);
+       // pattern.updatePosition(glm::vec3(-0.2, -1, -1));
+        //strands = pattern.getBasicWeave(10);
+        //addStrands(strands);
     }
     break;
     case TEST9:

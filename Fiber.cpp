@@ -28,6 +28,12 @@ Fiber::Fiber(FIBER_TYPE type) : fiberType(type) // TODO: change
 	readFiberParameters(type);
 }
 
+void Fiber::changeFiberType(FIBER_TYPE type)
+{
+	fiberType = type;
+	readFiberParameters(type);
+}
+
 void Fiber::readFiberParameters(FIBER_TYPE type)
 {
 	std::string filename;
