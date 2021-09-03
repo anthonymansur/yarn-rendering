@@ -1,9 +1,14 @@
 # Senior Design Project: Virtual Fitting Room
 Written by Anthony Mansur.
 This is the second portion of our two-part pipeline (simulation and rendering).
+Senior Design Poster: https://drive.google.com/file/d/1x3a35UVORNeP4AWRU7Qqcjrqk10oundO/view
+Senior Design Demo: https://www.youtube.com/watch?v=SEVx0VuM56E
 
 ## Description
 The goal of this project for the first half of the semester is to render yarn with fiber-level detail for added realism. What has been accomplished so far is a base render of a straight piece of yarn given most of the fiber parameters provided. A GUI has been added to adjust these parameters, change the type of fiber, and see the core fiber texture. 
+
+https://drive.google.com/file/d/14w5Hl_V-kXffvdaFFo7Uyu8Fj25Ko6JV/view?usp=sharing
+
 
 ### Pipeline
 The current pipeline to render fiber-level yarn is as follows:
