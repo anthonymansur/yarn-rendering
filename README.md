@@ -1,6 +1,7 @@
 # Senior Design Project: Virtual Fitting Room
 Written by Anthony Mansur.
 This is the second portion of our two-part pipeline (simulation and rendering).
+
 Senior Design Poster: https://drive.google.com/file/d/1x3a35UVORNeP4AWRU7Qqcjrqk10oundO/view
 
 Senior Design Demo: https://www.youtube.com/watch?v=SEVx0VuM56E
